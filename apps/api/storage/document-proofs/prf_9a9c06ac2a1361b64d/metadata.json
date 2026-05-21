@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "proofId": "prf_9a9c06ac2a1361b64d",
+  "verificationId": "dpf_a7437b4d05dfd14cf0",
+  "verificationCode": "DP-58BBE940143E",
+  "signedVerificationToken": "c41cf704027c6e0327fab714f2f11b930f60dffdda5bc16e52d34e79438cb845",
+  "title": "Registrar transcript specimen",
+  "documentType": "Transcript",
+  "referenceNumber": "QA-TRANSCRIPT-2026",
+  "documentDate": "2026-05-14T00:00:00.000Z",
+  "sourceHash": "982149791d2da00a3a4464ac9077eab64bb571ff8aac96fe5283e93c6c4053c5",
+  "qrPayload": "http://127.0.0.1:3000/proof/dpf_a7437b4d05dfd14cf0?token=c41cf704027c6e0327fab714f2f11b930f60dffdda5bc16e52d34e79438cb845",
+  "proofUrl": "http://127.0.0.1:3000/proof/dpf_a7437b4d05dfd14cf0",
+  "metadataUri": "http://127.0.0.1:4000/api/document-proofs/prf_9a9c06ac2a1361b64d/metadata",
+  "qrCodeUri": "http://127.0.0.1:4000/api/document-proofs/prf_9a9c06ac2a1361b64d/qr",
+  "issuer": {
+    "id": "issuer_main",
+    "name": "Example University",
+    "displayName": "Example University",
+    "domain": "example.edu",
+    "logoUrl": null,
+    "websiteUrl": "https://example.edu",
+    "status": "ACTIVE"
+  }
+}

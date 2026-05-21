@@ -1,0 +1,785 @@
+@import "tailwindcss";
+
+/* ============================================================
+   CERTIVA — INSTITUTIONAL CREDENTIAL INFRASTRUCTURE
+   Dual-mode design system: light + dark
+   Swiss Modernism 2.0 / Minimalism — enterprise grade
+   ============================================================ */
+
+/* ── LIGHT MODE (default) ─────────────────────────────────── */
+:root {
+  /* Raw palette — zinc-neutral, no warm/cool mixing */
+  --z-950: 240 10% 4%;
+  --z-900: 240 6% 10%;
+  --z-800: 240 5% 16%;
+  --z-750: 240 5% 20%;
+  --z-700: 240 5% 26%;
+  --z-600: 240 4% 36%;
+  --z-500: 240 4% 46%;
+  --z-400: 240 5% 65%;
+  --z-300: 240 6% 78%;
+  --z-200: 240 6% 90%;
+  --z-150: 240 6% 93%;
+  --z-100: 240 6% 95%;
+  --z-50:  240 9% 98%;
+
+  /* Semantic surfaces */
+  --bg-canvas:   240 9% 97%;    /* page background */
+  --bg-base:     0 0% 100%;     /* primary surface (cards, panels) */
+  --bg-subtle:   240 6% 96%;    /* inset areas, alt rows */
+  --bg-muted:    240 6% 93%;    /* hover states, secondary backgrounds */
+  --bg-elevated: 0 0% 100%;     /* elevated elements */
+
+  /* Borders */
+  --border-strong:   240 5% 82%;
+  --border-default:  240 5% 88%;
+  --border-subtle:   240 5% 92%;
+  --border-input:    240 5% 80%;
+  --border-focus:    240 5% 46%;
+
+  /* Text */
+  --text-primary:   240 10% 6%;
+  --text-secondary: 240 4% 36%;
+  --text-tertiary:  240 4% 52%;
+  --text-quaternary:240 4% 68%;
+  --text-inverse:   0 0% 100%;
+
+  /* Status — desaturated institutional tones */
+  --status-valid-bg:       152 30% 94%;
+  --status-valid-border:   152 30% 82%;
+  --status-valid-text:     152 55% 24%;
+  --status-valid-dot:      152 55% 40%;
+
+  --status-warn-bg:        38 60% 94%;
+  --status-warn-border:    38 55% 80%;
+  --status-warn-text:      30 60% 28%;
+  --status-warn-dot:       38 70% 48%;
+
+  --status-error-bg:       0 55% 95%;
+  --status-error-border:   0 50% 82%;
+  --status-error-text:     0 60% 30%;
+  --status-error-dot:      0 65% 48%;
+
+  --status-neutral-bg:     240 5% 94%;
+  --status-neutral-border: 240 5% 82%;
+  --status-neutral-text:   240 4% 36%;
+  --status-neutral-dot:    240 4% 56%;
+
+  /* Button tokens */
+  --btn-primary-bg:      240 10% 6%;
+  --btn-primary-text:    0 0% 100%;
+  --btn-primary-border:  240 10% 6%;
+  --btn-ghost-bg:        0 0% 100%;
+  --btn-ghost-text:      240 4% 36%;
+  --btn-ghost-border:    240 5% 82%;
+}
+
+/* ── DARK MODE ─────────────────────────────────────────────── */
+.dark {
+  --bg-canvas:   240 10% 6%;
+  --bg-base:     240 8% 9%;
+  --bg-subtle:   240 7% 11%;
+  --bg-muted:    240 6% 14%;
+  --bg-elevated: 240 5% 17%;
+
+  --border-strong:    240 5% 28%;
+  --border-default:   240 5% 22%;
+  --border-subtle:    240 5% 17%;
+  --border-input:     240 5% 28%;
+  --border-focus:     240 5% 55%;
+
+  --text-primary:    240 6% 96%;
+  --text-secondary:  240 5% 65%;
+  --text-tertiary:   240 4% 46%;
+  --text-quaternary: 240 4% 34%;
+  --text-inverse:    240 10% 6%;
+
+  --status-valid-bg:       152 20% 11%;
+  --status-valid-border:   152 25% 20%;
+  --status-valid-text:     152 50% 58%;
+  --status-valid-dot:      152 55% 48%;
+
+  --status-warn-bg:        38 25% 10%;
+  --status-warn-border:    38 30% 22%;
+  --status-warn-text:      38 70% 60%;
+  --status-warn-dot:       38 70% 52%;
+
+  --status-error-bg:       0 20% 10%;
+  --status-error-border:   0 25% 22%;
+  --status-error-text:     0 65% 62%;
+  --status-error-dot:      0 65% 52%;
+
+  --status-neutral-bg:     240 5% 14%;
+  --status-neutral-border: 240 5% 24%;
+  --status-neutral-text:   240 4% 60%;
+  --status-neutral-dot:    240 4% 48%;
+
+  --btn-primary-bg:      0 0% 96%;
+  --btn-primary-text:    240 10% 6%;
+  --btn-primary-border:  0 0% 96%;
+  --btn-ghost-bg:        240 5% 14%;
+  --btn-ghost-text:      240 5% 65%;
+  --btn-ghost-border:    240 5% 22%;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  border-color: hsl(var(--border-default));
+}
+
+html {
+  min-height: 100%;
+  background: hsl(var(--bg-canvas));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100%;
+  background: hsl(var(--bg-canvas));
+  color: hsl(var(--text-primary));
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: hsl(var(--z-700) / 0.18);
+  color: hsl(var(--text-primary));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.app-shell {
+  background: hsl(var(--bg-canvas));
+  min-height: 100dvh;
+}
+
+/* Sidebar — blends with canvas in light, distinct in dark */
+.sidebar-surface {
+  background: hsl(var(--bg-canvas));
+  border-right: 1px solid hsl(var(--border-default));
+}
+
+.dark .sidebar-surface {
+  background: hsl(var(--bg-base));
+}
+
+/* Topbar */
+.topbar-surface {
+  background: hsl(var(--bg-canvas) / 0.92);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid hsl(var(--border-default));
+}
+
+/* ============================================================
+   SURFACE SYSTEM
+   ============================================================ */
+
+/* Main working surface — used for panels that contain content */
+.work-surface {
+  background: hsl(var(--bg-base));
+  border: 1px solid hsl(var(--border-default));
+  border-radius: 10px;
+}
+
+/* Inset / nested panel */
+.inset-surface {
+  background: hsl(var(--bg-subtle));
+  border: 1px solid hsl(var(--border-subtle));
+  border-radius: 8px;
+}
+
+/* Rule-separated list panels */
+.list-panel {
+  background: hsl(var(--bg-base));
+  border: 1px solid hsl(var(--border-default));
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.list-panel-row {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid hsl(var(--border-subtle));
+  transition: background-color 120ms ease;
+}
+
+.list-panel-row:last-child {
+  border-bottom: none;
+}
+
+.list-panel-row:hover {
+  background: hsl(var(--bg-subtle));
+}
+
+/* ============================================================
+   METRIC STRIP — used for KPI rows
+   ============================================================ */
+
+.metric-strip {
+  display: grid;
+  border: 1px solid hsl(var(--border-default));
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.metric-cell {
+  background: hsl(var(--bg-base));
+  padding: 1.25rem 1.5rem;
+  border-right: 1px solid hsl(var(--border-default));
+  min-width: 0;
+}
+
+.metric-cell:last-child {
+  border-right: none;
+}
+
+@media (max-width: 640px) {
+  .metric-cell {
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border-default));
+  }
+
+  .metric-cell:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ============================================================
+   DATA TABLES — premium, dense, institutional
+   ============================================================ */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.data-table thead {
+  background: hsl(var(--bg-subtle));
+}
+
+.data-table thead th {
+  border-bottom: 1px solid hsl(var(--border-default));
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid hsl(var(--border-subtle));
+  transition: background-color 100ms ease;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: hsl(var(--bg-subtle));
+}
+
+.th-cell {
+  padding: 0.5rem 1rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: hsl(var(--text-tertiary));
+  white-space: nowrap;
+}
+
+.td-cell {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  color: hsl(var(--text-primary));
+}
+
+.td-cell-sm {
+  padding: 0.625rem 1rem;
+  vertical-align: middle;
+  color: hsl(var(--text-primary));
+}
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+
+.field-shell {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border-input));
+  background: hsl(var(--bg-base));
+  padding: 0.3125rem 0.625rem;
+  color: hsl(var(--text-primary));
+  font-size: 0.8125rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.dark .field-shell {
+  background: hsl(var(--bg-muted));
+}
+
+.field-shell:hover {
+  border-color: hsl(var(--border-strong));
+}
+
+.field-shell:focus-visible,
+.field-shell:focus {
+  outline: none;
+  border-color: hsl(var(--border-focus));
+  box-shadow: 0 0 0 3px hsl(var(--border-focus) / 0.14);
+}
+
+.field-shell::placeholder {
+  color: hsl(var(--text-quaternary));
+}
+
+.field-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--text-tertiary));
+  margin-bottom: 0.25rem;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+/* Primary: black on light, near-white on dark */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--btn-primary-text));
+  background: hsl(var(--btn-primary-bg));
+  border: 1px solid hsl(var(--btn-primary-border));
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 140ms ease, transform 100ms ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Ghost: subtle, secondary actions */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--btn-ghost-text));
+  background: hsl(var(--btn-ghost-bg));
+  border: 1px solid hsl(var(--btn-ghost-border));
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 100ms ease;
+}
+
+.btn-ghost:hover {
+  background: hsl(var(--bg-muted));
+  border-color: hsl(var(--border-strong));
+  color: hsl(var(--text-primary));
+}
+
+.btn-ghost:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Danger — revoke / delete */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--status-error-text));
+  background: hsl(var(--status-error-bg));
+  border: 1px solid hsl(var(--status-error-border));
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 140ms ease, transform 100ms ease;
+}
+
+.btn-danger:hover {
+  opacity: 0.8;
+}
+
+.btn-danger:active {
+  transform: scale(0.98);
+}
+
+/* Small variant — table actions */
+.btn-sm {
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  font-size: 0.75rem;
+  border-radius: 5px;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+/* Page-level headings */
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: hsl(var(--text-primary));
+}
+
+/* Section heading within a page */
+.section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: hsl(var(--text-primary));
+}
+
+/* Kicker / overline label above a heading */
+.kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: hsl(var(--text-tertiary));
+}
+
+/* Body / description text */
+.body-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: hsl(var(--text-secondary));
+}
+
+/* Small metadata label */
+.meta-text {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: hsl(var(--text-tertiary));
+}
+
+/* Monospaced hash / code */
+.hash-text {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  word-break: break-all;
+}
+
+/* Numeric KPI values */
+.kpi-value {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: hsl(var(--text-primary));
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value-lg {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: hsl(var(--text-primary));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   STATUS BADGES — semantic, accessible, dual-mode
+   ============================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.badge-valid {
+  background: hsl(var(--status-valid-bg));
+  border-color: hsl(var(--status-valid-border));
+  color: hsl(var(--status-valid-text));
+}
+
+.badge-warn {
+  background: hsl(var(--status-warn-bg));
+  border-color: hsl(var(--status-warn-border));
+  color: hsl(var(--status-warn-text));
+}
+
+.badge-error {
+  background: hsl(var(--status-error-bg));
+  border-color: hsl(var(--status-error-border));
+  color: hsl(var(--status-error-text));
+}
+
+.badge-neutral {
+  background: hsl(var(--status-neutral-bg));
+  border-color: hsl(var(--status-neutral-border));
+  color: hsl(var(--status-neutral-text));
+}
+
+/* ============================================================
+   NAV ITEMS
+   ============================================================ */
+
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  width: 100%;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 450;
+  color: hsl(var(--text-tertiary));
+  transition: background-color 110ms ease, color 110ms ease;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: hsl(var(--bg-muted));
+  color: hsl(var(--text-primary));
+}
+
+.nav-item-active {
+  background: hsl(var(--bg-muted));
+  color: hsl(var(--text-primary));
+  font-weight: 500;
+}
+
+.dark .nav-item:hover {
+  background: hsl(var(--bg-elevated));
+}
+
+.dark .nav-item-active {
+  background: hsl(var(--bg-elevated));
+}
+
+/* ============================================================
+   PAGE HEADER — consistent across dashboard pages
+   ============================================================ */
+
+.page-header {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid hsl(var(--border-default));
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--bg-muted));
+  border-radius: 5px;
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--text-primary) / 0.04) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  content: "";
+}
+
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* ============================================================
+   STATUS DOTS — small inline indicators
+   ============================================================ */
+
+.dot-valid   { background: hsl(var(--status-valid-dot)); }
+.dot-warn    { background: hsl(var(--status-warn-dot)); }
+.dot-error   { background: hsl(var(--status-error-dot)); }
+.dot-neutral { background: hsl(var(--status-neutral-dot)); }
+
+/* ============================================================
+   VERIFICATION RESULT STATES
+   ============================================================ */
+
+.result-accent-valid   { border-top: 2px solid hsl(var(--status-valid-dot)); }
+.result-accent-warn    { border-top: 2px solid hsl(var(--status-warn-dot)); }
+.result-accent-error   { border-top: 2px solid hsl(var(--status-error-dot)); }
+.result-accent-neutral { border-top: 2px solid hsl(var(--border-strong)); }
+
+/* ============================================================
+   DISCLOSURE
+   ============================================================ */
+
+.disclosure-trigger {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--text-tertiary));
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  transition: color 140ms ease;
+  user-select: none;
+}
+
+.disclosure-trigger:hover {
+  color: hsl(var(--text-primary));
+}
+
+.disclosure-trigger::-webkit-details-marker {
+  display: none;
+}
+
+/* ============================================================
+   ROLE CHIP
+   ============================================================ */
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: hsl(var(--bg-muted));
+  border: 1px solid hsl(var(--border-default));
+  color: hsl(var(--text-tertiary));
+}
+
+/* ============================================================
+   DIVIDERS
+   ============================================================ */
+
+.rule {
+  border: none;
+  border-top: 1px solid hsl(var(--border-default));
+}
+
+/* ============================================================
+   THEME TOGGLE BUTTON
+   ============================================================ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border-default));
+  background: transparent;
+  color: hsl(var(--text-tertiary));
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.theme-toggle:hover {
+  background: hsl(var(--bg-muted));
+  color: hsl(var(--text-primary));
+  border-color: hsl(var(--border-strong));
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 1.375rem;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .skeleton::after {
+    animation: none;
+  }
+}

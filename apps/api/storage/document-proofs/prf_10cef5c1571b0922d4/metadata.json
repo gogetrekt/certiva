@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "proofId": "prf_10cef5c1571b0922d4",
+  "verificationId": "dpf_8492e06ee1709d1ad6",
+  "verificationCode": "DP-565B7507E0BD",
+  "signedVerificationToken": "49c95c13a22f4fab8268c2e085640f9ac7462a899b0fc45d713b2e5ce707525f",
+  "title": "Clean smoke transcript",
+  "documentType": "Transcript",
+  "referenceNumber": "SMOKE-2026-01",
+  "documentDate": "2026-05-14T00:00:00.000Z",
+  "sourceHash": "982149791d2da00a3a4464ac9077eab64bb571ff8aac96fe5283e93c6c4053c5",
+  "qrPayload": "http://127.0.0.1:3000/proof/dpf_8492e06ee1709d1ad6?token=49c95c13a22f4fab8268c2e085640f9ac7462a899b0fc45d713b2e5ce707525f",
+  "proofUrl": "http://127.0.0.1:3000/proof/dpf_8492e06ee1709d1ad6",
+  "metadataUri": "http://127.0.0.1:4000/api/document-proofs/prf_10cef5c1571b0922d4/metadata",
+  "qrCodeUri": "http://127.0.0.1:4000/api/document-proofs/prf_10cef5c1571b0922d4/qr",
+  "issuer": {
+    "id": "issuer_main",
+    "name": "Example University",
+    "displayName": "Example University",
+    "domain": "example.edu",
+    "logoUrl": null,
+    "websiteUrl": "https://example.edu",
+    "status": "ACTIVE"
+  }
+}

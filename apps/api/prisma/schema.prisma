@@ -1,0 +1,353 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IssuerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum AdminRole {
+  OWNER
+  SUPER_ADMIN
+  ADMIN
+  AUDITOR
+}
+
+enum RevocationReason {
+  DATA_CORRECTION
+  ISSUED_IN_ERROR
+  FRAUD_SUSPECTED
+  INSTITUTION_REQUEST
+  OTHER
+  LEGACY
+}
+
+enum AuditAction {
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  LOGOUT
+  ADMIN_CREATED
+  ADMIN_UPDATED
+  ADMIN_DISABLED
+  ADMIN_DELETED
+  ADMIN_ROLE_CHANGED
+  ADMIN_PASSWORD_CHANGED
+  CREDENTIAL_ISSUED
+  CREDENTIAL_REVOKED
+  CREDENTIAL_DELETED
+  DOCUMENT_PROOF_CREATED
+  DOCUMENT_PROOF_DELETED
+  SETTINGS_UPDATED
+  FORBIDDEN_ATTEMPT
+}
+
+enum VerificationResult {
+  VALID
+  INVALID
+  REVOKED
+  NOT_FOUND
+}
+
+enum VerificationMode {
+  CORE_REGISTRY
+  SECURE_PDF
+}
+
+enum IssuanceBatchSourceType {
+  CSV
+  API
+}
+
+enum CredentialDocumentProofSourceType {
+  SINGLE_PDF
+  BATCH_ZIP
+}
+
+enum CredentialDocumentProofStatus {
+  ACTIVE
+  SUPERSEDED
+  REVOKED
+}
+
+enum VerificationEventType {
+  REGISTRY_CODE_LOOKUP
+  QR_LOOKUP
+  PDF_INTEGRITY_CHECK
+}
+
+enum DocumentProofVerificationSource {
+  CODE_LOOKUP
+  QR_LOOKUP
+  PDF_UPLOAD
+}
+
+model Issuer {
+  id             String                @id @default(cuid())
+  name           String
+  displayName    String?
+  domain         String                @unique
+  logoUrl        String?
+  websiteUrl     String?
+  wallet         String?               @unique
+  status         IssuerStatus          @default(ACTIVE)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  credentials    Credential[]
+  admins         Admin[]
+  batches        IssuanceBatch[]
+  documentProofs SecureDocumentProof[]
+
+  @@index([domain])
+}
+
+model Credential {
+  id                        String                    @id @default(cuid())
+  credentialExternalId      String                    @unique
+  verificationId            String                    @unique
+  verificationCode          String                    @unique
+  signedVerificationToken   String                    @unique
+  qrPayload                 String
+  verificationMode          VerificationMode          @default(CORE_REGISTRY)
+  securePdfEnabled          Boolean                   @default(false)
+  studentName               String
+  studentId                 String
+  degree                    String
+  graduationYear            Int?
+  metadataUri               String
+  metadataJson              Json
+  qrCodeUri                 String
+  certificateUri            String?
+  verificationUrl           String
+  hash                      String                    @unique
+  registryHash              String                    @unique
+  chainProofHash            String                    @unique
+  documentHash              String?                   @unique
+  fileName                  String?
+  mimeType                  String?
+  fileSize                  Int?
+  txHash                    String?
+  revocationTxHash          String?
+  chainId                   Int?
+  anchoredAt                DateTime?
+  blockNumber               Int?
+  anchorStatus              String                    @default("PENDING")
+  chainStatus               String                    @default("PENDING")
+  chainSyncedAt             DateTime?
+  anchorVersion             String                    @default("V1")
+  issuerWallet              String?
+  chainVerificationMetadata Json?
+  revoked                   Boolean                   @default(false)
+  revokedAt                 DateTime?
+  revokedBy                 String?
+  revokedByAdminId          String?
+  revocationReason          RevocationReason?
+  revocationNotes           String?
+  verificationCount         Int                       @default(0)
+  verifiedAt                DateTime?
+  issuedAt                  DateTime                  @default(now())
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+  issuerId                  String
+  issuer                    Issuer                    @relation(fields: [issuerId], references: [id])
+  batchId                   String?
+  batch                     IssuanceBatch?            @relation(fields: [batchId], references: [id])
+  documentProofs            CredentialDocumentProof[]
+  verificationLogs          VerificationLog[]
+  blockchainLogs            BlockchainAnchorLog[]
+
+  @@index([issuerId])
+  @@index([credentialExternalId])
+  @@index([hash])
+  @@index([registryHash])
+  @@index([studentId])
+  @@index([issuerId, studentId])
+  @@index([verificationId])
+  @@index([verificationCode])
+  @@index([batchId])
+  @@index([anchorStatus])
+  @@index([chainStatus])
+  @@index([anchorVersion])
+}
+
+model IssuanceBatch {
+  id          String                  @id @default(cuid())
+  issuerId    String
+  issuer      Issuer                  @relation(fields: [issuerId], references: [id])
+  uploadedBy  String
+  sourceType  IssuanceBatchSourceType @default(CSV)
+  totalRows   Int                     @default(0)
+  issuedRows  Int                     @default(0)
+  failedRows  Int                     @default(0)
+  createdAt   DateTime                @default(now())
+  anchoredAt  DateTime?
+  txHash      String?
+  credentials Credential[]
+
+  @@index([issuerId])
+  @@index([createdAt])
+}
+
+model CredentialDocumentProof {
+  id           String                            @id @default(cuid())
+  credentialId String
+  credential   Credential                        @relation(fields: [credentialId], references: [id])
+  hash         String
+  algorithm    String                            @default("SHA-256")
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  registeredAt DateTime                          @default(now())
+  registeredBy String
+  sourceType   CredentialDocumentProofSourceType
+  status       CredentialDocumentProofStatus     @default(ACTIVE)
+
+  @@unique([credentialId, hash])
+  @@index([credentialId])
+  @@index([hash])
+  @@index([status])
+}
+
+model SecureDocumentProof {
+  id                        String                               @id @default(cuid())
+  proofExternalId           String                               @unique
+  verificationId            String                               @unique
+  verificationCode          String                               @unique
+  signedVerificationToken   String                               @unique
+  qrPayload                 String
+  proofUrl                  String
+  metadataUri               String
+  qrCodeUri                 String
+  title                     String
+  documentType              String
+  referenceNumber           String?
+  documentDate              DateTime?
+  fileName                  String
+  mimeType                  String
+  fileSize                  Int
+  sourceHash                String                               @unique
+  txHash                    String?
+  chainId                   Int?
+  anchoredAt                DateTime?
+  blockNumber               Int?
+  anchorStatus              String                               @default("PENDING")
+  chainStatus               String                               @default("PENDING")
+  chainSyncedAt             DateTime?
+  anchorVersion             String                               @default("V2")
+  issuerWallet              String?
+  chainVerificationMetadata Json?
+  revoked                   Boolean                              @default(false)
+  revokedAt                 DateTime?
+  revokedBy                 String?
+  revokedByAdminId          String?
+  revocationReason          RevocationReason?
+  revocationNotes           String?
+  verificationCount         Int                                  @default(0)
+  verifiedAt                DateTime?
+  createdBy                 String
+  createdAt                 DateTime                             @default(now())
+  updatedAt                 DateTime                             @updatedAt
+  issuerId                  String
+  issuer                    Issuer                               @relation(fields: [issuerId], references: [id])
+  verificationLogs          SecureDocumentProofVerificationLog[]
+
+  @@index([issuerId])
+  @@index([verificationId])
+  @@index([verificationCode])
+  @@index([sourceHash])
+  @@index([anchorStatus])
+  @@index([chainStatus])
+}
+
+model SecureDocumentProofVerificationLog {
+  id              String                          @id @default(cuid())
+  documentProofId String?
+  documentProof   SecureDocumentProof?            @relation(fields: [documentProofId], references: [id])
+  sourceType      DocumentProofVerificationSource @default(PDF_UPLOAD)
+  uploadedHash    String?
+  matched         Boolean                         @default(false)
+  status          String
+  ipAddress       String?
+  createdAt       DateTime                        @default(now())
+
+  @@index([documentProofId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  username     String?   @unique
+  email        String    @unique
+  password     String
+  role         AdminRole @default(ADMIN)
+  active       Boolean   @default(true)
+  tokenVersion Int       @default(0)
+  issuerId     String?
+  issuer       Issuer?   @relation(fields: [issuerId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([issuerId])
+}
+
+model VerificationLog {
+  id           String                @id @default(cuid())
+  credentialId String?
+  credential   Credential?           @relation(fields: [credentialId], references: [id])
+  eventType    VerificationEventType @default(REGISTRY_CODE_LOOKUP)
+  uploadedHash String?
+  matched      Boolean               @default(false)
+  status       String
+  ipAddress    String?
+  createdAt    DateTime              @default(now())
+
+  @@index([credentialId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([credentialId, createdAt])
+}
+
+model BlockchainAnchorLog {
+  id           String     @id @default(cuid())
+  credentialId String     @unique
+  operation    String
+  status       String
+  txHash       String?
+  chainId      Int?
+  blockNumber  Int?
+  attempts     Int        @default(0)
+  errorMessage String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  credential   Credential @relation(fields: [credentialId], references: [id])
+
+  @@index([credentialId])
+  @@index([status])
+  @@index([operation])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id             String      @id @default(cuid())
+  action         AuditAction
+  actorAdminId   String?
+  actorUsername  String?
+  targetType     String?
+  targetId       String?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime    @default(now())
+
+  @@index([actorAdminId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}

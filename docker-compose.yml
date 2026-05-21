@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: certiva-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: certiva
+      POSTGRES_PASSWORD: certiva_password
+      POSTGRES_DB: certiva
+    ports:
+      - "5432:5432"
+    volumes:
+      - certiva_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U certiva"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: certiva-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - certiva_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  certiva_postgres_data:
+  certiva_redis_data:

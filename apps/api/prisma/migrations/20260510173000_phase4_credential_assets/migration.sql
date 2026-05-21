@@ -1,0 +1,12 @@
+ALTER TABLE "Issuer"
+ADD COLUMN "displayName" TEXT,
+ADD COLUMN "logoUrl" TEXT,
+ADD COLUMN "websiteUrl" TEXT;
+
+ALTER TABLE "Credential"
+ADD COLUMN "metadataJson" JSONB NOT NULL DEFAULT '{}'::jsonb,
+ADD COLUMN "qrCodeUri" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "certificateUri" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "verificationUrl" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "verificationCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "lastVerifiedAt" TIMESTAMP(3);
