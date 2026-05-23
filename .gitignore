@@ -14,3 +14,4 @@ Thumbs.db
 .claude
 certiva.sql
 tasks.json
+apps/api/storage/

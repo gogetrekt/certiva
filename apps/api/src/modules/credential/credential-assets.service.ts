@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import QRCode from "qrcode";
 
@@ -187,6 +187,14 @@ export class CredentialAssetsService {
     });
   }
 
+  async deleteQrCode(credentialId: string) {
+    try {
+      await unlink(this.getAssetPath(credentialId, "qr"));
+    } catch {
+      // file already absent — nothing to do
+    }
+  }
+
   buildBundle(record: CredentialAssetRecord): CredentialAssetPreviewBundle {
     const metadataUri = this.buildMetadataUri(record.id);
     const qrCodeUri = this.buildQrCodeUri(record.id);
@@ -247,7 +255,13 @@ export class CredentialAssetsService {
   }
 
   resolveVerificationUrl(credentialExternalId: string, value?: string | null) {
-    return this.normalizeNonEmpty(value) ?? this.buildVerificationUrl(credentialExternalId);
+    const stored = this.normalizeNonEmpty(value);
+    // Reject stored URLs that don't contain the crd_* identifier in the path.
+    // Old records were generated with vrf_* or a token hash as the path segment.
+    if (stored && stored.includes(`/verify/${credentialExternalId}`)) {
+      return stored;
+    }
+    return this.buildVerificationUrl(credentialExternalId);
   }
 
   private buildMetadataUri(credentialId: string) {

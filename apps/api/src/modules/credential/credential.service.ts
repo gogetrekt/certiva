@@ -946,6 +946,25 @@ export class CredentialService {
     }
   }
 
+  async rebuildAssets(admin: JwtPayload, id: string) {
+    const credential = await this.prisma.credential.findUnique({
+      where: { id },
+      include: { issuer: true },
+    });
+
+    if (!credential) {
+      throw new NotFoundException('Credential not found');
+    }
+
+    const issuerId = await this.institutionService.resolveInstitutionId(admin);
+    if (credential.issuerId !== issuerId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    await this.refreshCredentialAssets(credential);
+    return this.findOneOrThrow(id);
+  }
+
   private async refreshCredentialAssets(credential: CredentialWithIssuer) {
     const assetRecord = this.buildAssetRecord(credential, credential.issuer);
     const assetBundle =

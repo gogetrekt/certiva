@@ -80,6 +80,12 @@ export class CredentialController {
     return this.credentialService.revoke(admin, id, dto);
   }
 
+  @Post(':id/rebuild-assets')
+  @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
+  rebuildAssets(@GetAdmin() admin: JwtPayload, @Param('id') id: string) {
+    return this.credentialService.rebuildAssets(admin, id);
+  }
+
   @Post(':id/secure-pdf')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
   @UseInterceptors(FileInterceptor('file'))

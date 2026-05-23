@@ -39,6 +39,16 @@ export class CredentialAssetsController {
   async qrCode(@Param("id") id: string) {
     const credential = await this.credentialService.findOneOrThrow(id);
 
+    // If the stored verificationUrl does not contain the correct crd_* identifier,
+    // the cached QR PNG was generated from a stale/wrong URL. Delete it so
+    // ensureAssets regenerates it with the current correct URL.
+    if (
+      credential.verificationUrl &&
+      !credential.verificationUrl.includes(`/verify/${credential.credentialExternalId}`)
+    ) {
+      await this.assetsService.deleteQrCode(id);
+    }
+
     try {
       const file = await this.assetsService.readQrCode(id);
       return new StreamableFile(file);
