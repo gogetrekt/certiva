@@ -243,15 +243,30 @@ export class CredentialAssetsService {
   }
 
   resolveMetadataUri(credentialId: string, value?: string | null) {
-    return this.normalizeNonEmpty(value) ?? this.buildMetadataUri(credentialId);
+    const stored = this.normalizeNonEmpty(value);
+    const expected = this.buildMetadataUri(credentialId);
+    if (stored && stored === expected) {
+      return stored;
+    }
+    return expected;
   }
 
   resolveQrCodeUri(credentialId: string, value?: string | null) {
-    return this.normalizeNonEmpty(value) ?? this.buildQrCodeUri(credentialId);
+    const stored = this.normalizeNonEmpty(value);
+    const expected = this.buildQrCodeUri(credentialId);
+    if (stored && stored === expected) {
+      return stored;
+    }
+    return expected;
   }
 
   resolveCertificateUri(verificationId: string, value?: string | null) {
-    return this.normalizeNonEmpty(value) ?? this.buildCertificateUri(verificationId);
+    const stored = this.normalizeNonEmpty(value);
+    const expected = this.buildCertificateUri(verificationId);
+    if (stored && stored === expected) {
+      return stored;
+    }
+    return expected;
   }
 
   resolveVerificationUrl(credentialExternalId: string, value?: string | null) {

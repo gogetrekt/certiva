@@ -152,6 +152,7 @@ export class VerificationService {
           { credentialExternalId: verificationId },
           { verificationId },
           { verificationCode: verificationId },
+          { signedVerificationToken: verificationId },
         ],
       },
       include: {

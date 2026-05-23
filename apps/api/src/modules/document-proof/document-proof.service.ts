@@ -229,11 +229,65 @@ export class DocumentProofService {
   }
 
   async readMetadata(proofId: string) {
-    return this.assetsService.readMetadata(proofId);
+    try {
+      return await this.assetsService.readMetadata(proofId);
+    } catch {
+      await this.regenerateAssets(proofId);
+      return this.assetsService.readMetadata(proofId);
+    }
   }
 
   async readQrCode(proofId: string) {
-    return this.assetsService.readQrCode(proofId);
+    try {
+      return await this.assetsService.readQrCode(proofId);
+    } catch {
+      await this.regenerateAssets(proofId);
+      return this.assetsService.readQrCode(proofId);
+    }
+  }
+
+  async regenerateAssets(proofId: string) {
+    const proof = await this.prisma.secureDocumentProof.findUnique({
+      where: { id: proofId },
+      include: { issuer: true },
+    });
+
+    if (!proof) {
+      throw new NotFoundException('Secure document proof not found');
+    }
+
+    const assetBundle = await this.assetsService.generateAndPersist({
+      id: proof.id,
+      verificationId: proof.verificationId,
+      verificationCode: proof.verificationCode,
+      signedVerificationToken: proof.signedVerificationToken,
+      title: proof.title,
+      documentType: proof.documentType,
+      referenceNumber: proof.referenceNumber,
+      documentDate: proof.documentDate,
+      sourceHash: proof.sourceHash,
+      issuer: {
+        id: proof.issuer.id,
+        name: proof.issuer.name,
+        displayName: proof.issuer.displayName,
+        domain: proof.issuer.domain,
+        logoUrl: proof.issuer.logoUrl,
+        websiteUrl: proof.issuer.websiteUrl,
+        status: proof.issuer.status,
+      },
+    });
+
+    await this.prisma.secureDocumentProof.update({
+      where: { id: proof.id },
+      data: {
+        proofUrl: assetBundle.proofUrl,
+        qrPayload: assetBundle.metadata.qrPayload,
+        metadataUri: assetBundle.metadataUri,
+        qrCodeUri: assetBundle.qrCodeUri,
+      },
+    });
+
+    return assetBundle;
   }
 
   async verifyByReference(reference: string, ipAddress: string) {

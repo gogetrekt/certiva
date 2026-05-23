@@ -128,15 +128,30 @@ export class DocumentProofAssetsService {
   }
 
   resolveMetadataUri(proofId: string, value?: string | null) {
-    return value?.trim() || `${this.getApiBaseUrl()}/document-proofs/${encodeURIComponent(proofId)}/metadata`;
+    const stored = value?.trim();
+    const apiBase = this.getApiBaseUrl();
+    if (stored && stored.startsWith(apiBase)) {
+      return stored;
+    }
+    return `${apiBase}/document-proofs/${encodeURIComponent(proofId)}/metadata`;
   }
 
   resolveQrCodeUri(proofId: string, value?: string | null) {
-    return value?.trim() || `${this.getApiBaseUrl()}/document-proofs/${encodeURIComponent(proofId)}/qr`;
+    const stored = value?.trim();
+    const apiBase = this.getApiBaseUrl();
+    if (stored && stored.startsWith(apiBase)) {
+      return stored;
+    }
+    return `${apiBase}/document-proofs/${encodeURIComponent(proofId)}/qr`;
   }
 
   resolveProofUrl(verificationId: string, value?: string | null) {
-    return value?.trim() || `${this.getWebBaseUrl()}/proof/${encodeURIComponent(verificationId)}`;
+    const stored = value?.trim();
+    const webBase = this.getWebBaseUrl();
+    if (stored && stored.startsWith(`${webBase}/proof/${verificationId}`)) {
+      return stored;
+    }
+    return `${webBase}/proof/${encodeURIComponent(verificationId)}`;
   }
 
   private buildQrPayload(proofUrl: string, signedVerificationToken: string) {
