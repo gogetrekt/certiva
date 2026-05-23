@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   if (!token) return null;
 
   const admin = await getCurrentAdmin(token);
-  if (admin.role !== "SUPER_ADMIN") redirect("/dashboard");
+  if (admin.role !== "OWNER" && admin.role !== "SUPER_ADMIN") redirect("/dashboard");
 
   let institution: InstitutionRecord;
   try {

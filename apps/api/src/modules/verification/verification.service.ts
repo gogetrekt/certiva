@@ -148,7 +148,11 @@ export class VerificationService {
     const createdAt = new Date();
     const credential = await this.prisma.credential.findFirst({
       where: {
-        OR: [{ verificationId }, { verificationCode: verificationId }],
+        OR: [
+          { credentialExternalId: verificationId },
+          { verificationId },
+          { verificationCode: verificationId },
+        ],
       },
       include: {
         issuer: true,
@@ -167,6 +171,7 @@ export class VerificationService {
       });
 
       return {
+        credentialExternalId: null,
         verificationId,
         verificationCode: null,
         verificationMode: null,
@@ -212,7 +217,7 @@ export class VerificationService {
     const currentCredential: VerificationCredentialRecord =
       updatedCredential ?? credential;
     const verificationUrl = this.assetsService.resolveVerificationUrl(
-      currentCredential.verificationId,
+      currentCredential.credentialExternalId,
       currentCredential.verificationUrl,
     );
     const metadataUri = this.assetsService.resolveMetadataUri(
@@ -229,6 +234,7 @@ export class VerificationService {
     );
 
     return {
+      credentialExternalId: currentCredential.credentialExternalId,
       verificationId: currentCredential.verificationId,
       verificationCode: currentCredential.verificationCode,
       verificationMode: currentCredential.verificationMode,
@@ -483,6 +489,7 @@ export class VerificationService {
 
   private async buildNotFoundResponse(reference: string, createdAt: Date) {
     return {
+      credentialExternalId: null,
       verificationId: reference,
       verificationCode: null,
       verificationMode: null,

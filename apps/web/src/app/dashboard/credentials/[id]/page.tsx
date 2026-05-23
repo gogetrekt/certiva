@@ -133,7 +133,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                     { label: "Revoked at", value: formatDateTime(credential.revokedAt), mono: false },
                     { label: "Revocation reason", value: credential.revocationReason ?? "Not specified", mono: false },
                   ] : []),
-                  { label: "Credential ID", value: credential.verificationId, mono: true },
+                  { label: "Credential ID", value: credential.credentialExternalId, mono: true },
                   { label: "Verification count", value: String(credential.verificationCount), mono: false },
                   { label: "Last verified", value: credential.verifiedAt ? formatDateTime(credential.verifiedAt) : "No public checks yet", mono: false },
                 ].map((row, i) => (
@@ -155,7 +155,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
             <div className="flex items-center justify-between mb-3">
               <p className="kicker">Public verification</p>
               <Link
-                href={`/verify/${credential.verificationId}`}
+                href={`/verify/${credential.credentialExternalId}`}
                 target="_blank"
                 className="inline-flex items-center gap-1 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
               >
@@ -164,7 +164,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
               </Link>
             </div>
             <QrCodeCard
-              verificationId={credential.verificationId}
+              verificationId={credential.credentialExternalId}
               verificationUrl={credential.verificationUrl}
               qrCodeUri={credential.qrCodeUri}
             />

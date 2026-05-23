@@ -136,7 +136,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
               <p className="kicker mb-2">Credential ID</p>
-              <p className="hash-text text-[hsl(var(--text-secondary))]">{verification.verificationId}</p>
+              <p className="hash-text text-[hsl(var(--text-secondary))]">{verification.credentialExternalId ?? "Not available"}</p>
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
               <p className="kicker mb-2">Run another lookup</p>
@@ -228,7 +228,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                       { label: "Metadata JSON", value: verification.metadataUri ?? "Not available", href: verification.metadataUri ?? undefined },
                       { label: "Certificate PDF", value: verification.certificateUri ?? "Not available", href: verification.certificateUri ?? undefined },
                       { label: "QR asset", value: verification.qrCodeUri ?? "Not available", href: verification.qrCodeUri ?? undefined },
-                      { label: "Credential ID", value: verification.credential?.id ?? "Not available", mono: true },
+                      { label: "Internal DB ID", value: verification.credential?.id ?? "Not available", mono: true },
                       { label: "Blockchain tx hash", value: verification.txHash ?? "Not available", mono: true },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>

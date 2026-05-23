@@ -13,3 +13,4 @@ Thumbs.db
 **/prisma/generated
 .claude
 certiva.sql
+tasks.json

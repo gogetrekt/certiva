@@ -660,7 +660,7 @@ export class CredentialService {
     },
   ) {
     const normalizedVerificationUrl = this.assetsService.resolveVerificationUrl(
-      credential.verificationId,
+      credential.credentialExternalId,
       credential.verificationUrl,
     );
     const normalizedMetadataUri = this.assetsService.resolveMetadataUri(
@@ -849,6 +849,7 @@ export class CredentialService {
     const assetRecord = this.buildAssetRecord(
       {
         id: credentialId,
+        credentialExternalId: credentialId,
         verificationId,
         verificationCode,
         signedVerificationToken,
@@ -988,6 +989,7 @@ export class CredentialService {
   private buildAssetRecord(
     credential: {
       id: string;
+      credentialExternalId: string;
       verificationId: string;
       verificationCode: string;
       signedVerificationToken: string;
@@ -1005,6 +1007,7 @@ export class CredentialService {
   ): CredentialAssetRecord {
     return {
       id: credential.id,
+      credentialExternalId: credential.credentialExternalId,
       verificationId: credential.verificationId,
       verificationCode: credential.verificationCode,
       signedVerificationToken: credential.signedVerificationToken,

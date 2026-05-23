@@ -19,6 +19,7 @@ interface CredentialAssetIssuer {
 
 export interface CredentialAssetRecord {
   id: string;
+  credentialExternalId: string;
   verificationId: string;
   studentName: string;
   studentId: string;
@@ -192,7 +193,7 @@ export class CredentialAssetsService {
     const certificateUri = record.securePdfEnabled
       ? this.buildCertificateUri(record.verificationId)
       : null;
-    const verificationUrl = this.buildVerificationUrl(record.verificationId);
+    const verificationUrl = this.buildVerificationUrl(record.credentialExternalId);
 
     return {
       metadataUri,
@@ -245,8 +246,8 @@ export class CredentialAssetsService {
     return this.normalizeNonEmpty(value) ?? this.buildCertificateUri(verificationId);
   }
 
-  resolveVerificationUrl(verificationId: string, value?: string | null) {
-    return this.normalizeNonEmpty(value) ?? this.buildVerificationUrl(verificationId);
+  resolveVerificationUrl(credentialExternalId: string, value?: string | null) {
+    return this.normalizeNonEmpty(value) ?? this.buildVerificationUrl(credentialExternalId);
   }
 
   private buildMetadataUri(credentialId: string) {
@@ -261,8 +262,8 @@ export class CredentialAssetsService {
     return `${this.getApiBaseUrl()}/verify/${encodeURIComponent(verificationId)}/certificate`;
   }
 
-  private buildVerificationUrl(verificationId: string) {
-    return `${this.getWebBaseUrl()}/verify/${encodeURIComponent(verificationId)}`;
+  private buildVerificationUrl(credentialExternalId: string) {
+    return `${this.getWebBaseUrl()}/verify/${encodeURIComponent(credentialExternalId)}`;
   }
 
   private buildQrPayload(verificationUrl: string, signedVerificationToken: string) {

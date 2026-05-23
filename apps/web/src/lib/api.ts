@@ -161,6 +161,7 @@ export interface CredentialsResponse {
 }
 
 export interface VerificationResponse {
+  credentialExternalId: string | null;
   verificationId: string;
   verificationCode: string | null;
   verificationMode: "CORE_REGISTRY" | "SECURE_PDF" | null;

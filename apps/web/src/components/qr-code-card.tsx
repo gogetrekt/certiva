@@ -16,7 +16,7 @@ export function QrCodeCard({
   verificationId,
   verificationUrl,
   qrCodeUri,
-  label = "Public verification QR",
+  label = "Credential Verification QR",
   size = 180,
 }: QrCodeCardProps) {
   const normalizedVerificationUrl = normalizeVerificationUrl(verificationId, verificationUrl);
@@ -54,7 +54,7 @@ export function QrCodeCard({
     <div className="work-surface overflow-hidden p-0">
       <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
         <p className="kicker">{label}</p>
-        <p className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">Scan to open the public verification record.</p>
+        <p className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">Scan to open the public credential verification page. To verify document integrity, upload a PDF on the verification page.</p>
       </div>
       <div className="flex flex-col sm:flex-row items-start gap-5 p-5">
         <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] p-3">
