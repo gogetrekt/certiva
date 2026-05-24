@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { DocumentProofCodeForm } from "../../../components/document-proof-code-form";
+import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
 import { VerifyUploadPanel } from "../../../components/verify-upload-panel";
 
@@ -91,6 +92,8 @@ export default function VerifyDocumentPage() {
         {/* Footer margin */}
         <div className="py-10" />
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

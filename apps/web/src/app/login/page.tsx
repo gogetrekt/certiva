@@ -1,9 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "../../components/login-form";
+import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { getCurrentAdmin, getSessionToken } from "../../lib/api";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Sign in to your Certiva institution workspace.",
+};
 
 export default async function LoginPage() {
   const token = await getSessionToken();
@@ -83,6 +90,8 @@ export default async function LoginPage() {
           </div>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

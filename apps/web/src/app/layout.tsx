@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Certiva",
-    template: "%s — Certiva",
+    template: "%s | Certiva",
   },
   description:
     "Institutional academic credential infrastructure. Issue, anchor, and verify credentials with blockchain-backed audit trails.",

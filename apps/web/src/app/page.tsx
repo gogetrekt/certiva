@@ -10,7 +10,7 @@ import {
   Buildings,
 } from "@phosphor-icons/react/dist/ssr";
 
-import { AppLogo } from "../components/app-logo";
+import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 import { getSessionToken } from "../lib/api";
 
@@ -141,22 +141,14 @@ export default async function HomePage() {
             href="/login"
             icon={<Buildings size={16} weight="duotone" aria-hidden />}
             kicker="Institution workspace"
-            title="Admin Sign In"
+            title="Sign In"
             body="Issue credentials, manage the registry, review verification activity, and maintain proof operations."
             cta="Open workspace"
           />
         </div>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────── */}
-      <footer className="border-t border-[hsl(var(--border-default))]">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-8 py-5">
-          <AppLogo />
-          <p className="text-xs text-[hsl(var(--text-quaternary))]">
-            Institutional credential infrastructure
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

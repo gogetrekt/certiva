@@ -1,8 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
+import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { VerifyPdfReferenceForm } from "../../components/verify-pdf-reference-form";
 import { VerifySearchForm } from "../../components/verify-search-form";
+
+export const metadata: Metadata = {
+  title: "Credential Check",
+  description:
+    "Verify an academic credential by ID. Confirms registry status, issuer, recipient, issue date, and blockchain proof state.",
+};
 
 export default function VerifyPage() {
   return (
@@ -98,6 +106,8 @@ export default function VerifyPage() {
         {/* Footer margin */}
         <div className="py-10" />
       </div>
+
+      <SiteFooter />
     </div>
   );
 }
