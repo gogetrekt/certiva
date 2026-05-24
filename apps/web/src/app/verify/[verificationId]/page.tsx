@@ -96,7 +96,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
               href="/verify/document"
               className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
             >
-              Document check
+              Document Check
             </Link>
             <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
             <ThemeToggle />

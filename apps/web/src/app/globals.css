@@ -8,118 +8,121 @@
 
 /* ── LIGHT MODE (default) ─────────────────────────────────── */
 :root {
-  /* Raw palette — zinc-neutral, no warm/cool mixing */
-  --z-950: 240 10% 4%;
-  --z-900: 240 6% 10%;
-  --z-800: 240 5% 16%;
-  --z-750: 240 5% 20%;
-  --z-700: 240 5% 26%;
-  --z-600: 240 4% 36%;
-  --z-500: 240 4% 46%;
-  --z-400: 240 5% 65%;
-  --z-300: 240 6% 78%;
-  --z-200: 240 6% 90%;
-  --z-150: 240 6% 93%;
-  --z-100: 240 6% 95%;
-  --z-50:  240 9% 98%;
+  /* Raw palette — warm-neutral, zero blue tint */
+  --z-950: 0 0% 9%;
+  --z-900: 0 0% 13%;
+  --z-800: 0 0% 20%;
+  --z-750: 0 0% 26%;
+  --z-700: 0 0% 32%;
+  --z-600: 0 0% 42%;
+  --z-500: 0 0% 52%;
+  --z-400: 0 0% 66%;
+  --z-300: 0 0% 78%;
+  --z-200: 0 0% 89%;
+  --z-150: 0 0% 92%;
+  --z-100: 0 0% 95%;
+  --z-50:  0 0% 98%;
 
-  /* Semantic surfaces */
-  --bg-canvas:   240 9% 97%;    /* page background */
-  --bg-base:     0 0% 100%;     /* primary surface (cards, panels) */
-  --bg-subtle:   240 6% 96%;    /* inset areas, alt rows */
-  --bg-muted:    240 6% 93%;    /* hover states, secondary backgrounds */
-  --bg-elevated: 0 0% 100%;     /* elevated elements */
+  /* Semantic surfaces — near-white, barely-there warm tint */
+  --bg-canvas:   0 0% 97%;    /* page background ≈ #F7F8FA */
+  --bg-base:     0 0% 100%;   /* primary surface (cards, panels) */
+  --bg-subtle:   0 0% 96%;    /* inset areas, alt rows */
+  --bg-muted:    0 0% 93%;    /* hover states, secondary backgrounds */
+  --bg-elevated: 0 0% 100%;   /* elevated elements */
 
-  /* Borders */
-  --border-strong:   240 5% 82%;
-  --border-default:  240 5% 88%;
-  --border-subtle:   240 5% 92%;
-  --border-input:    240 5% 80%;
-  --border-focus:    240 5% 46%;
+  /* Borders — barely visible, neutral */
+  --border-strong:   0 0% 82%;
+  --border-default:  0 0% 88%;
+  --border-subtle:   0 0% 93%;
+  --border-input:    0 0% 80%;
+  --border-focus:    0 0% 40%;
 
-  /* Text */
-  --text-primary:   240 10% 6%;
-  --text-secondary: 240 4% 36%;
-  --text-tertiary:  240 4% 52%;
-  --text-quaternary:240 4% 68%;
-  --text-inverse:   0 0% 100%;
+  /* Text — near black, no tint */
+  --text-primary:    0 0% 7%;     /* ≈ #111827 */
+  --text-secondary:  0 0% 42%;    /* ≈ #6B7280 */
+  --text-tertiary:   0 0% 56%;
+  --text-quaternary: 0 0% 68%;
+  --text-inverse:    0 0% 100%;
 
   /* Status — desaturated institutional tones */
-  --status-valid-bg:       152 30% 94%;
-  --status-valid-border:   152 30% 82%;
-  --status-valid-text:     152 55% 24%;
-  --status-valid-dot:      152 55% 40%;
+  --status-valid-bg:       152 28% 94%;
+  --status-valid-border:   152 28% 82%;
+  --status-valid-text:     152 55% 22%;
+  --status-valid-dot:      152 55% 38%;
 
-  --status-warn-bg:        38 60% 94%;
-  --status-warn-border:    38 55% 80%;
-  --status-warn-text:      30 60% 28%;
-  --status-warn-dot:       38 70% 48%;
+  --status-warn-bg:        38 55% 94%;
+  --status-warn-border:    38 50% 80%;
+  --status-warn-text:      30 58% 27%;
+  --status-warn-dot:       38 68% 46%;
 
-  --status-error-bg:       0 55% 95%;
-  --status-error-border:   0 50% 82%;
-  --status-error-text:     0 60% 30%;
-  --status-error-dot:      0 65% 48%;
+  --status-error-bg:       0 50% 95%;
+  --status-error-border:   0 45% 82%;
+  --status-error-text:     0 58% 29%;
+  --status-error-dot:      0 62% 46%;
 
-  --status-neutral-bg:     240 5% 94%;
-  --status-neutral-border: 240 5% 82%;
-  --status-neutral-text:   240 4% 36%;
-  --status-neutral-dot:    240 4% 56%;
+  --status-neutral-bg:     0 0% 93%;
+  --status-neutral-border: 0 0% 82%;
+  --status-neutral-text:   0 0% 42%;
+  --status-neutral-dot:    0 0% 56%;
 
   /* Button tokens */
-  --btn-primary-bg:      240 10% 6%;
+  --btn-primary-bg:      0 0% 7%;
   --btn-primary-text:    0 0% 100%;
-  --btn-primary-border:  240 10% 6%;
+  --btn-primary-border:  0 0% 7%;
   --btn-ghost-bg:        0 0% 100%;
-  --btn-ghost-text:      240 4% 36%;
-  --btn-ghost-border:    240 5% 82%;
+  --btn-ghost-text:      0 0% 42%;
+  --btn-ghost-border:    0 0% 82%;
 }
 
 /* ── DARK MODE ─────────────────────────────────────────────── */
 .dark {
-  --bg-canvas:   240 10% 6%;
-  --bg-base:     240 8% 9%;
-  --bg-subtle:   240 7% 11%;
-  --bg-muted:    240 6% 14%;
-  --bg-elevated: 240 5% 17%;
+  /* Pure graphite/charcoal — no blue tint, like DeepWiki dark */
+  --bg-canvas:   0 0% 7%;     /* ≈ #111111 */
+  --bg-base:     0 0% 10%;    /* ≈ #1A1A1A */
+  --bg-subtle:   0 0% 12%;    /* ≈ #1E1E1E */
+  --bg-muted:    0 0% 15%;
+  --bg-elevated: 0 0% 18%;
 
-  --border-strong:    240 5% 28%;
-  --border-default:   240 5% 22%;
-  --border-subtle:    240 5% 17%;
-  --border-input:     240 5% 28%;
-  --border-focus:     240 5% 55%;
+  /* Muted borders — barely visible */
+  --border-strong:    0 0% 24%;
+  --border-default:   0 0% 18%;
+  --border-subtle:    0 0% 14%;
+  --border-input:     0 0% 24%;
+  --border-focus:     0 0% 50%;
 
-  --text-primary:    240 6% 96%;
-  --text-secondary:  240 5% 65%;
-  --text-tertiary:   240 4% 46%;
-  --text-quaternary: 240 4% 34%;
-  --text-inverse:    240 10% 6%;
+  /* Soft off-white text — not stark white */
+  --text-primary:    0 0% 90%;    /* ≈ #E5E5E5 */
+  --text-secondary:  0 0% 60%;    /* ≈ #999999 */
+  --text-tertiary:   0 0% 42%;
+  --text-quaternary: 0 0% 30%;
+  --text-inverse:    0 0% 7%;
 
-  --status-valid-bg:       152 20% 11%;
-  --status-valid-border:   152 25% 20%;
-  --status-valid-text:     152 50% 58%;
-  --status-valid-dot:      152 55% 48%;
+  --status-valid-bg:       152 18% 10%;
+  --status-valid-border:   152 22% 19%;
+  --status-valid-text:     152 48% 56%;
+  --status-valid-dot:      152 52% 46%;
 
-  --status-warn-bg:        38 25% 10%;
-  --status-warn-border:    38 30% 22%;
-  --status-warn-text:      38 70% 60%;
-  --status-warn-dot:       38 70% 52%;
+  --status-warn-bg:        38 22% 10%;
+  --status-warn-border:    38 28% 20%;
+  --status-warn-text:      38 68% 58%;
+  --status-warn-dot:       38 68% 50%;
 
-  --status-error-bg:       0 20% 10%;
-  --status-error-border:   0 25% 22%;
-  --status-error-text:     0 65% 62%;
-  --status-error-dot:      0 65% 52%;
+  --status-error-bg:       0 18% 10%;
+  --status-error-border:   0 22% 20%;
+  --status-error-text:     0 62% 60%;
+  --status-error-dot:      0 62% 50%;
 
-  --status-neutral-bg:     240 5% 14%;
-  --status-neutral-border: 240 5% 24%;
-  --status-neutral-text:   240 4% 60%;
-  --status-neutral-dot:    240 4% 48%;
+  --status-neutral-bg:     0 0% 14%;
+  --status-neutral-border: 0 0% 22%;
+  --status-neutral-text:   0 0% 56%;
+  --status-neutral-dot:    0 0% 44%;
 
-  --btn-primary-bg:      0 0% 96%;
-  --btn-primary-text:    240 10% 6%;
-  --btn-primary-border:  0 0% 96%;
-  --btn-ghost-bg:        240 5% 14%;
-  --btn-ghost-text:      240 5% 65%;
-  --btn-ghost-border:    240 5% 22%;
+  --btn-primary-bg:      0 0% 90%;
+  --btn-primary-text:    0 0% 7%;
+  --btn-primary-border:  0 0% 90%;
+  --btn-ghost-bg:        0 0% 15%;
+  --btn-ghost-text:      0 0% 60%;
+  --btn-ghost-border:    0 0% 18%;
 }
 
 /* ============================================================
@@ -757,6 +760,25 @@ button, input, select, textarea {
   color: hsl(var(--text-primary));
   border-color: hsl(var(--border-strong));
 }
+
+/* ============================================================
+   SITE HEADER — public pages (landing, verify, login, proof)
+   ============================================================ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: hsl(var(--bg-canvas) / 0.92);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .site-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
 
 /* ============================================================
    RESPONSIVE

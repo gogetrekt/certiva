@@ -8,10 +8,9 @@ import {
   ArrowSquareOut,
 } from "@phosphor-icons/react/dist/ssr";
 
-import { AppLogo } from "../../../components/app-logo";
 import { DocumentProofCodeForm } from "../../../components/document-proof-code-form";
+import { SiteHeader } from "../../../components/site-header";
 import { StatusBadge } from "../../../components/status-badge";
-import { ThemeToggle } from "../../../components/theme-toggle";
 import { apiFetch, type DocumentProofVerificationResponse } from "../../../lib/api";
 import { formatDate, formatDateTime } from "../../../lib/date-format";
 
@@ -77,28 +76,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
 
-      {/* ── Header ─────────────────────────────────────── */}
-      <header className="border-b border-[hsl(var(--border-default))]">
-        <div className="mx-auto flex h-13 w-full max-w-275 items-center justify-between px-8">
-          <AppLogo />
-          <nav className="flex items-center gap-1.5">
-            <Link
-              href="/verify/document"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              New lookup
-            </Link>
-            <Link
-              href="/verify"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Credential check
-            </Link>
-            <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ── Verdict banner ─────────────────────────────── */}
       <section className={`border-b border-[hsl(var(--border-default))] ${state.accentClass}`}>

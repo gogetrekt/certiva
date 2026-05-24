@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { AppLogo } from "../../components/app-logo";
-import { ThemeToggle } from "../../components/theme-toggle";
+import { SiteHeader } from "../../components/site-header";
 import { VerifyPdfReferenceForm } from "../../components/verify-pdf-reference-form";
 import { VerifySearchForm } from "../../components/verify-search-form";
 
@@ -9,28 +8,7 @@ export default function VerifyPage() {
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
 
-      {/* ── Header ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-[hsl(var(--border-default))] bg-[hsl(var(--bg-canvas)/0.92)] backdrop-blur-md">
-        <div className="mx-auto flex h-13 w-full max-w-275 items-center justify-between px-8">
-          <AppLogo />
-          <nav className="flex items-center gap-1.5">
-            <Link
-              href="/verify/document"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Document check
-            </Link>
-            <Link
-              href="/login"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Sign in
-            </Link>
-            <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ── Primary workflow ─────────────────────────── */}
       <div className="mx-auto max-w-275 px-8">

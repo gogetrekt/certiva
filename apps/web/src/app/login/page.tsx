@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppLogo } from "../../components/app-logo";
 import { LoginForm } from "../../components/login-form";
-import { ThemeToggle } from "../../components/theme-toggle";
+import { SiteHeader } from "../../components/site-header";
 import { getCurrentAdmin, getSessionToken } from "../../lib/api";
 
 export default async function LoginPage() {
@@ -26,21 +25,7 @@ export default async function LoginPage() {
 
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
-      {/* ── Header ─────────────────────────────────────── */}
-      <header className="border-b border-[hsl(var(--border-default))]">
-        <div className="mx-auto flex h-13 w-full max-w-[1200px] items-center justify-between px-8">
-          <AppLogo />
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link
-              href="/verify"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Public verification
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ── Split layout ───────────────────────────────── */}
       <div className="mx-auto max-w-[1200px] px-8 py-14 md:py-20">
@@ -84,7 +69,7 @@ export default async function LoginPage() {
             <div className="work-surface p-7 md:p-8">
               <div className="mb-6">
                 <h2 className="text-base font-semibold tracking-tight text-[hsl(var(--text-primary))]">
-                  Sign in
+                  Sign In
                 </h2>
                 <p className="mt-1 text-sm text-[hsl(var(--text-tertiary))]">
                   Enter your authorized admin credentials.

@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { AppLogo } from "../components/app-logo";
-import { ThemeToggle } from "../components/theme-toggle";
+import { SiteHeader } from "../components/site-header";
 import { getSessionToken } from "../lib/api";
 
 export default async function HomePage() {
@@ -21,31 +21,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
 
-      {/* ── Header ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-[hsl(var(--border-default))] bg-[hsl(var(--bg-canvas)/0.92)] backdrop-blur-md">
-        <div className="mx-auto flex h-13 w-full max-w-[1200px] items-center justify-between px-8">
-          <AppLogo />
-          <nav className="flex items-center gap-1.5">
-            <Link
-              href="/verify"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Credential check
-            </Link>
-            <Link
-              href="/verify/document"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              Document check
-            </Link>
-            <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
-            <ThemeToggle />
-            <Link href="/login" className="btn-primary btn-sm ml-1">
-              Sign in
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ── Hero ───────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-[hsl(var(--border-default))]">

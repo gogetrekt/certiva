@@ -213,7 +213,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                     className="shrink-0 opacity-50"
                     aria-hidden
                   />
-                  <span>Credential check</span>
+                  <span>Credential Check</span>
                 </Link>
                 <Link
                   href="/verify/document"
@@ -225,7 +225,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                     className="shrink-0 opacity-50"
                     aria-hidden
                   />
-                  <span>Document check</span>
+                  <span>Document Check</span>
                 </Link>
               </div>
             </div>
