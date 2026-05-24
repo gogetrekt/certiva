@@ -24,7 +24,7 @@ export default async function LoginPage() {
       await getCurrentAdmin(token);
       redirect("/dashboard");
     } catch {
-      // Token invalid — fall through to show the login form.
+      // Token invalid -- fall through to show the login form.
       // The stale cookie will be cleaned up by /api/session/clear when the layout
       // next rejects it, or the user can just log in and the new token overwrites it.
     }
@@ -37,7 +37,7 @@ export default async function LoginPage() {
       {/* ── Split layout ───────────────────────────────── */}
       <div className="mx-auto max-w-[1200px] px-8 py-14 md:py-20">
         <div className="grid gap-14 lg:grid-cols-[1fr_400px] lg:gap-20 xl:gap-24">
-          {/* Left — institutional context */}
+          {/* Left -- institutional context */}
           <div className="flex flex-col justify-between gap-12">
             <div>
               <p className="kicker mb-5">Institution admin access</p>
@@ -71,7 +71,7 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          {/* Right — sign-in form */}
+          {/* Right -- sign-in form */}
           <div>
             <div className="work-surface p-7 md:p-8">
               <div className="mb-6">

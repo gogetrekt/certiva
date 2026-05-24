@@ -12,7 +12,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 
 export const metadata: Metadata = {
-  title: "Contact — Certiva",
+  title: "Contact",
   description:
     "Get in touch with questions about Certiva's public credential and document verification tools, or about institutional access.",
 };
@@ -25,7 +25,7 @@ const categories = [
     icon: IdentificationCardIcon,
     kicker: "Verification questions",
     title: "Credential result issues",
-    body: "If a verification ID returns no result, confirm the ID is copied exactly as printed on the credential — including any hyphens or separators. A Not Found result may mean the ID is incorrect, the credential was issued outside this deployment, or the record has been removed by the institution.",
+    body: "If a verification ID returns no result, confirm the ID is copied exactly as printed on the credential, including any hyphens or separators. A Not Found result may mean the ID is incorrect, the credential was issued outside this deployment, or the record has been removed by the institution.",
     prepare: [
       "The verification ID exactly as shown on the credential",
       "The institution name printed on the credential",
@@ -58,7 +58,7 @@ const categories = [
     icon: WrenchIcon,
     kicker: "Platform issues",
     title: "Technical and platform issues",
-    body: "For technical issues with the public verification interface — including unexpected errors, incorrect results, or service availability problems — use the platform contact address below. Describe the issue, the verification ID if applicable, and any error messages shown.",
+    body: "For technical issues with the public verification interface, including unexpected errors, incorrect results, or service availability problems, use the platform contact address below. Describe the issue, the verification ID if applicable, and any error messages shown.",
     prepare: [
       "The page or tool where the issue occurred",
       "The verification ID if applicable",
@@ -70,9 +70,9 @@ const categories = [
 ] as const;
 
 const beforeContacting = [
-  "Ensure the verification ID is copied exactly — a single incorrect character will return Not Found.",
+  "Ensure the verification ID is copied exactly. A single incorrect character will return Not Found.",
   "For document issues, confirm the PDF is the original issued file and has not been modified.",
-  "Check that you are using Credential Check and Document Check as separate tools — they verify different things.",
+  "Check that you are using Credential Check and Document Check as separate tools: they verify different things.",
   "Review the Verification Guide for an explanation of each result state before contacting.",
 ] as const;
 

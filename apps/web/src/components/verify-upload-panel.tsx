@@ -113,7 +113,7 @@ export function VerifyUploadPanel() {
         aria-hidden
       />
 
-      {/* Upload zone — entire area is the interaction target */}
+      {/* Upload zone -- entire area is the interaction target */}
       <div className="relative">
         <label
           htmlFor="verify-upload-input"
@@ -123,7 +123,7 @@ export function VerifyUploadPanel() {
           onKeyDown={handleUploadKeyDown}
           role="button"
           tabIndex={0}
-          aria-label={selectedFile ? `Selected: ${selectedFile.name}. Click to change.` : "Upload a PDF — click or drag and drop"}
+          aria-label={selectedFile ? `Selected: ${selectedFile.name}. Click to change.` : "Upload a PDF -- click or drag and drop"}
           className={[
             "relative block w-full rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer text-left",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--border-focus))] focus-visible:ring-offset-2",

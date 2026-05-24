@@ -33,7 +33,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Inline theme script — prevents flash of wrong theme */}
+        {/* Inline theme script -- prevents flash of wrong theme */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('certiva-theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(t===null&&m)){document.documentElement.classList.add('dark')}}catch(e){}})()`,

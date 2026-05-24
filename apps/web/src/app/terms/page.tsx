@@ -27,7 +27,7 @@ const sections: Section[] = [
   },
   {
     heading: "Verification limitations",
-    body: "Verification results reflect the state of the registry at the time of the lookup. Certiva does not guarantee that results constitute legal proof of academic qualification. Credential Check and Document Check are independent — a valid credential does not confirm document integrity, and a matching document hash does not confirm credential validity. Blockchain proof in this deployment uses a public test network and should not be treated as equivalent to mainnet production evidence.",
+    body: "Verification results reflect the state of the registry at the time of the lookup. Certiva does not guarantee that results constitute legal proof of academic qualification. Credential Check and Document Check are independent: a valid credential does not confirm document integrity, and a matching document hash does not confirm credential validity. Blockchain proof in this deployment uses a public test network and should not be treated as equivalent to mainnet production evidence.",
   },
   {
     heading: "No academic decision guarantee",
@@ -43,7 +43,7 @@ const sections: Section[] = [
   },
   {
     heading: "Limitation of liability",
-    body: "To the maximum extent permitted by applicable law, Certiva is not liable for any indirect, incidental, or consequential damages arising from use of, or inability to use, the public verification tools — including reliance on a verification result that later proves incorrect or incomplete.",
+    body: "To the maximum extent permitted by applicable law, Certiva is not liable for any indirect, incidental, or consequential damages arising from use of, or inability to use, the public verification tools, including reliance on a verification result that later proves incorrect or incomplete.",
   },
   {
     heading: "Changes to these terms",
@@ -77,7 +77,7 @@ export default function TermsPage() {
           </p>
           <div className="mt-5 inline-flex items-center rounded-md border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-3 py-1.5">
             <p className="text-[0.75rem] leading-normal text-[hsl(var(--status-warn-text))]">
-              Operational draft — legal review required before production deployment.
+              Operational draft. Legal review required before production deployment.
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function TermsPage() {
         {/* Revision note */}
         <div className="pb-10 pt-2">
           <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">
-            Last revised: 2026. Operational draft — pending final legal review.
+            Last revised: 2026. Operational draft, pending final legal review.
           </p>
         </div>
       </div>

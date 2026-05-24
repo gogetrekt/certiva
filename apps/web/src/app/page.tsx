@@ -27,7 +27,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-[hsl(var(--border-default))]">
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-0 px-8 md:grid-cols-[1fr_420px]">
 
-          {/* Left — content column */}
+          {/* Left -- content column */}
           <div className="flex flex-col justify-center py-20 md:py-28 md:pr-16">
             <p className="kicker mb-5">Academic credential infrastructure</p>
             <h1 className="text-[2.75rem] font-semibold tracking-[-0.04em] leading-[1.05] text-[hsl(var(--text-primary))] md:text-[3.5rem]">
@@ -62,7 +62,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Right — structural visual */}
+          {/* Right -- structural visual */}
           <div className="hidden md:flex items-center justify-center border-l border-[hsl(var(--border-default))] py-28 px-10">
             <HeroVisual />
           </div>
@@ -217,7 +217,7 @@ function HeroVisual() {
         <div className="px-4 py-4 space-y-3">
           {[
             { label: "Recipient", value: "Ahmad Fauzi Ramadhan" },
-            { label: "Degree", value: "S.Kom. — Ilmu Komputer" },
+            { label: "Degree", value: "S.Kom., Ilmu Komputer" },
             { label: "Institution", value: "Universitas Gadjah Mada" },
             { label: "Issued", value: "14 March 2024" },
           ].map((row) => (

@@ -82,7 +82,7 @@ export function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
                         <ArrowSquareOut size={10} aria-hidden />
                       </a>
                     ) : (
-                      <span className="meta-text text-[hsl(var(--text-quaternary))]">—</span>
+                      <span className="meta-text text-[hsl(var(--text-quaternary))]">-</span>
                     )}
                   </td>
                 </tr>
@@ -145,7 +145,7 @@ export function RevocationTable({ items }: { items: LatestRevocationRecord[] }) 
                   </td>
                   <td className="td-cell-sm whitespace-nowrap">
                     <p className="text-sm text-[hsl(var(--status-error-text))]">
-                      {item.revokedAt ? formatDate(item.revokedAt) : "—"}
+                      {item.revokedAt ? formatDate(item.revokedAt) : "-"}
                     </p>
                   </td>
                   <td className="td-cell-sm max-w-[140px]">
@@ -153,7 +153,7 @@ export function RevocationTable({ items }: { items: LatestRevocationRecord[] }) 
                       className="text-sm text-[hsl(var(--text-secondary))] truncate"
                       title={item.revocationReason ?? undefined}
                     >
-                      {item.revocationReason ?? "—"}
+                      {item.revocationReason ?? "-"}
                     </p>
                   </td>
                   <td className="td-cell-sm max-w-[120px]">
@@ -169,7 +169,7 @@ export function RevocationTable({ items }: { items: LatestRevocationRecord[] }) 
                         <ArrowSquareOut size={10} aria-hidden />
                       </a>
                     ) : (
-                      <span className="meta-text text-[hsl(var(--text-quaternary))]">—</span>
+                      <span className="meta-text text-[hsl(var(--text-quaternary))]">-</span>
                     )}
                   </td>
                 </tr>

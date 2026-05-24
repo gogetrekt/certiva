@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /* ============================================================
-   CERTIVA — INSTITUTIONAL CREDENTIAL INFRASTRUCTURE
+   CERTIVA -- INSTITUTIONAL CREDENTIAL INFRASTRUCTURE
    Dual-mode design system: light + dark
-   Swiss Modernism 2.0 / Minimalism — enterprise grade
+   Swiss Modernism 2.0 / Minimalism -- enterprise grade
    ============================================================ */
 
 /* ── LIGHT MODE (default) ─────────────────────────────────── */
 :root {
-  /* Raw palette — warm-neutral, zero blue tint */
+  /* Raw palette -- warm-neutral, zero blue tint */
   --z-950: 0 0% 9%;
   --z-900: 0 0% 13%;
   --z-800: 0 0% 20%;
@@ -23,28 +23,28 @@
   --z-100: 0 0% 95%;
   --z-50:  0 0% 98%;
 
-  /* Semantic surfaces — near-white, barely-there warm tint */
+  /* Semantic surfaces -- near-white, barely-there warm tint */
   --bg-canvas:   0 0% 97%;    /* page background ≈ #F7F8FA */
   --bg-base:     0 0% 100%;   /* primary surface (cards, panels) */
   --bg-subtle:   0 0% 96%;    /* inset areas, alt rows */
   --bg-muted:    0 0% 93%;    /* hover states, secondary backgrounds */
   --bg-elevated: 0 0% 100%;   /* elevated elements */
 
-  /* Borders — barely visible, neutral */
+  /* Borders -- barely visible, neutral */
   --border-strong:   0 0% 82%;
   --border-default:  0 0% 88%;
   --border-subtle:   0 0% 93%;
   --border-input:    0 0% 80%;
   --border-focus:    0 0% 40%;
 
-  /* Text — near black, no tint */
+  /* Text -- near black, no tint */
   --text-primary:    0 0% 7%;     /* ≈ #111827 */
   --text-secondary:  0 0% 42%;    /* ≈ #6B7280 */
   --text-tertiary:   0 0% 56%;
   --text-quaternary: 0 0% 68%;
   --text-inverse:    0 0% 100%;
 
-  /* Status — desaturated institutional tones */
+  /* Status -- desaturated institutional tones */
   --status-valid-bg:       152 28% 94%;
   --status-valid-border:   152 28% 82%;
   --status-valid-text:     152 55% 22%;
@@ -76,21 +76,21 @@
 
 /* ── DARK MODE ─────────────────────────────────────────────── */
 .dark {
-  /* Pure graphite/charcoal — no blue tint, like DeepWiki dark */
+  /* Pure graphite/charcoal -- no blue tint, like DeepWiki dark */
   --bg-canvas:   0 0% 7%;     /* ≈ #111111 */
   --bg-base:     0 0% 10%;    /* ≈ #1A1A1A */
   --bg-subtle:   0 0% 12%;    /* ≈ #1E1E1E */
   --bg-muted:    0 0% 15%;
   --bg-elevated: 0 0% 18%;
 
-  /* Muted borders — barely visible */
+  /* Muted borders -- barely visible */
   --border-strong:    0 0% 24%;
   --border-default:   0 0% 18%;
   --border-subtle:    0 0% 14%;
   --border-input:     0 0% 24%;
   --border-focus:     0 0% 50%;
 
-  /* Soft off-white text — not stark white */
+  /* Soft off-white text -- not stark white */
   --text-primary:    0 0% 90%;    /* ≈ #E5E5E5 */
   --text-secondary:  0 0% 60%;    /* ≈ #999999 */
   --text-tertiary:   0 0% 42%;
@@ -176,7 +176,7 @@ button, input, select, textarea {
   min-height: 100dvh;
 }
 
-/* Sidebar — blends with canvas in light, distinct in dark */
+/* Sidebar -- blends with canvas in light, distinct in dark */
 .sidebar-surface {
   background: hsl(var(--bg-canvas));
   border-right: 1px solid hsl(var(--border-default));
@@ -198,7 +198,7 @@ button, input, select, textarea {
    SURFACE SYSTEM
    ============================================================ */
 
-/* Main working surface — used for panels that contain content */
+/* Main working surface -- used for panels that contain content */
 .work-surface {
   background: hsl(var(--bg-base));
   border: 1px solid hsl(var(--border-default));
@@ -235,7 +235,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   METRIC STRIP — used for KPI rows
+   METRIC STRIP -- used for KPI rows
    ============================================================ */
 
 .metric-strip {
@@ -268,7 +268,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   DATA TABLES — premium, dense, institutional
+   DATA TABLES -- premium, dense, institutional
    ============================================================ */
 
 .data-table {
@@ -438,7 +438,7 @@ button, input, select, textarea {
   cursor: not-allowed;
 }
 
-/* Danger — revoke / delete */
+/* Danger -- revoke / delete */
 .btn-danger {
   display: inline-flex;
   align-items: center;
@@ -465,7 +465,7 @@ button, input, select, textarea {
   transform: scale(0.98);
 }
 
-/* Small variant — table actions */
+/* Small variant -- table actions */
 .btn-sm {
   height: 1.75rem;
   padding: 0 0.625rem;
@@ -547,7 +547,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   STATUS BADGES — semantic, accessible, dual-mode
+   STATUS BADGES -- semantic, accessible, dual-mode
    ============================================================ */
 
 .badge {
@@ -628,7 +628,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   PAGE HEADER — consistent across dashboard pages
+   PAGE HEADER -- consistent across dashboard pages
    ============================================================ */
 
 .page-header {
@@ -667,7 +667,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   STATUS DOTS — small inline indicators
+   STATUS DOTS -- small inline indicators
    ============================================================ */
 
 .dot-valid   { background: hsl(var(--status-valid-dot)); }
@@ -771,7 +771,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   SITE HEADER — public pages (landing, verify, login, proof)
+   SITE HEADER -- public pages (landing, verify, login, proof)
    ============================================================ */
 
 .site-header {
@@ -789,7 +789,7 @@ button, input, select, textarea {
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
-/* ── Public nav links — text style with underline reveal ── */
+/* ── Public nav links -- text style with underline reveal ── */
 
 .public-nav-link {
   position: relative;
@@ -843,7 +843,7 @@ button, input, select, textarea {
   background: hsl(var(--text-primary) / 0.75);
 }
 
-/* ── Public Sign In CTA — compact contrast button ── */
+/* ── Public Sign In CTA -- compact contrast button ── */
 
 .public-nav-cta {
   display: inline-flex;
@@ -877,7 +877,7 @@ button, input, select, textarea {
 }
 
 /* ============================================================
-   SITE FOOTER — public pages
+   SITE FOOTER -- public pages
    ============================================================ */
 
 .site-footer {

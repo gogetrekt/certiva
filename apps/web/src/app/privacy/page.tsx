@@ -15,7 +15,7 @@ type Section = { heading: string; body: string | null; isContact?: boolean };
 const sections: Section[] = [
   {
     heading: "Information processed during public verification",
-    body: "When you use Credential Check, Certiva processes the verification ID you submit to query the registry and return a result. No account, name, or contact information is collected from relying parties. Certiva does not log the identity of parties performing public lookups. Basic technical request metadata — such as timestamps and response codes — may be retained for security monitoring and abuse prevention.",
+    body: "When you use Credential Check, Certiva processes the verification ID you submit to query the registry and return a result. No account, name, or contact information is collected from relying parties. Certiva does not log the identity of parties performing public lookups. Basic technical request metadata, such as timestamps and response codes, may be retained for security monitoring and abuse prevention.",
   },
   {
     heading: "Document uploads",
@@ -23,7 +23,7 @@ const sections: Section[] = [
   },
   {
     heading: "Credential records",
-    body: "Credential records stored in the Certiva registry are submitted by issuing institutions at issuance time. A record may include recipient name, institution name, degree or program, issue date, credential status, and proof metadata. Certiva does not independently collect student or recipient data — it stores what the issuing institution provides and returns it in response to verification lookups.",
+    body: "Credential records stored in the Certiva registry are submitted by issuing institutions at issuance time. A record may include recipient name, institution name, degree or program, issue date, credential status, and proof metadata. Certiva does not independently collect student or recipient data; it stores what the issuing institution provides and returns it in response to verification lookups.",
   },
   {
     heading: "How information is used",
@@ -35,7 +35,7 @@ const sections: Section[] = [
   },
   {
     heading: "Blockchain anchoring",
-    body: "Credential hash anchoring uses the Polygon Amoy public blockchain network. When a credential hash is anchored, that hash becomes publicly visible on-chain. No personally identifying information is included in on-chain data — only a cryptographic fingerprint of the credential.",
+    body: "Credential hash anchoring uses the Polygon Amoy public blockchain network. When a credential hash is anchored, that hash becomes publicly visible on-chain. No personally identifying information is included in on-chain data: only a cryptographic fingerprint of the credential.",
   },
   {
     heading: "Data sharing",
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
           </p>
           <div className="mt-5 inline-flex items-center rounded-md border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-3 py-1.5">
             <p className="text-[0.75rem] leading-normal text-[hsl(var(--status-warn-text))]">
-              Operational draft — legal review required before production deployment.
+              Operational draft. Legal review required before production deployment.
             </p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
         {/* Revision note */}
         <div className="pb-10 pt-2">
           <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">
-            Last revised: 2026. Operational draft — pending final legal review.
+            Last revised: 2026. Operational draft, pending final legal review.
           </p>
         </div>
       </div>

@@ -25,7 +25,7 @@ interface VerifyResultPageProps {
 
 export async function generateMetadata({ params }: VerifyResultPageProps): Promise<Metadata> {
   const { verificationId } = await params;
-  return { title: `Verification — ${verificationId}` };
+  return { title: `Verification ${verificationId}` };
 }
 
 function getStateConfig(result: VerificationResponse["result"]) {
@@ -169,7 +169,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                         ...(verification.revocationReason ? [{ label: "Revocation reason", value: verification.revocationReason, mono: false }] : []),
                       ] : []),
                       { label: "Credential status", value: verification.revoked ? "Revoked" : "Active", mono: false },
-                      { label: "Document integrity", value: verification.securePdfEnabled ? "Proof registered — upload PDF to verify" : "Not registered", mono: false },
+                      { label: "Document integrity", value: verification.securePdfEnabled ? "Proof registered. Upload PDF to verify." : "Not registered", mono: false },
                       { label: "Blockchain proof", value: verification.blockchainStatus === "ON_CHAIN_VERIFIED" ? "Anchored" : verification.blockchainStatus === "PENDING" ? "Pending" : verification.blockchainStatus === "FAILED" ? "Failed" : "Not anchored", mono: false },
                       { label: "Verification count", value: String(verification.verificationCount), mono: false },
                       { label: "Last checked", value: verification.verifiedAtTimestamp ? formatDateTime(verification.verifiedAtTimestamp) : "Not available", mono: false },

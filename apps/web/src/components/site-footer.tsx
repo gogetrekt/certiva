@@ -52,7 +52,7 @@ export function SiteFooter() {
       <div className="mx-auto w-full max-w-300 px-6 sm:px-8">
         {/* Main grid */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 py-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:gap-x-10 md:py-14">
-          {/* Col 1 — Brand */}
+          {/* Col 1 -- Brand */}
           <div className="col-span-2 md:col-span-1">
             <AppLogo />
             <p className="mt-4 text-[0.8125rem] font-medium leading-[1.55] text-[hsl(var(--text-secondary))]">
@@ -63,13 +63,13 @@ export function SiteFooter() {
             </p>
           </div>
 
-          {/* Col 2 — Verify */}
+          {/* Col 2 -- Verify */}
           <FooterSection heading="Verify" links={verifyLinks} />
 
-          {/* Col 3 — Guidance */}
+          {/* Col 3 -- Guidance */}
           <FooterSection heading="Guidance" links={helpLinks} />
 
-          {/* Col 4 — Legal */}
+          {/* Col 4 -- Legal */}
           <FooterSection heading="Legal" links={legalLinks} />
         </div>
 

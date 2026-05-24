@@ -246,10 +246,10 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
                   <tr key={`${row.rowNumber}-${row.studentId}-${row.degree}`} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : "bg-[hsl(var(--bg-base))]"}>
                     <td className="px-4 py-3 font-mono text-xs text-[hsl(var(--text-tertiary))]">#{row.rowNumber}</td>
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{row.studentName || "—"}</p>
-                      <p className="text-xs text-[hsl(var(--text-tertiary))]">{row.studentId || "—"}</p>
+                      <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{row.studentName || "-"}</p>
+                      <p className="text-xs text-[hsl(var(--text-tertiary))]">{row.studentId || "-"}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm text-[hsl(var(--text-secondary))]">{row.degree || "—"}</td>
+                    <td className="px-4 py-3 text-sm text-[hsl(var(--text-secondary))]">{row.degree || "-"}</td>
                     <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                     <td className="px-4 py-3 text-xs text-[hsl(var(--text-tertiary))]">
                       {row.verificationId ? "Issued successfully" : (row.message ?? "")}

@@ -5,7 +5,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 
 export const metadata: Metadata = {
-  title: "Security — Certiva",
+  title: "Security",
   description:
     "How Certiva protects public verification flows and credential proof integrity through cryptographic hashing, blockchain anchoring, and read-only public access.",
 };
@@ -24,12 +24,12 @@ const principles = [
   {
     kicker: "Credential proof",
     title: "Registry-backed credential records",
-    body: "Credential records are controlled by the issuing institution. Each record carries issuer identity, recipient details, credential metadata, status (active or revoked), and a proof state. Revocation is real-time — a revoked credential returns Revoked immediately on the next lookup.",
+    body: "Credential records are controlled by the issuing institution. Each record carries issuer identity, recipient details, credential metadata, status (active or revoked), and a proof state. Revocation is real-time: a revoked credential returns Revoked immediately on the next lookup.",
   },
   {
     kicker: "Blockchain anchoring",
     title: "On-chain audit layer",
-    body: "Credential hashes are anchored on the Polygon Amoy network at issuance. This creates a tamper-evident, time-stamped entry independent of Certiva's infrastructure. The blockchain is a secondary audit layer — the registry is the primary source of record status.",
+    body: "Credential hashes are anchored on the Polygon Amoy network at issuance. This creates a tamper-evident, time-stamped entry independent of Certiva's infrastructure. The blockchain is a secondary audit layer; the registry is the primary source of record status.",
   },
   {
     kicker: "Proof separation",
@@ -39,7 +39,7 @@ const principles = [
   {
     kicker: "Public identifiers",
     title: "Verification IDs are public",
-    body: "Verification IDs are intentionally public identifiers. Possessing a verification ID grants anyone the ability to look up that credential's status. This is by design — it enables relying parties to verify credentials independently without contacting the institution.",
+    body: "Verification IDs are intentionally public identifiers. Possessing a verification ID grants anyone the ability to look up that credential's status. This is by design: it enables relying parties to verify credentials independently without contacting the institution.",
   },
 ] as const;
 
@@ -54,7 +54,7 @@ const hardening = [
   {
     area: "Secrets management",
     items: [
-      "Store all credentials, API keys, and signing secrets in environment variables — never in source code.",
+      "Store all credentials, API keys, and signing secrets in environment variables, never in source code.",
       "Rotate secrets regularly and audit access to environment configuration.",
     ],
   },

@@ -26,11 +26,11 @@ export default function VerifyDocumentPage() {
             Check whether the PDF seal still matches.
           </h1>
           <p className="mt-3 max-w-120 text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
-            Upload a PDF to compare its SHA-256 hash against the registered proof record. Checks document integrity only — not credential validity.
+            Upload a PDF to compare its SHA-256 hash against the registered proof record. Checks document integrity only, not credential validity.
           </p>
         </div>
 
-        {/* Primary workflow — upload */}
+        {/* Primary workflow: upload */}
         <div className="py-10 border-b border-[hsl(var(--border-default))]">
           <div className="grid gap-10 md:grid-cols-[1fr_340px]">
 

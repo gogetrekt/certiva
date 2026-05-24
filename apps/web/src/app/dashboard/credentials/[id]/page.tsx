@@ -299,7 +299,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           </DisclosurePanel>
         </div>
 
-        {/* Right column — snapshot */}
+        {/* Right column -- snapshot */}
         <div className="work-surface overflow-hidden p-0 h-fit">
           <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
             <p className="kicker mb-1">At a glance</p>

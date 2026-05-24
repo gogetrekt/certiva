@@ -20,7 +20,7 @@ interface ProofPageProps {
 
 export async function generateMetadata({ params }: ProofPageProps): Promise<Metadata> {
   const { verificationId } = await params;
-  return { title: `Document Proof — ${verificationId}` };
+  return { title: `Document Proof ${verificationId}` };
 }
 
 function getStateConfig(status: DocumentProofVerificationResponse["status"]) {
@@ -177,7 +177,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
             </div>
           </div>
 
-          {/* Right — issuer */}
+          {/* Right -- issuer */}
           <div className="space-y-4">
             <div className="work-surface overflow-hidden p-0">
               <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
@@ -221,7 +221,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
             <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-5 py-4">
               <p className="kicker mb-1.5">About document proofs</p>
               <p className="meta-text">
-                Results reflect hash comparison at the time of this check. Does not imply credential validity — only SHA-256 integrity of the registered document.
+                Results reflect hash comparison at the time of this check. Does not imply credential validity; only confirms SHA-256 integrity of the registered document.
               </p>
             </div>
           </div>

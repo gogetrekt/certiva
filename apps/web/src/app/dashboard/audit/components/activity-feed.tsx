@@ -126,7 +126,7 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
               <p className="kicker w-28 shrink-0 pt-0.5">{label}</p>
               <p className="body-text break-all leading-snug">
                 {value === null || value === undefined || value === "" ? (
-                  <span className="text-[hsl(var(--text-quaternary))]">—</span>
+                  <span className="text-[hsl(var(--text-quaternary))]">-</span>
                 ) : (
                   String(value)
                 )}
@@ -260,7 +260,7 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
                     </td>
                     <td className="td-cell-sm">
                       <p className="text-sm text-[hsl(var(--text-primary))] truncate max-w-[140px]">
-                        {item.studentName ?? "—"}
+                        {item.studentName ?? "-"}
                       </p>
                       {item.institution && (
                         <p className="meta-text truncate max-w-[140px]">{item.institution}</p>

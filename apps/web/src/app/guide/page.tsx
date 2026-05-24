@@ -16,7 +16,7 @@ import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 
 export const metadata: Metadata = {
-  title: "Verification Guide — Certiva",
+  title: "Verification Guide",
   description:
     "Learn how to verify academic credentials and check document integrity using Certiva's public verification tools.",
 };
@@ -26,7 +26,7 @@ const checkTypes = [
     icon: IdentificationCardIcon,
     kicker: "Credential Check",
     title: "Verify a credential record",
-    body: "Use when you have a verification ID — the unique public identifier printed on the credential or embedded in its QR code. Returns the registry record: recipient name, issuing institution, degree or program, issue date, credential status, and blockchain proof state.",
+    body: "Use when you have a verification ID, the unique public identifier printed on the credential or embedded in its QR code. Returns the registry record: recipient name, issuing institution, degree or program, issue date, credential status, and blockchain proof state.",
     when: [
       "Confirming whether an academic credential is active or revoked",
       "Identifying the issuing institution and recipient",
@@ -107,7 +107,7 @@ const resultStates = [
     label: "Proof Unavailable",
     applies: "Credential Check",
     meaning:
-      "The credential record exists but no blockchain proof is available — anchoring may not have been configured for this credential or deployment. Treat the registry record as the authoritative source.",
+      "The credential record exists but no blockchain proof is available. Anchoring may not have been configured for this credential or deployment. Treat the registry record as the authoritative source.",
   },
 ] as const;
 
@@ -115,7 +115,7 @@ const workflowSteps = [
   {
     step: "01",
     title: "Locate the verification ID",
-    body: "Find the verification ID on the credential document — typically printed as a short alphanumeric string or encoded in the QR code. Copy it exactly as shown, including any hyphens or separators.",
+    body: "Find the verification ID on the credential document, typically printed as a short alphanumeric string or encoded in the QR code. Copy it exactly as shown, including any hyphens or separators.",
   },
   {
     step: "02",
@@ -142,7 +142,7 @@ const workflowSteps = [
 const limitations = [
   {
     title: "Records are institution-controlled",
-    body: "Public verification results depend entirely on records submitted by the issuing institution. Certiva does not independently validate the accuracy of credential data — only whether a record exists and its current status.",
+    body: "Public verification results depend entirely on records submitted by the issuing institution. Certiva does not independently validate the accuracy of credential data; it only confirms whether a record exists and its current status.",
   },
   {
     title: "Document integrity is not credential validity",
@@ -150,7 +150,7 @@ const limitations = [
   },
   {
     title: "Blockchain proof may be pending",
-    body: "On-chain anchoring can take time depending on network conditions and deployment configuration. A Pending Anchor result does not invalidate the credential — the registry record remains authoritative.",
+    body: "On-chain anchoring can take time depending on network conditions and deployment configuration. A Pending Anchor result does not invalidate the credential; the registry record remains authoritative.",
   },
   {
     title: "Testnet anchoring",
@@ -175,7 +175,7 @@ export default function GuidePage() {
             Verification Guide
           </h1>
           <p className="mt-3 max-w-[52ch] text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
-            How to check issued credentials and sealed PDF records without accessing the institution workspace. Certiva provides two separate public checks — each serves a different purpose.
+            How to check issued credentials and sealed PDF records without accessing the institution workspace. Certiva provides two separate public checks, each serving a different purpose.
           </p>
         </div>
 
@@ -244,7 +244,7 @@ export default function GuidePage() {
                   Registry-backed status
                 </h3>
                 <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))]">
-                  A valid credential means the registry record is recognised, the issuing institution is active, and the credential has not been revoked. This is a live registry lookup — revocation takes effect immediately.
+                  A valid credential means the registry record is recognised, the issuing institution is active, and the credential has not been revoked. This is a live registry lookup; revocation takes effect immediately.
                 </p>
               </div>
               <div>
@@ -255,13 +255,13 @@ export default function GuidePage() {
                   File-level hash match
                 </h3>
                 <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))]">
-                  A matching document means the uploaded PDF's SHA-256 hash is identical to the hash registered at issuance. This confirms the file has not changed. It does not confirm credential validity — those are independent checks.
+                  A matching document means the uploaded PDF's SHA-256 hash is identical to the hash registered at issuance. This confirms the file has not changed. It does not confirm credential validity; those are independent checks.
                 </p>
               </div>
             </div>
             <div className="mt-7 rounded-lg border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-4 py-3.5">
               <p className="text-[0.8125rem] leading-[1.6] text-[hsl(var(--status-warn-text))]">
-                A credential can be valid in the registry while the PDF has been altered — or a PDF can match its proof while the credential has since been revoked. For complete assurance, run both checks.
+                A credential can be valid in the registry while the PDF has been altered, or a PDF can match its proof while the credential has since been revoked. For complete assurance, run both checks.
               </p>
             </div>
           </div>

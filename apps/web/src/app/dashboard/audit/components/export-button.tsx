@@ -24,7 +24,7 @@ export function ExportButton({ token }: { token: string }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      // Export error — user can retry
+      // Export error -- user can retry
     } finally {
       setLoading(false);
     }
