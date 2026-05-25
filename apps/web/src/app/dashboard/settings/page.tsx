@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { InstitutionSettingsForm } from "../../../components/institution-settings-form";
@@ -10,6 +11,11 @@ import {
   isInstitutionSetupRequired,
 } from "../../../lib/api";
 import { getServerDictionary } from "../../../lib/i18n-server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.settingsTitle };
+}
 
 export default async function SettingsPage() {
   const token = await getSessionToken();

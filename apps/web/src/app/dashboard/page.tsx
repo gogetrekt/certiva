@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 
@@ -36,6 +37,11 @@ import { ExportButton } from "./audit/components/export-button";
 import { InstitutionSetupState } from "../../components/institution-setup-state";
 import { isInstitutionSetupRequired, getCurrentAdmin } from "../../lib/api";
 import { getServerDictionary } from "../../lib/i18n-server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.dashboardTitle };
+}
 
 export default async function DashboardOverviewPage() {
   const token = await getSessionToken();

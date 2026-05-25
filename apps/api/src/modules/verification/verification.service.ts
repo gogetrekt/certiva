@@ -128,7 +128,7 @@ export class VerificationService {
     return this.resolveCredentialReference(
       verificationId,
       ipAddress,
-      VerificationEventType.QR_LOOKUP,
+      VerificationEventType.REGISTRY_CODE_LOOKUP,
     );
   }
 

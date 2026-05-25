@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 
@@ -12,6 +13,12 @@ import {
 } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
+import { formatLookupType } from "../../../lib/verification-event-format";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.logsTitle };
+}
 
 export default async function VerificationLogsPage() {
   const token = await getSessionToken();
@@ -32,12 +39,11 @@ export default async function VerificationLogsPage() {
     throw error;
   }
 
-  const visibleLogs = logs.filter((log) => log.credential);
-  const validCount = visibleLogs.filter((log) => log.status === "VALID").length;
-  const revokedCount = visibleLogs.filter(
+  const validCount = logs.filter((log) => log.status === "VALID").length;
+  const revokedCount = logs.filter(
     (log) => log.status === "REVOKED",
   ).length;
-  const invalidCount = visibleLogs.length - validCount - revokedCount;
+  const invalidCount = logs.length - validCount - revokedCount;
 
   return (
     <div className="space-y-6">
@@ -62,7 +68,7 @@ export default async function VerificationLogsPage() {
         <div className="flex flex-wrap gap-6 sm:gap-8">
           <Stat
             label={t.dashboard.logs.recentEvents}
-            value={visibleLogs.length}
+            value={logs.length}
             note={t.dashboard.logs.credentialLinked}
           />
           <div className="hidden sm:block w-px self-stretch bg-[hsl(var(--border-default))]" />
@@ -78,7 +84,7 @@ export default async function VerificationLogsPage() {
 
       {/* Table */}
       <div className="work-surface overflow-hidden p-0">
-        {visibleLogs.length === 0 ? (
+        {logs.length === 0 ? (
           <div className="p-10">
             <EmptyState
               title={t.dashboard.logs.emptyTitle}
@@ -99,7 +105,7 @@ export default async function VerificationLogsPage() {
                 </tr>
               </thead>
               <tbody>
-                {visibleLogs.map((log) => (
+                {logs.map((log) => (
                   <tr key={log.id}>
                     <td className="td-cell-sm whitespace-nowrap">
                       <p className="text-sm text-[hsl(var(--text-secondary))]">
@@ -140,9 +146,7 @@ export default async function VerificationLogsPage() {
                     </td>
                     <td className="td-cell-sm">
                       <p className="hash-text text-[hsl(var(--text-tertiary))]">
-                        {log.uploadedHash
-                          ? `${t.common.hashPrefix}: ${log.uploadedHash.slice(0, 14)}...`
-                          : t.common.lookupId}
+                        {formatLookupType(log.lookupType, t).shortLabel}
                       </p>
                     </td>
                     <td className="td-cell-sm">
@@ -182,20 +186,21 @@ function Stat({
   );
 }
 
-type LogStatus = "VALID" | "INVALID" | "REVOKED" | "NOT_FOUND" | "TAMPERED";
-
 function LogStatusBadge({
   status,
   t,
 }: {
-  status: LogStatus;
+  status: string;
   t: Awaited<ReturnType<typeof getServerDictionary>>;
 }) {
-  const map: Record<LogStatus, { label: string; cls: string }> = {
+  const map: Record<string, { label: string; cls: string }> = {
     VALID:      { label: t.dashboard.logs.statusVerified,      cls: "badge badge-valid" },
+    INTEGRITY_VERIFIED: { label: t.dashboard.logs.statusVerified, cls: "badge badge-valid" },
     REVOKED:    { label: t.dashboard.logs.statusRevoked,       cls: "badge badge-warn" },
     NOT_FOUND:  { label: t.dashboard.logs.statusNotRegistered, cls: "badge badge-neutral" },
     TAMPERED:   { label: t.dashboard.logs.statusModified,      cls: "badge badge-error" },
+    DOCUMENT_MODIFIED: { label: t.dashboard.logs.statusModified, cls: "badge badge-error" },
+    NO_SECURE_PDF_RECORD: { label: t.dashboard.logs.statusNotRegistered, cls: "badge badge-neutral" },
     INVALID:    { label: t.dashboard.logs.statusInvalid,       cls: "badge badge-error" },
   };
   const { label, cls } = map[status] ?? map.INVALID;

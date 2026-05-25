@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 
@@ -12,6 +13,11 @@ import {
 } from "../../../lib/api";
 import { getServerDictionary } from "../../../lib/i18n-server";
 import { DocumentProofsList } from "./document-proofs-list";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.documentProofsTitle };
+}
 
 export default async function DocumentProofPage() {
   const token = await getSessionToken();

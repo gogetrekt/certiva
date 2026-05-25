@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Prisma, VerificationEventType } from "@prisma/client";
 
 import { ADMIN_ROLE } from "../../common/auth/admin-role.constants";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -18,15 +19,36 @@ export class AuditService {
       : null;
   }
 
+  private buildVerificationLogWhere(
+    issuerId: string | null,
+  ): Prisma.VerificationLogWhereInput {
+    return issuerId
+      ? {
+          OR: [{ credentialId: null }, { credential: { issuerId } }],
+        }
+      : {};
+  }
+
+  private mapEventTypeToLookupType(
+    eventType: VerificationEventType | string,
+  ): "QR" | "ID" | "DOCUMENT" {
+    switch (eventType) {
+      case VerificationEventType.QR_LOOKUP:
+        return "QR";
+      case VerificationEventType.PDF_INTEGRITY_CHECK:
+        return "DOCUMENT";
+      case VerificationEventType.REGISTRY_CODE_LOOKUP:
+      default:
+        return "ID";
+    }
+  }
+
   async listLogs(admin: JwtPayload, limit = 50) {
     const take = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 50;
     const issuerId = await this.resolveIssuerId(admin);
 
-    return this.prisma.verificationLog.findMany({
-      where: {
-        credentialId: { not: null },
-        ...(issuerId ? { credential: { issuerId } } : {}),
-      },
+    const logs = await this.prisma.verificationLog.findMany({
+      where: this.buildVerificationLogWhere(issuerId),
       include: {
         credential: {
           include: { issuer: true },
@@ -35,6 +57,11 @@ export class AuditService {
       orderBy: { createdAt: "desc" },
       take,
     });
+
+    return logs.map((log) => ({
+      ...log,
+      lookupType: this.mapEventTypeToLookupType(log.eventType),
+    }));
   }
 
   async listBlockchainAudit(admin: JwtPayload, limit = 100) {
@@ -58,6 +85,7 @@ export class AuditService {
   async getDashboardMetrics(admin: JwtPayload) {
     const issuerId = await this.resolveIssuerId(admin);
     const where = issuerId ? { issuerId } : {};
+    const verificationWhere = this.buildVerificationLogWhere(issuerId);
 
     const [
       totalIssued,
@@ -70,16 +98,12 @@ export class AuditService {
       this.prisma.credential.count({ where: { ...where, revoked: true } }),
       this.prisma.credential.count({ where: { ...where, anchorStatus: "PENDING" } }),
       this.prisma.verificationLog.count({
-        where: {
-          credentialId: { not: null },
-          ...(issuerId ? { credential: { issuerId } } : {}),
-        },
+        where: verificationWhere,
       }),
       this.prisma.verificationLog.count({
         where: {
+          ...verificationWhere,
           status: "VALID",
-          credentialId: { not: null },
-          ...(issuerId ? { credential: { issuerId } } : {}),
         },
       }),
     ]);
@@ -109,15 +133,12 @@ export class AuditService {
     const take = Math.min(options.limit ?? 25, 100);
     const skip = options.offset ?? 0;
     const issuerId = await this.resolveIssuerId(admin);
-    const credWhere = issuerId ? { issuerId } : {};
+    const verificationWhere = this.buildVerificationLogWhere(issuerId);
 
     // Fetch verification logs as activity
     const [logs, total] = await Promise.all([
       this.prisma.verificationLog.findMany({
-        where: {
-          credentialId: { not: null },
-          ...(issuerId ? { credential: { issuerId } } : {}),
-        },
+        where: verificationWhere,
         include: {
           credential: {
             select: {
@@ -136,10 +157,7 @@ export class AuditService {
         skip,
       }),
       this.prisma.verificationLog.count({
-        where: {
-          credentialId: { not: null },
-          ...(issuerId ? { credential: { issuerId } } : {}),
-        },
+        where: verificationWhere,
       }),
     ]);
 
@@ -147,8 +165,9 @@ export class AuditService {
     const items = logs.map((log) => ({
       id: log.id,
       action: this.mapEventTypeToAction(log.eventType, log.status),
+      lookupType: this.mapEventTypeToLookupType(log.eventType),
       status: log.status,
-      credentialId: log.credential?.credentialExternalId ?? log.credentialId ?? "—",
+      credentialId: log.credential?.credentialExternalId ?? log.credentialId ?? "-",
       credentialDbId: log.credential?.id ?? log.credentialId,
       degree: log.credential?.degree ?? null,
       studentName: log.credential?.studentName ?? null,
@@ -164,9 +183,14 @@ export class AuditService {
   private mapEventTypeToAction(eventType: string, status: string): string {
     if (status === "REVOKED") return "Credential Revoked";
     switch (eventType) {
-      case "QR_LOOKUP": return "QR Verification";
-      case "PDF_INTEGRITY_CHECK": return "PDF Integrity Check";
-      default: return "Verification Completed";
+      case "REGISTRY_CODE_LOOKUP":
+        return "ID Lookup";
+      case "QR_LOOKUP":
+        return "QR Verification";
+      case "PDF_INTEGRITY_CHECK":
+        return "PDF Integrity Check";
+      default:
+        return "Verification Completed";
     }
   }
 
@@ -182,9 +206,8 @@ export class AuditService {
 
     const logs = await this.prisma.verificationLog.findMany({
       where: {
-        credentialId: { not: null },
+        ...this.buildVerificationLogWhere(issuerId),
         createdAt: { gte: since },
-        ...(issuerId ? { credential: { issuerId } } : {}),
       },
       select: { createdAt: true, status: true },
       orderBy: { createdAt: "asc" },

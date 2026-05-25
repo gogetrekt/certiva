@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
@@ -10,6 +11,11 @@ import {
 } from "../../../lib/api";
 import { getServerDictionary } from "../../../lib/i18n-server";
 import { CredentialsTable } from "./credentials-table";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.registryTitle };
+}
 
 interface CredentialsPageProps {
   searchParams: Promise<{

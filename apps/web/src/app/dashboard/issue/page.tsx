@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { BulkIssueCredentials } from "../../../components/bulk-issue-credentials";
 import { DisclosurePanel } from "../../../components/disclosure-panel";
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
@@ -10,6 +11,11 @@ import {
   isInstitutionSetupRequired,
 } from "../../../lib/api";
 import { getServerDictionary } from "../../../lib/i18n-server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.issueTitle };
+}
 
 export default async function IssueCredentialPage() {
   const token = await getSessionToken();

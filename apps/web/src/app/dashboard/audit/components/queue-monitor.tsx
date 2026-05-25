@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowClockwise,
-  CheckCircle,
-  Circle,
-  Spinner,
+  CheckCircleIcon,
+  CircleIcon,
+  SpinnerIcon,
   Warning,
-  XCircle,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 
 import type { QueueHealthResponse } from "../../../../lib/api";
@@ -18,28 +18,11 @@ import { useLanguage } from "../../../../lib/i18n";
 function HealthIndicator({ health }: { health: QueueHealthResponse["health"] }) {
   const { t } = useLanguage();
   const map = {
-    healthy: {
-      label: t.auditComponents.queue.healthy,
-      dotClass: "dot-valid",
-      textClass: "text-[hsl(var(--status-valid-text))]",
-      bgClass: "badge-valid",
-    },
-    warning: {
-      label: t.auditComponents.queue.warning,
-      dotClass: "dot-warn",
-      textClass: "text-[hsl(var(--status-warn-text))]",
-      bgClass: "badge-warn",
-    },
-    critical: {
-      label: t.auditComponents.queue.critical,
-      dotClass: "dot-error",
-      textClass: "text-[hsl(var(--status-error-text))]",
-      bgClass: "badge-error",
-    },
+    healthy: { label: t.auditComponents.queue.healthy, bgClass: "badge-valid", dotClass: "dot-valid" },
+    warning: { label: t.auditComponents.queue.warning, bgClass: "badge-warn", dotClass: "dot-warn" },
+    critical: { label: t.auditComponents.queue.critical, bgClass: "badge-error", dotClass: "dot-error" },
   };
-
-  const { label, dotClass, bgClass } = map[health];
-
+  const { label, bgClass, dotClass } = map[health];
   return (
     <span className={`badge ${bgClass} inline-flex items-center gap-1.5`}>
       <span
@@ -56,7 +39,7 @@ function HealthIndicator({ health }: { health: QueueHealthResponse["health"] }) 
 interface StatCellProps {
   label: string;
   value: number;
-  icon: typeof Circle;
+  icon: typeof CircleIcon;
   iconClass: string;
 }
 
@@ -74,6 +57,24 @@ function StatCell({ label, value, icon: Icon, iconClass }: StatCellProps) {
   );
 }
 
+// --- Relative time label ------------------------------------------------------
+
+function useRelativeTime(date: Date | null): string {
+  const [, tick] = useState(0);
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!date) return "";
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 1) return t.auditComponents.queue.lastUpdatedJustNow;
+  return `${diffMin} ${t.auditComponents.queue.lastUpdatedMinutesAgo}`;
+}
+
 // --- Queue monitor ------------------------------------------------------------
 
 interface QueueMonitorProps {
@@ -84,59 +85,61 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
   const { t } = useLanguage();
   const [data, setData] = useState<QueueHealthResponse>(initialData);
   const [refreshing, setRefreshing] = useState(false);
-  const [lastRefreshed, setLastRefreshed] = useState(new Date());
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [error, setError] = useState(false);
+
+  const relativeTime = useRelativeTime(lastRefreshed);
 
   const refresh = useCallback(async () => {
+    if (refreshing) return;
     setRefreshing(true);
+    setError(false);
     try {
-      const res = await fetch("/api/audit/queue");
-      if (!res.ok) return;
+      const res = await fetch("/api/audit/dashboard/queue");
+      if (!res.ok) throw new Error("non-ok");
       const d = (await res.json()) as QueueHealthResponse;
       setData(d);
       setLastRefreshed(new Date());
+    } catch {
+      setError(true);
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [refreshing]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const id = setInterval(refresh, 30_000);
     return () => clearInterval(id);
-  }, [refresh]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const cells: StatCellProps[] = [
     {
       label: t.auditComponents.queue.pending,
       value: data.pending,
-      icon: Circle,
+      icon: CircleIcon,
       iconClass: "text-[hsl(var(--status-warn-dot))]",
     },
     {
       label: t.auditComponents.queue.processing,
       value: data.processing,
-      icon: Spinner,
-      iconClass: "text-[hsl(var(--text-tertiary))] animate-spin",
+      icon: SpinnerIcon,
+      iconClass: "text-[hsl(var(--text-tertiary))]",
     },
     {
       label: t.auditComponents.queue.failed,
       value: data.failed,
-      icon: XCircle,
+      icon: XCircleIcon,
       iconClass: "text-[hsl(var(--status-error-dot))]",
     },
     {
       label: t.auditComponents.queue.completed,
       value: data.completed,
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       iconClass: "text-[hsl(var(--status-valid-dot))]",
     },
   ];
-
-  const timeLabel = lastRefreshed.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 
   return (
     <div className="work-surface overflow-hidden p-0">
@@ -149,6 +152,7 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
         <div className="flex items-center gap-2">
           <HealthIndicator health={data.health} />
           <button
+            type="button"
             onClick={refresh}
             disabled={refreshing}
             className="theme-toggle"
@@ -171,9 +175,7 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
             {t.auditComponents.queue.noActiveJobs}
           </p>
         ) : (
-          cells.map((cell) => (
-            <StatCell key={cell.label} {...cell} />
-          ))
+          cells.map((cell) => <StatCell key={cell.label} {...cell} />)
         )}
       </div>
 
@@ -197,11 +199,17 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
         </div>
       )}
 
-      {/* Last refreshed */}
-      <div className="px-5 pb-4 flex items-center justify-end">
-        <span className="meta-text text-[hsl(var(--text-quaternary))] text-[10px]">
-          {timeLabel}
-        </span>
+      {/* Footer: error or last updated */}
+      <div className="px-5 pb-4 flex items-center justify-end min-h-7">
+        {error ? (
+          <span className="meta-text text-[hsl(var(--status-error-text))] text-[10px]">
+            {t.auditComponents.queue.refreshError}
+          </span>
+        ) : relativeTime ? (
+          <span className="meta-text text-[hsl(var(--text-quaternary))] text-[10px]">
+            {relativeTime}
+          </span>
+        ) : null}
       </div>
     </div>
   );

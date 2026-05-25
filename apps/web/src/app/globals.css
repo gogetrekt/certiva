@@ -328,14 +328,14 @@ button, input, select, textarea {
 .field-shell {
   display: flex;
   align-items: center;
-  min-height: 2rem;
+  min-height: 2.375rem;
   width: 100%;
   border-radius: 6px;
   border: 1px solid hsl(var(--border-input));
   background: hsl(var(--bg-base));
-  padding: 0.3125rem 0.625rem;
+  padding: 0.4375rem 0.75rem;
   color: hsl(var(--text-primary));
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 

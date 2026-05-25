@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 
@@ -15,6 +16,11 @@ import { formatDateTime } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
 
 const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.blockchainTitle };
+}
 
 export default async function BlockchainAuditPage() {
   const token = await getSessionToken();

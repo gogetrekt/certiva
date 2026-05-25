@@ -223,9 +223,11 @@ export interface VerificationResponse {
 export interface VerificationLogRecord {
   id: string;
   credentialId: string | null;
+  eventType: "REGISTRY_CODE_LOOKUP" | "QR_LOOKUP" | "PDF_INTEGRITY_CHECK";
+  lookupType: "QR" | "ID" | "DOCUMENT";
   uploadedHash: string | null;
   matched: boolean;
-  status: VerificationResponse["result"];
+  status: string;
   ipAddress: string | null;
   createdAt: string;
   credential?: {
@@ -570,6 +572,7 @@ export interface DashboardMetrics {
 export interface ActivityFeedItem {
   id: string;
   action: string;
+  lookupType: "QR" | "ID" | "DOCUMENT";
   status: string;
   credentialId: string;
   credentialDbId: string | null;

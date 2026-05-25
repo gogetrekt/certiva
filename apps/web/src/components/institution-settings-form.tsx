@@ -47,9 +47,9 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4 max-w-2xl">
-      {/* 2-col card grid on md+, stacked on mobile */}
-      <div className="grid gap-3 md:grid-cols-2">
+    <form action={handleSubmit} className="space-y-6">
+      {/* 2-col card grid on lg+, stacked on mobile */}
+      <div className="grid gap-5 lg:grid-cols-2">
 
         {/* Card: Institution Identity */}
         <SettingsCard label={f.identity} hint={f.identityHint}>
@@ -125,21 +125,21 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
       </div>
 
       {/* Save row */}
-      <div className="flex items-center gap-3 pt-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary"
+          className="btn-primary sm:w-auto w-full justify-center"
         >
           {isSubmitting ? f.saving : f.save}
         </button>
 
         {success ? (
-          <span className="text-xs text-[hsl(var(--status-valid-text))]">{success}</span>
+          <span className="text-sm text-[hsl(var(--status-valid-text))]">{success}</span>
         ) : null}
 
         {error ? (
-          <span className="text-xs text-[hsl(var(--status-error-text))]">{error}</span>
+          <span className="text-sm text-[hsl(var(--status-error-text))]">{error}</span>
         ) : null}
       </div>
     </form>
@@ -156,12 +156,12 @@ function SettingsCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4 space-y-3">
-      <div className="pb-2 border-b border-[hsl(var(--border-subtle))]">
-        <p className="text-xs font-semibold text-[hsl(var(--text-primary))] tracking-wide uppercase">{label}</p>
-        {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-tertiary))] mt-0.5">{hint}</p> : null}
+    <div className="rounded-xl border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] p-6 space-y-5">
+      <div className="pb-3 border-b border-[hsl(var(--border-subtle))]">
+        <p className="text-[0.8125rem] font-semibold text-[hsl(var(--text-primary))] tracking-wide uppercase">{label}</p>
+        {hint ? <p className="text-xs leading-[1.6] text-[hsl(var(--text-tertiary))] mt-1">{hint}</p> : null}
       </div>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-5">{children}</div>
     </div>
   );
 }
@@ -176,9 +176,9 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">{label}</p>
-      {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-quaternary))]">{hint}</p> : null}
+    <div className="space-y-1.5">
+      <p className="text-sm font-medium text-[hsl(var(--text-secondary))]">{label}</p>
+      {hint ? <p className="text-xs leading-[1.6] text-[hsl(var(--text-quaternary))]">{hint}</p> : null}
       {children}
     </div>
   );

@@ -15,6 +15,10 @@ import {
 import type { ActivityFeedItem } from "../../../../lib/api";
 import { formatDateTime } from "../../../../lib/date-format";
 import { useLanguage } from "../../../../lib/i18n";
+import {
+  formatLookupType,
+  formatVerificationAction,
+} from "../../../../lib/verification-event-format";
 
 // --- Status badge -------------------------------------------------------------
 
@@ -26,6 +30,9 @@ function StatusPill({ status }: { status: string }) {
     REVOKED: "badge-error",
     NOT_FOUND: "badge-neutral",
     TAMPERED: "badge-warn",
+    INTEGRITY_VERIFIED: "badge-valid",
+    DOCUMENT_MODIFIED: "badge-error",
+    NO_SECURE_PDF_RECORD: "badge-neutral",
   };
   const labels: Record<string, string> = {
     VALID: t.common.valid,
@@ -33,6 +40,9 @@ function StatusPill({ status }: { status: string }) {
     REVOKED: t.common.revoked,
     NOT_FOUND: t.common.notFound,
     TAMPERED: t.common.tampered,
+    INTEGRITY_VERIFIED: t.common.valid,
+    DOCUMENT_MODIFIED: t.common.modified,
+    NO_SECURE_PDF_RECORD: t.common.notFound,
   };
 
   return (
@@ -44,12 +54,12 @@ function StatusPill({ status }: { status: string }) {
 
 // --- Action icon --------------------------------------------------------------
 
-function ActionIcon({ action, status }: { action: string; status: string }) {
+function ActionIcon({ lookupType, status }: { lookupType: string; status: string }) {
   const ok = status === "VALID";
   const cls = `shrink-0 ${ok ? "text-[hsl(var(--status-valid-dot))]" : "text-[hsl(var(--status-error-dot))]"}`;
 
-  if (action.includes("QR")) return <QrCode size={14} weight="duotone" className={cls} aria-hidden />;
-  if (action.includes("PDF")) return <FileMagnifyingGlass size={14} weight="duotone" className={cls} aria-hidden />;
+  if (lookupType === "QR") return <QrCode size={14} weight="duotone" className={cls} aria-hidden />;
+  if (lookupType === "DOCUMENT") return <FileMagnifyingGlass size={14} weight="duotone" className={cls} aria-hidden />;
   if (ok) return <CheckCircle size={14} weight="duotone" className={cls} aria-hidden />;
   return <XCircle size={14} weight="duotone" className={cls} aria-hidden />;
 }
@@ -80,10 +90,13 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
   }, [item]);
 
   if (!item) return null;
+  const actionLabel = formatVerificationAction(item.lookupType, item.status, t);
+  const lookupLabel = formatLookupType(item.lookupType, t).shortLabel;
 
   const rows: [string, string | null | boolean][] = [
     [t.auditComponents.activityFeed.rows.credentialId, item.credentialId],
-    [t.auditComponents.activityFeed.rows.action, item.action],
+    [t.auditComponents.activityFeed.rows.action, actionLabel],
+    [t.dashboard.logs.lookupType, lookupLabel],
     [t.auditComponents.activityFeed.rows.status, item.status],
     [t.auditComponents.activityFeed.rows.student, item.studentName],
     [t.auditComponents.activityFeed.rows.degree, item.degree],
@@ -116,7 +129,7 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))] shrink-0">
           <div>
             <p className="kicker mb-0.5">{t.auditComponents.activityFeed.detailTitle}</p>
-            <p className="section-title truncate max-w-[220px]">{item.action}</p>
+            <p className="section-title truncate max-w-[220px]">{actionLabel}</p>
           </div>
           <button
             onClick={onClose}
@@ -231,40 +244,42 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="cursor-pointer"
-                    onClick={() => setSelected(item)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${t.auditComponents.activityFeed.viewDetailPrefix} ${item.credentialId}`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") setSelected(item);
-                    }}
-                  >
-                    <td className="td-cell-sm whitespace-nowrap">
-                      <p className="meta-text font-mono">
-                        {new Date(item.occurredAt).toLocaleTimeString("en-GB", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                      <p className="meta-text">
-                        {new Date(item.occurredAt).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                        })}
-                      </p>
-                    </td>
-                    <td className="td-cell-sm">
-                      <div className="flex items-center gap-2">
-                        <ActionIcon action={item.action} status={item.status} />
-                        <span className="text-sm text-[hsl(var(--text-primary))]">
-                          {item.action}
-                        </span>
-                      </div>
-                    </td>
+                {items.map((item) => {
+                  const actionLabel = formatVerificationAction(item.lookupType, item.status, t);
+                  return (
+                    <tr
+                      key={item.id}
+                      className="cursor-pointer"
+                      onClick={() => setSelected(item)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${t.auditComponents.activityFeed.viewDetailPrefix} ${item.credentialId}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") setSelected(item);
+                      }}
+                    >
+                      <td className="td-cell-sm whitespace-nowrap">
+                        <p className="meta-text font-mono">
+                          {new Date(item.occurredAt).toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="meta-text">
+                          {new Date(item.occurredAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </p>
+                      </td>
+                      <td className="td-cell-sm">
+                        <div className="flex items-center gap-2">
+                          <ActionIcon lookupType={item.lookupType} status={item.status} />
+                          <span className="text-sm text-[hsl(var(--text-primary))]">
+                            {actionLabel}
+                          </span>
+                        </div>
+                      </td>
                     <td className="td-cell-sm max-w-[180px]">
                       <p className="hash-text text-[hsl(var(--text-secondary))] truncate">
                         {item.credentialId}
@@ -278,18 +293,19 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
                         <p className="meta-text truncate max-w-[140px]">{item.institution}</p>
                       )}
                     </td>
-                    <td className="td-cell-sm">
-                      <StatusPill status={item.status} />
-                    </td>
-                    <td className="td-cell-sm">
-                      <CaretRight
-                        size={12}
-                        className="text-[hsl(var(--text-quaternary))]"
-                        aria-hidden
-                      />
-                    </td>
-                  </tr>
-                ))}
+                      <td className="td-cell-sm">
+                        <StatusPill status={item.status} />
+                      </td>
+                      <td className="td-cell-sm">
+                        <CaretRight
+                          size={12}
+                          className="text-[hsl(var(--text-quaternary))]"
+                          aria-hidden
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

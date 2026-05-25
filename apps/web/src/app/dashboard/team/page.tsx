@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AdminStatusForm } from "../../../components/admin-status-form";
@@ -9,6 +10,11 @@ import {
 } from "../../../lib/api";
 import { formatDate } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
+  return { title: t.metadata.teamTitle };
+}
 
 export default async function TeamPage() {
   const token = await getSessionToken();

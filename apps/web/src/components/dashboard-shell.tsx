@@ -320,14 +320,14 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
 
         {/* -- Mobile Drawer ---------------------------------- */}
         {drawerOpen && (
-          <>
+          <div className="lg:hidden">
             <div
-              className="mobile-drawer-overlay lg:hidden"
+              className="mobile-drawer-overlay"
               aria-hidden
               onClick={() => setDrawerOpen(false)}
             />
             <div
-              className="mobile-drawer sidebar-surface lg:hidden"
+              className="mobile-drawer sidebar-surface"
               role="dialog"
               aria-modal="true"
               aria-label={t.dashboardShell.navAria}
@@ -337,7 +337,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                 onNavClick={() => setDrawerOpen(false)}
               />
             </div>
-          </>
+          </div>
         )}
 
         {/* -- Main ------------------------------------------ */}
@@ -348,15 +348,17 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
               {/* Left: hamburger (mobile) + logo/breadcrumb */}
               <div className="flex items-center gap-2 min-w-0">
                 {/* Mobile hamburger */}
-                <button
-                  type="button"
-                  aria-label="Open navigation menu"
-                  aria-expanded={drawerOpen}
-                  onClick={() => setDrawerOpen(true)}
-                  className="theme-toggle lg:hidden shrink-0"
-                >
-                  <List size={18} aria-hidden />
-                </button>
+                <div className="lg:hidden shrink-0">
+                  <button
+                    type="button"
+                    aria-label={t.dashboardShell.openNavigation}
+                    aria-expanded={drawerOpen}
+                    onClick={() => setDrawerOpen(true)}
+                    className="theme-toggle"
+                  >
+                    <List size={18} aria-hidden />
+                  </button>
+                </div>
 
                 {/* Mobile logo when drawer closed */}
                 <div className="lg:hidden">

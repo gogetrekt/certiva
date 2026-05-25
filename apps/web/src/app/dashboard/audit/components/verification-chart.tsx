@@ -4,97 +4,83 @@ import { useCallback, useState } from "react";
 import type { AnalyticsBucket, VerificationAnalytics } from "../../../../lib/api";
 import { useLanguage } from "../../../../lib/i18n";
 
-// --- Bar chart (pure CSS, no external lib) -----------------------------------
+type Period = 7 | 30 | 90;
+
+function formatBucketDate(date: string) {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+}
 
 function BarChart({ buckets }: { buckets: AnalyticsBucket[] }) {
   const { t } = useLanguage();
   const maxVal = Math.max(...buckets.map((b) => b.total), 1);
+  const labelInterval = buckets.length <= 7 ? 1 : buckets.length <= 30 ? 5 : 15;
 
   return (
     <div
-      className="flex items-end gap-1 h-32 w-full"
+      className="relative min-h-56 rounded-lg border border-[hsl(var(--border-subtle))] bg-[hsl(var(--bg-subtle))] px-4 pb-9 pt-8"
       role="img"
       aria-label={t.auditComponents.verificationChart.aria}
     >
-      {buckets.map((bucket) => {
-        const heightPct = Math.max((bucket.total / maxVal) * 100, 2);
-        const date = new Date(bucket.date);
-        const label = date.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        });
+      <div className="pointer-events-none absolute inset-x-4 top-8 bottom-9 flex flex-col justify-between">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="border-t border-[hsl(var(--border-subtle))]" />
+        ))}
+      </div>
 
-        return (
-          <div
-            key={bucket.date}
-            className="group flex-1 flex flex-col items-center gap-1 cursor-default"
-            title={`${label}: ${bucket.total} ${bucket.total === 1 ? t.common.verificationSingular : t.common.verificationPlural} (${bucket.valid} ${t.auditComponents.verificationChart.titleValid}, ${bucket.invalid} ${t.auditComponents.verificationChart.titleInvalid})`}
-          >
-            <div className="relative w-full flex flex-col justify-end" style={{ height: "100px" }}>
-              {/* Valid portion */}
-              {bucket.valid > 0 && (
-                <div
-                  className="w-full rounded-t-[2px] bg-[hsl(var(--status-valid-dot))] opacity-80 group-hover:opacity-100 transition-opacity"
-                  style={{ height: `${(bucket.valid / maxVal) * 100}%` }}
-                />
-              )}
-              {/* Invalid stacked */}
-              {bucket.invalid > 0 && (
-                <div
-                  className="w-full bg-[hsl(var(--status-error-dot))] opacity-70 group-hover:opacity-90 transition-opacity"
-                  style={{ height: `${(bucket.invalid / maxVal) * 100}%` }}
-                />
-              )}
-              {/* Empty bar placeholder */}
-              {bucket.total === 0 && (
-                <div className="w-full rounded-[2px] bg-[hsl(var(--bg-muted))]" style={{ height: "4px" }} />
-              )}
-            </div>
-            {/* Count label */}
-            <span
-              className="hash-text text-[10px] text-[hsl(var(--text-quaternary))] group-hover:text-[hsl(var(--text-tertiary))] transition-colors"
-              aria-hidden
+      <div className="relative grid h-40 grid-flow-col auto-cols-fr items-end gap-1.5 sm:gap-2">
+        {buckets.map((bucket, index) => {
+          const totalHeight = Math.max((bucket.total / maxVal) * 100, bucket.total > 0 ? 8 : 0);
+          const validHeight = bucket.total > 0 ? (bucket.valid / bucket.total) * 100 : 0;
+          const invalidHeight = bucket.total > 0 ? (bucket.invalid / bucket.total) * 100 : 0;
+          const label = formatBucketDate(bucket.date);
+          const showLabel = index % labelInterval === 0 || index === buckets.length - 1;
+
+          return (
+            <div
+              key={bucket.date}
+              className="group relative flex h-full min-w-0 flex-col items-center justify-end"
+              title={`${label}: ${bucket.total} ${t.auditComponents.verificationChart.tooltipTotal}, ${bucket.valid} ${t.auditComponents.verificationChart.titleValid}, ${bucket.invalid} ${t.auditComponents.verificationChart.titleInvalid}`}
             >
-              {bucket.total || ""}
-            </span>
-          </div>
-        );
-      })}
+              <div className="pointer-events-none absolute -top-6 z-10 rounded border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] px-2 py-1 text-[0.625rem] font-medium text-[hsl(var(--text-secondary))] opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                {bucket.total}
+              </div>
+
+              <div
+                className="flex w-full max-w-8 flex-col justify-end overflow-hidden rounded-t-md rounded-b-sm border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] transition-[border-color,transform] duration-150 group-hover:-translate-y-0.5 group-hover:border-[hsl(var(--border-strong))]"
+                style={{ height: `${totalHeight}%` }}
+              >
+                {bucket.valid > 0 ? (
+                  <div
+                    className="bg-[hsl(var(--status-valid-dot))] opacity-85"
+                    style={{ height: `${validHeight}%` }}
+                  />
+                ) : null}
+                {bucket.invalid > 0 ? (
+                  <div
+                    className="bg-[hsl(var(--status-error-dot))] opacity-75"
+                    style={{ height: `${invalidHeight}%` }}
+                  />
+                ) : null}
+                {bucket.total === 0 ? (
+                  <div className="h-1.5 rounded-full bg-[hsl(var(--border-default))]" />
+                ) : null}
+              </div>
+
+              {showLabel ? (
+                <span className="absolute -bottom-6 max-w-12 truncate text-[0.625rem] text-[hsl(var(--text-quaternary))]">
+                  {label}
+                </span>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
-
-// --- Day labels row -----------------------------------------------------------
-
-function DayLabels({ buckets, days }: { buckets: AnalyticsBucket[]; days: number }) {
-  const interval = days <= 7 ? 1 : days <= 30 ? 5 : 15;
-
-  return (
-    <div className="flex gap-1 mt-1 w-full">
-      {buckets.map((bucket, i) => {
-        const show = i % interval === 0 || i === buckets.length - 1;
-        const date = new Date(bucket.date);
-        const label = date.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        });
-        return (
-          <div key={bucket.date} className="flex-1 text-center">
-            {show && (
-              <span className="meta-text" style={{ fontSize: "9px" }}>
-                {label}
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// --- Period selector ----------------------------------------------------------
-
-type Period = 7 | 30 | 90;
 
 interface PeriodTabProps {
   value: Period;
@@ -106,18 +92,19 @@ interface PeriodTabProps {
 function PeriodTab({ value, active, onSelect, suffix }: PeriodTabProps) {
   return (
     <button
+      type="button"
       onClick={() => onSelect(value)}
-      className={`px-2.5 py-1 text-[0.6875rem] font-medium rounded-md transition-colors cursor-pointer ${active
-          ? "bg-[hsl(var(--bg-muted))] text-[hsl(var(--text-primary))] border border-[hsl(var(--border-default))]"
-          : "text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-secondary))]"
-        }`}
+      className={`min-h-8 cursor-pointer rounded-md px-2.5 py-1 text-[0.6875rem] font-medium transition-colors ${
+        active
+          ? "border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-muted))] text-[hsl(var(--text-primary))]"
+          : "text-[hsl(var(--text-tertiary))] hover:bg-[hsl(var(--bg-subtle))] hover:text-[hsl(var(--text-secondary))]"
+      }`}
     >
-      {value}{suffix}
+      {value}
+      {suffix}
     </button>
   );
 }
-
-// --- Summary row -------------------------------------------------------------
 
 function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
   const { t } = useLanguage();
@@ -134,12 +121,12 @@ function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
   ];
 
   return (
-    <div className="flex items-center gap-5 flex-wrap">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       {items.map(({ label, value, dotClass }) => (
         <div key={label} className="flex items-center gap-1.5">
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`} aria-hidden />
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} aria-hidden />
           <span className="meta-text">{label}</span>
-          <span className="text-[0.75rem] font-semibold font-mono text-[hsl(var(--text-primary))] tabular-nums">
+          <span className="font-mono text-[0.75rem] font-semibold tabular-nums text-[hsl(var(--text-primary))]">
             {value}
           </span>
         </div>
@@ -148,7 +135,24 @@ function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
   );
 }
 
-// --- Main component -----------------------------------------------------------
+function SparseDataNote({ buckets }: { buckets: AnalyticsBucket[] }) {
+  const { t } = useLanguage();
+  const total = buckets.reduce((sum, bucket) => sum + bucket.total, 0);
+  const activeDays = buckets.filter((bucket) => bucket.total > 0).length;
+
+  if (total === 0 || activeDays > 2) return null;
+
+  return (
+    <div className="mt-3 rounded-md border border-[hsl(var(--border-subtle))] bg-[hsl(var(--bg-base))] px-3 py-2">
+      <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">
+        {t.auditComponents.verificationChart.sparseTitle}
+      </p>
+      <p className="mt-0.5 text-[0.6875rem] leading-4 text-[hsl(var(--text-quaternary))]">
+        {t.auditComponents.verificationChart.sparseDescription}
+      </p>
+    </div>
+  );
+}
 
 interface VerificationChartProps {
   initialData: VerificationAnalytics;
@@ -178,8 +182,7 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
 
   return (
     <div className="work-surface overflow-hidden p-0">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))]">
+      <div className="flex flex-col gap-3 border-b border-[hsl(var(--border-default))] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="kicker mb-1">{t.auditComponents.verificationChart.analytics}</p>
           <h2 className="section-title">{t.auditComponents.verificationChart.activity}</h2>
@@ -199,23 +202,22 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
 
       {hasData ? (
         <>
-          {/* Chart area */}
-          <div className={`px-5 pt-5 pb-3 transition-opacity ${loading ? "opacity-40" : ""}`}>
+          <div className={`px-5 py-5 transition-opacity ${loading ? "opacity-40" : ""}`}>
             <BarChart buckets={data.buckets} />
-            <DayLabels buckets={data.buckets} days={period} />
+            <SparseDataNote buckets={data.buckets} />
           </div>
 
-          {/* Summary */}
-          <div className="px-5 py-3 border-t border-[hsl(var(--border-subtle))]">
+          <div className="border-t border-[hsl(var(--border-subtle))] px-5 py-3">
             <ChartSummary buckets={data.buckets} />
           </div>
         </>
       ) : (
         <div className="px-5 py-10 text-center">
-          <p className="text-xs font-medium text-[hsl(var(--text-secondary))] mb-1">
+          <div className="mx-auto mb-4 h-24 max-w-sm rounded-lg border border-dashed border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]" />
+          <p className="mb-1 text-xs font-medium text-[hsl(var(--text-secondary))]">
             {t.auditComponents.verificationChart.noDataTitle}
           </p>
-          <p className="meta-text max-w-xs mx-auto">
+          <p className="meta-text mx-auto max-w-xs">
             {t.auditComponents.verificationChart.noDataDescription}
           </p>
         </div>
@@ -225,19 +227,21 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
 }
 
 export function VerificationChartSkeleton() {
+  const heights = [42, 64, 36, 78, 55, 70, 48];
+
   return (
     <div className="work-surface overflow-hidden p-0">
-      <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-        <div className="skeleton h-2.5 w-16 rounded mb-2" />
+      <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
+        <div className="skeleton mb-2 h-2.5 w-16 rounded" />
         <div className="skeleton h-4 w-40 rounded" />
       </div>
-      <div className="px-5 pt-5 pb-3">
-        <div className="flex items-end gap-1 h-32">
-          {Array.from({ length: 7 }).map((_, i) => (
+      <div className="px-5 py-5">
+        <div className="flex h-48 items-end gap-2 rounded-lg border border-[hsl(var(--border-subtle))] bg-[hsl(var(--bg-subtle))] p-4">
+          {heights.map((height, i) => (
             <div
               key={i}
-              className="flex-1 skeleton rounded-t"
-              style={{ height: `${30 + Math.random() * 60}%` }}
+              className="skeleton flex-1 rounded-t"
+              style={{ height: `${height}%` }}
             />
           ))}
         </div>
