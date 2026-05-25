@@ -30,45 +30,14 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* ── Page header ──────────────────────────────── */}
-      <div className="pb-5 border-b border-[hsl(var(--border-default))]">
+    <div className="space-y-5">
+      <div className="pb-4 border-b border-[hsl(var(--border-default))]">
         <p className="kicker mb-1.5">{t.dashboard.settings.title}</p>
         <h1 className="page-title">{t.dashboard.settings.title}</h1>
-        <p className="body-text mt-1.5">
-          {t.dashboard.settings.description}
-        </p>
+        <p className="body-text mt-1.5">{t.dashboard.settings.description}</p>
       </div>
 
-      {/* ── Split layout ─────────────────────────────── */}
-      <div className="grid gap-8 xl:grid-cols-[1fr_240px]">
-        {/* Settings form */}
-        <InstitutionSettingsForm institution={institution} />
-
-        {/* Side notes */}
-        <div className="space-y-5">
-          <div>
-            <p className="kicker mb-3">{t.dashboard.settings.scope}</p>
-            <div className="space-y-3">
-              {t.dashboard.settings.scopeNotes.map((text) => (
-                <p
-                  key={text}
-                  className="text-xs leading-5 text-[hsl(var(--text-tertiary))]"
-                >
-                  {text}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-[hsl(var(--border-subtle))] pt-4">
-            <p className="kicker mb-2">{t.dashboard.settings.access}</p>
-            <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">
-              {t.dashboard.settings.accessNote}
-            </p>
-          </div>
-        </div>
-      </div>
+      <InstitutionSettingsForm institution={institution} />
     </div>
   );
 }

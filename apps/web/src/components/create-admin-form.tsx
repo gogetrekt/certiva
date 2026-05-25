@@ -62,7 +62,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
           id="username"
           name="username"
           type="text"
-          placeholder="baak_hi"
+          placeholder={t.forms.createAdmin.usernamePlaceholder}
           autoComplete="username"
           autoCapitalize="none"
           minLength={3}
@@ -81,7 +81,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
+            placeholder={t.forms.createAdmin.passwordPlaceholder}
             minLength={8}
             autoComplete="new-password"
             required

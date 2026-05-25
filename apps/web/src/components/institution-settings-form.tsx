@@ -9,6 +9,7 @@ import { useLanguage } from "../lib/i18n";
 export function InstitutionSettingsForm({ institution }: { institution: InstitutionRecord }) {
   const router = useRouter();
   const { t } = useLanguage();
+  const f = t.forms.institutionSettings;
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,110 +36,102 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
         body: JSON.stringify(payload),
       });
       const body = (await response.json()) as { message?: string };
-      if (!response.ok) throw new Error(body.message ?? t.forms.institutionSettings.unableUpdate);
-      setSuccess(t.forms.institutionSettings.saved);
+      if (!response.ok) throw new Error(body.message ?? f.unableUpdate);
+      setSuccess(f.saved);
       startTransition(() => { router.refresh(); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.forms.institutionSettings.unableUpdate);
+      setError(err instanceof Error ? err.message : f.unableUpdate);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <form action={handleSubmit} className="space-y-0">
+    <form action={handleSubmit} className="space-y-4 max-w-2xl">
+      {/* 2-col card grid on md+, stacked on mobile */}
+      <div className="grid gap-3 md:grid-cols-2">
 
-      {/* Group: Identity */}
-      <SettingsSection label={t.forms.institutionSettings.identity}>
-        <SettingsRow
-          label={t.forms.institutionSettings.institutionName}
-          hint={t.forms.institutionSettings.institutionNameHint}
-        >
-          <input
-            id="name"
-            name="name"
-            defaultValue={institution.name}
-            required
-            className="field-shell w-full"
-          />
-        </SettingsRow>
-        <SettingsRow
-          label={t.forms.institutionSettings.displayName}
-          hint={t.forms.institutionSettings.displayNameHint}
-        >
-          <input
-            id="displayName"
-            name="displayName"
-            defaultValue={institution.displayName ?? ""}
-            className="field-shell w-full"
-          />
-        </SettingsRow>
-        <SettingsRow label={t.forms.institutionSettings.websiteUrl}>
-          <input
-            id="websiteUrl"
-            name="websiteUrl"
-            defaultValue={institution.websiteUrl ?? ""}
-            placeholder="https://university.edu"
-            className="field-shell w-full"
-          />
-        </SettingsRow>
-      </SettingsSection>
+        {/* Card: Institution Identity */}
+        <SettingsCard label={f.identity} hint={f.identityHint}>
+          <Field label={f.institutionName} hint={f.institutionNameHint}>
+            <input
+              id="name"
+              name="name"
+              defaultValue={institution.name}
+              required
+              className="field-shell w-full"
+            />
+          </Field>
+          <Field label={f.displayName} hint={f.displayNameHint}>
+            <input
+              id="displayName"
+              name="displayName"
+              defaultValue={institution.displayName ?? ""}
+              className="field-shell w-full"
+            />
+          </Field>
+        </SettingsCard>
 
-      {/* Group: Domain & Status */}
-      <SettingsSection label={t.forms.institutionSettings.configuration}>
-        <SettingsRow
-          label={t.forms.institutionSettings.primaryDomain}
-          hint={t.forms.institutionSettings.primaryDomainHint}
-        >
-          <input
-            id="domain"
-            name="domain"
-            defaultValue={institution.domain}
-            required
-            className="field-shell w-full font-mono"
-          />
-        </SettingsRow>
-        <SettingsRow
-          label={t.common.status}
-          hint={t.forms.institutionSettings.statusHint}
-        >
-          <select
-            id="status"
-            name="status"
-            defaultValue={institution.status}
-            className="field-shell w-full"
-          >
-            <option value="ACTIVE">{t.common.active}</option>
-            <option value="INACTIVE">{t.common.inactive}</option>
-            <option value="SUSPENDED">{t.common.suspended}</option>
-          </select>
-        </SettingsRow>
-      </SettingsSection>
+        {/* Card: Public Branding */}
+        <SettingsCard label={f.publicBranding} hint={f.publicBrandingHint}>
+          <Field label={f.websiteUrl}>
+            <input
+              id="websiteUrl"
+              name="websiteUrl"
+              defaultValue={institution.websiteUrl ?? ""}
+              placeholder={f.websiteUrlPlaceholder}
+              className="field-shell w-full"
+            />
+          </Field>
+        </SettingsCard>
 
-      {/* Group: Blockchain */}
-      <SettingsSection label={t.forms.institutionSettings.blockchain}>
-        <SettingsRow
-          label={t.forms.institutionSettings.issuerWallet}
-          hint={t.forms.institutionSettings.issuerWalletHint}
-        >
-          <input
-            id="wallet"
-            name="wallet"
-            defaultValue={institution.wallet ?? ""}
-            placeholder="0x..."
-            className="field-shell w-full font-mono"
-          />
-        </SettingsRow>
-      </SettingsSection>
+        {/* Card: Verification Settings */}
+        <SettingsCard label={f.verificationSettings} hint={f.verificationSettingsHint}>
+          <Field label={f.primaryDomain} hint={f.primaryDomainHint}>
+            <input
+              id="domain"
+              name="domain"
+              defaultValue={institution.domain}
+              required
+              className="field-shell w-full font-mono"
+            />
+          </Field>
+          <Field label={t.common.status} hint={f.statusHint}>
+            <select
+              id="status"
+              name="status"
+              defaultValue={institution.status}
+              className="field-shell w-full"
+            >
+              <option value="ACTIVE">{t.common.active}</option>
+              <option value="INACTIVE">{t.common.inactive}</option>
+              <option value="SUSPENDED">{t.common.suspended}</option>
+            </select>
+          </Field>
+        </SettingsCard>
 
-      {/* Footer */}
-      <div className="pt-4 flex items-center gap-3">
+        {/* Card: Blockchain Proof */}
+        <SettingsCard label={f.blockchain} hint={f.blockchainHint}>
+          <Field label={f.issuerWallet} hint={f.issuerWalletHint}>
+            <input
+              id="wallet"
+              name="wallet"
+              defaultValue={institution.wallet ?? ""}
+              placeholder={f.issuerWalletPlaceholder}
+              className="field-shell w-full font-mono"
+            />
+          </Field>
+        </SettingsCard>
+      </div>
+
+      {/* Save row */}
+      <div className="flex items-center gap-3 pt-1">
         <button
           type="submit"
           disabled={isSubmitting}
           className="btn-primary"
         >
-          {isSubmitting ? t.forms.institutionSettings.saving : t.forms.institutionSettings.save}
+          {isSubmitting ? f.saving : f.save}
         </button>
 
         {success ? (
@@ -153,16 +146,7 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
   );
 }
 
-function SettingsSection({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="border-b border-[hsl(var(--border-subtle))] pb-3 mb-3">
-      <p className="kicker mb-2">{label}</p>
-      <div className="space-y-2">{children}</div>
-    </div>
-  );
-}
-
-function SettingsRow({
+function SettingsCard({
   label,
   hint,
   children,
@@ -172,11 +156,29 @@ function SettingsRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-1 sm:grid-cols-[180px_1fr] sm:items-start">
-      <div className="pt-1.5">
-        <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">{label}</p>
-        {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-quaternary))] mt-0.5">{hint}</p> : null}
+    <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4 space-y-3">
+      <div className="pb-2 border-b border-[hsl(var(--border-subtle))]">
+        <p className="text-xs font-semibold text-[hsl(var(--text-primary))] tracking-wide uppercase">{label}</p>
+        {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-tertiary))] mt-0.5">{hint}</p> : null}
       </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">{label}</p>
+      {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-quaternary))]">{hint}</p> : null}
       {children}
     </div>
   );

@@ -98,7 +98,7 @@ export default async function CredentialsPage({
               id="studentId"
               name="studentId"
               defaultValue={studentId}
-              placeholder="STU-2026-001"
+              placeholder={t.dashboard.registry.studentIdPlaceholder}
               className="field-shell w-full font-mono"
             />
           </div>
@@ -157,7 +157,7 @@ export default async function CredentialsPage({
         </form>
       </div>
 
-      {/* Table (client component — handles selection, bulk actions) */}
+      {/* Table client component handles selection and bulk actions */}
       <CredentialsTable credentials={credentials} role={admin.role} yearFilter={year} />
     </div>
   );

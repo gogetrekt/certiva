@@ -54,7 +54,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
         <input
           id="verificationId"
           name="verificationId"
-          placeholder="vrf_..."
+          placeholder={t.verifyForm.compactPlaceholder}
           value={verificationId}
           onChange={(e) => setVerificationId(e.target.value)}
           required
@@ -80,7 +80,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
         <input
           id="verificationId"
           name="verificationId"
-          placeholder="vrf_2f9a0cdbe7c14231f6"
+          placeholder={t.verifyForm.fullPlaceholder}
           value={verificationId}
           onChange={(e) => setVerificationId(e.target.value)}
           required

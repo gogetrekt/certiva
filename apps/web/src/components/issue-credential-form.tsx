@@ -61,11 +61,11 @@ export function IssueCredentialForm({ institutionName }: IssueCredentialFormProp
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label htmlFor="studentName" className="field-label">{t.forms.issueCredential.studentName}</label>
-          <input id="studentName" name="studentName" placeholder="Rafi Pratama" required className="field-shell w-full" />
+          <input id="studentName" name="studentName" placeholder={t.forms.issueCredential.studentNamePlaceholder} required className="field-shell w-full" />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="studentId" className="field-label">{t.forms.issueCredential.studentId}</label>
-          <input id="studentId" name="studentId" placeholder="STU-2026-001" required className="field-shell w-full font-mono" />
+          <input id="studentId" name="studentId" placeholder={t.forms.issueCredential.studentIdPlaceholder} required className="field-shell w-full font-mono" />
         </div>
       </div>
 

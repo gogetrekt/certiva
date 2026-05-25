@@ -167,6 +167,16 @@ const en = {
     title: "Admin Guide",
     subtitle: "How to operate Certiva as an institution administrator.",
     toc: "In this guide",
+    browseTitle: "Choose a topic",
+    browseDescription:
+      "Use this guide as an operational reference for issuing, verifying, revoking, deleting, and auditing credential records.",
+    topicListAria: "Guide topics",
+    openTopic: "Open topic",
+    backToGuide: "Back to guide",
+    detailLabel: "Guide topic",
+    stepsLabel: "Steps",
+    notesLabel: "Notes",
+    rolesLabel: "Role access",
     sections: {
       overview: "Overview",
       workflow: "Recommended workflow",
@@ -293,6 +303,370 @@ const en = {
         { label: "Settings", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
       ],
     },
+    topics: [
+      {
+        id: "overview",
+        title: "Overview",
+        summary: "What Certiva does in the campus credential workflow.",
+        intro:
+          "Certiva is the institution workspace for creating credential registry records, keeping their current status clear, and letting relying parties verify them through public read-only checks.",
+        steps: [],
+        details: [
+          {
+            title: "Registry first",
+            body: "The registry record is the source of truth for credential status. Public Credential Check confirms whether the credential exists, who issued it, and whether it is active or revoked.",
+          },
+          {
+            title: "Document proof is separate",
+            body: "Document Check compares a PDF hash against a registered proof record. A matching document hash proves file integrity, not academic status. Use both checks when a relying party needs full confidence.",
+          },
+        ],
+        notes: [
+          {
+            title: "Certiva does not replace institutional judgment",
+            body: "The institution remains responsible for the accuracy of names, programs, dates, and revocation decisions entered into the registry.",
+          },
+        ],
+        actions: [
+          { label: "Open registry", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "workflow",
+        title: "Recommended workflow",
+        summary: "A practical order for daily issuance and verification work.",
+        intro:
+          "Use a consistent sequence so records are complete before they are shared, and so sensitive changes are easy to audit later.",
+        steps: [
+          { title: "Confirm institution settings", body: "Check display name, domain, website URL, status, and issuer wallet before issuing records. These values affect public verification and certificate presentation." },
+          { title: "Prepare credential data", body: "Validate student names, student IDs, degree names, dates, and CSV columns before submitting. Correcting data after issuance usually requires revocation and reissue." },
+          { title: "Issue the registry record", body: "Create one credential from the Issue page or import many credentials through bulk CSV. Certiva creates the registry reference and queues the proof workflow." },
+          { title: "Register document proof when the final PDF is ready", body: "Upload the final sealed PDF only after the document is complete. The proof hash must match the exact file that recipients will later verify." },
+          { title: "Review audit and queue state", body: "Use Audit Trail, Verification Logs, and the queue monitor to confirm activity, proof status, and failed blockchain jobs." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Avoid issuing from draft data",
+            body: "Draft documents, temporary names, and unfinished program titles create operational cleanup later. Validate source data before creating registry records.",
+          },
+        ],
+        actions: [
+          { label: "Open settings", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
+          { label: "Issue credential", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "lifecycle",
+        title: "Credential lifecycle",
+        summary: "How a record moves from active to anchored, revoked, or deleted.",
+        intro:
+          "A credential record can be active, pending blockchain confirmation, anchored, revoked, or permanently deleted if the system allows deletion for revoked records.",
+        steps: [
+          { title: "Active", body: "The record is valid in the registry and public checks return an active result. Relying parties can compare the registry facts with the presented document." },
+          { title: "Pending anchor", body: "The registry record exists, but the blockchain proof job has not been confirmed yet. The registry still remains the primary status source." },
+          { title: "Anchored", body: "The credential hash has a confirmed on-chain audit proof. This is a secondary trust signal, not a replacement for registry status." },
+          { title: "Revoked", body: "The institution has marked the credential invalid. Public checks immediately show revoked status and the revocation reason when available." },
+          { title: "Deleted", body: "A revoked credential may be removed permanently by authorized users when deletion is available. This removes the record and generated assets from the workspace." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Revocation is not a draft state",
+            body: "Use revocation only when the institution has decided the credential should no longer be treated as valid.",
+          },
+        ],
+        actions: [
+          { label: "Open registry", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "upload",
+        title: "Uploading credentials",
+        summary: "How to prepare and import credential data safely.",
+        intro:
+          "Bulk upload is for creating many credential registry records from a CSV file. Treat the file as operational source data and review it before submission.",
+        steps: [
+          { title: "Start from the template", body: "Use the CSV template from the Issue page so required columns match the system. Keep one recipient per row." },
+          { title: "Clean the rows", body: "Remove blank rows, test rows, duplicate student IDs, and inconsistent degree names before upload. Check date values carefully." },
+          { title: "Preview before issuing", body: "Review the parsed rows, validation warnings, and duplicate indicators. Do not continue until the preview matches the intended batch." },
+          { title: "Submit the final batch", body: "After confirmation, each valid row creates a credential record. Invalid rows should be corrected in the CSV and uploaded again." },
+        ],
+        details: [
+          {
+            title: "When to use single issue",
+            body: "Use single issue for corrections, one-off credentials, and low-volume cases where manual review is safer than a CSV batch.",
+          },
+        ],
+        notes: [
+          {
+            title: "Upload creates records",
+            body: "Do not upload a CSV for testing in a production workspace unless you are prepared to revoke or delete the resulting records.",
+          },
+        ],
+        actions: [
+          { label: "Open issue page", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "issue",
+        title: "Issuing credentials",
+        summary: "How to create one complete credential record.",
+        intro:
+          "Issuing creates the registry record, verification reference, QR asset, metadata, and proof job used by the public verification flow.",
+        steps: [
+          { title: "Enter recipient facts", body: "Fill the student name, student ID, credential or degree title, and issue date exactly as the institution wants them to appear." },
+          { title: "Submit the record", body: "Certiva registers the credential and makes it available through public Credential Check. The record can be opened from the Registry after creation." },
+          { title: "Review public output", body: "Open the public result from the credential detail page and confirm the displayed facts match the issued document." },
+          { title: "Register the final document proof", body: "If the credential is distributed as a sealed PDF, register the final PDF proof after the PDF has been generated and approved." },
+        ],
+        details: [
+          {
+            title: "What changes after issue",
+            body: "The credential becomes part of the institution registry. Corrections after issue should be handled with a clear operational decision, usually revoke and reissue.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Issue credential", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "status",
+        title: "Checking credential status",
+        summary: "How admins inspect records and public verification output.",
+        intro:
+          "Use the Registry and credential detail page to confirm whether a credential is active, revoked, checked by the public, and connected to its proof records.",
+        steps: [
+          { title: "Filter the registry", body: "Search by student name, student ID, graduation year, or status. Use revoked-only filters when preparing cleanup work." },
+          { title: "Open the credential detail", body: "Review core facts, verification count, last checked time, revocation details, assets, and blockchain proof state." },
+          { title: "Open the public result", body: "Use the public verification link to see what an external relying party sees. This is the best way to confirm user-facing status." },
+          { title: "Compare trust signals", body: "Credential status, issuer status, verification count, proof registration, and blockchain state should be read together instead of as isolated badges." },
+        ],
+        details: [
+          {
+            title: "Revoked detail",
+            body: "Revoked records should show revocation time and reason when available. Use those details before deciding whether deletion is appropriate.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Open registry", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "documentVerification",
+        title: "Document verification",
+        summary: "How document proof confirms whether a PDF file changed.",
+        intro:
+          "Document verification is a file-integrity check. It compares the uploaded PDF hash with a registered proof record and does not decide whether the academic credential is still valid.",
+        steps: [
+          { title: "Register the exact final PDF", body: "Upload only the final file that recipients will receive. Re-exporting, compressing, watermarking, or scanning can change the hash." },
+          { title: "Share the verification reference", body: "Recipients can use the proof reference or upload the file through Document Check." },
+          { title: "Interpret the result", body: "Authentic means the bytes match the registered proof. Modified or not found means the file does not match a trusted proof record." },
+          { title: "Run Credential Check separately", body: "If the relying party needs credential validity, check the registry reference in Credential Check as a separate step." },
+        ],
+        details: [
+          {
+            title: "Credential PDF lookup",
+            body: "Uploading a credential PDF in Credential Check reads the embedded QR or reference and opens the registry record. It is not the same as hash-based Document Check.",
+          },
+        ],
+        notes: [
+          {
+            title: "A matching hash is not an active credential",
+            body: "A document can match its proof while the credential itself has later been revoked. Always confirm the registry status when validity matters.",
+          },
+        ],
+        actions: [
+          { label: "Open secure documents", href: "/dashboard/document-proofs", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "singleRevoke",
+        title: "Single revoke",
+        summary: "How to revoke one credential with a clear reason.",
+        intro:
+          "Single revoke is used when one credential should no longer be treated as valid. It updates the public registry result immediately and records the reason for audit.",
+        steps: [
+          { title: "Open the credential", body: "Find the credential in the Registry and open its detail page. Confirm student, degree, issuer, and current status before continuing." },
+          { title: "Choose revoke", body: "Use the revoke action, choose the closest reason, and add notes when the context would help future auditors." },
+          { title: "Confirm the public result", body: "After revocation, open the public verification result and confirm it shows revoked status." },
+          { title: "Review audit history", body: "Check Audit Trail or lifecycle activity to confirm the action was recorded with the acting admin and timestamp." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Revocation cannot be undone",
+            body: "If a credential was revoked by mistake, issue a corrected replacement instead of trying to restore the old record.",
+          },
+        ],
+        actions: [
+          { label: "Open registry", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "bulkRevoke",
+        title: "Bulk revoke",
+        summary: "How Super Admins revoke several active credentials at once.",
+        intro:
+          "Bulk revoke is for confirmed batch decisions, such as a wrong import or a cohort that must be invalidated together. It is limited to Super Admin access.",
+        steps: [
+          { title: "Filter to the intended group", body: "Use registry filters first, then select only the credentials that should be revoked. Avoid broad selections on mixed status lists." },
+          { title: "Start revoke selected", body: "The modal shows the selected count and asks for a reason. Only active credentials in the selection are revoked." },
+          { title: "Read the completion summary", body: "Check revoked, skipped, and failed counts. Skipped items are usually already revoked or not eligible." },
+          { title: "Audit the result", body: "Review public results and audit events for the affected credentials when the action is sensitive." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Use bulk revoke sparingly",
+            body: "Bulk actions affect many records at once. Confirm the selection with another admin when the batch is high impact.",
+          },
+        ],
+        actions: [
+          { label: "Open registry", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "bulkDelete",
+        title: "Bulk delete revoked credentials",
+        summary: "How to remove revoked credentials when deletion is available.",
+        intro:
+          "Bulk delete is a permanent cleanup tool for revoked credentials. It should be used only after the institution no longer needs the record or generated assets in the workspace.",
+        steps: [
+          { title: "Filter to revoked records", body: "Use revoked-only filtering and select the exact records planned for deletion." },
+          { title: "Confirm eligibility", body: "Only revoked credentials can be deleted. Active credentials must be revoked first if the institution has decided they are no longer valid." },
+          { title: "Confirm deletion", body: "The modal explains that the record and generated assets will be permanently removed. Continue only when recovery is not needed." },
+          { title: "Keep external evidence separately", body: "If policy requires an external audit pack, export or archive it before deleting records from the workspace." },
+        ],
+        details: [
+          {
+            title: "Document proof deletion",
+            body: "Secure document proof records can also be deleted from the Secure Documents page when available. That removes the proof record and should be treated as permanent.",
+          },
+        ],
+        notes: [
+          {
+            title: "Deletion is not a correction tool",
+            body: "Use deletion for cleanup after revocation, not to hide a mistaken active record. Revoke first so the public status changes clearly.",
+          },
+        ],
+        actions: [
+          { label: "Open revoked filter", href: "/dashboard/credentials?status=revoked", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "roles",
+        title: "Roles and permissions",
+        summary: "What each workspace role can safely do.",
+        intro:
+          "Certiva separates daily operations, administrative control, and audit visibility. Assign the least access needed for the person's responsibility.",
+        steps: [],
+        details: [],
+        notes: [
+          {
+            title: "Role changes apply immediately",
+            body: "When a Super Admin changes a role or deactivates an account, the next action from that user follows the new permission level.",
+          },
+        ],
+        actions: [
+          { label: "Open team settings", href: "/dashboard/team", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [
+          {
+            role: "Super Admin",
+            badge: "Full access",
+            body: "For institution owners or trusted platform operators who can change configuration and perform destructive actions.",
+            permissions: [
+              "Issue, manage, view, revoke, and delete eligible credential records",
+              "Bulk revoke active credentials and bulk delete revoked credentials",
+              "Manage team accounts, roles, account status, and institution settings",
+              "View verification logs, queue state, and audit trail",
+            ],
+          },
+          {
+            role: "Admin / Operator",
+            badge: "Daily operations",
+            body: "For campus staff who create and review records but should not control account access or destructive batch cleanup.",
+            permissions: [
+              "Issue credentials and register document proofs",
+              "View and manage operational credential and document records",
+              "Revoke a single credential when allowed by workspace policy",
+              "View verification logs and audit trail",
+            ],
+          },
+          {
+            role: "Auditor / Viewer",
+            badge: "Read-only",
+            body: "For compliance, leadership, or review users who need visibility without write access.",
+            permissions: [
+              "View credentials, document proofs, verification logs, and audit trail",
+              "Open credential details and public verification results",
+              "Cannot issue, upload, revoke, delete, change settings, or manage accounts",
+            ],
+          },
+        ],
+      },
+      {
+        id: "audit",
+        title: "Audit trail",
+        summary: "Where to inspect actions, verification activity, and proof queue state.",
+        intro:
+          "Audit surfaces help admins answer who changed what, when verification happened, and whether proof jobs are healthy.",
+        steps: [
+          { title: "Use Verification Logs for public checks", body: "Review credential lookup activity, results, timestamps, and related credential references." },
+          { title: "Use Audit Trail for administrative events", body: "Review issuance, revocation, deletion, blockchain lifecycle, and other sensitive operations." },
+          { title: "Use queue monitor for proof health", body: "Watch pending, processing, failed, and completed blockchain jobs. Failed jobs should be reviewed before relying on the secondary proof layer." },
+          { title: "Use credential detail for a focused history", body: "Open one record to review its lifecycle, assets, public result, and trust signals in context." },
+        ],
+        details: [
+          {
+            title: "Logs are evidence, not editing tools",
+            body: "Audit and verification logs should be read as operational evidence. Do not expect log rows to be manually edited from the UI.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Open audit trail", href: "/dashboard/blockchain", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+          { label: "Open verification logs", href: "/dashboard/logs", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "safety",
+        title: "Safety rules",
+        summary: "Operational rules for sensitive credential actions.",
+        intro:
+          "Use these rules before revoking, deleting, changing roles, or publishing records that relying parties will inspect.",
+        steps: [
+          { title: "Check the exact record", body: "Confirm student identity, degree, issuer, status, and verification ID before any sensitive action." },
+          { title: "Prefer revoke before delete", body: "Revocation makes the invalid status visible in public verification. Deletion is cleanup after the institution no longer needs the record." },
+          { title: "Keep roles narrow", body: "Give Super Admin access only to people who need settings, team management, and destructive operations." },
+          { title: "Verify public output", body: "After issuing or revoking, open the public result to confirm what external users will see." },
+          { title: "Investigate queue failures", body: "A valid registry record can exist while blockchain proof is pending or failed. Treat queue health as a secondary proof signal." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Sensitive actions need a reason",
+            body: "Notes and reasons make future reviews easier. Write enough context for another admin to understand the decision later.",
+          },
+        ],
+        actions: [],
+        roleCards: [],
+      },
+    ],
   },
   home: {
     kicker: "Academic credential infrastructure",
@@ -385,6 +759,8 @@ const en = {
   },
   verifyForm: {
     label: "Verification ID",
+    compactPlaceholder: "vrf_...",
+    fullPlaceholder: "vrf_2f9a0cdbe7c14231f6",
     errorEmpty: "Enter a verification ID to continue.",
     submit: "Run verification",
     submitting: "Verifying...",
@@ -615,6 +991,7 @@ const en = {
     usernameLabel: "Username",
     usernamePlaceholder: "admin",
     passwordLabel: "Password",
+    passwordPlaceholder: "********",
     showPassword: "Show password",
     hidePassword: "Hide password",
     submit: "Sign in to workspace",
@@ -639,6 +1016,7 @@ const en = {
       studentName: "Student name",
       studentId: "Student ID",
       namePlaceholder: "Name",
+      studentIdPlaceholder: "STU-2026-001",
       graduationYear: "Graduation Year",
       allYears: "All years",
       allStatuses: "All statuses",
@@ -821,7 +1199,9 @@ const en = {
     issueCredential: {
       institution: "Institution",
       studentName: "Student name",
+      studentNamePlaceholder: "Rafi Pratama",
       studentId: "Student ID",
+      studentIdPlaceholder: "STU-2026-001",
       credentialTitle: "Credential title",
       placeholderDegree: "Bachelor of Computer Science",
       infoTitle: "Core registry issuance",
@@ -864,6 +1244,7 @@ const en = {
       documentTitle: "Document title",
       documentType: "Document type",
       referenceNumber: "Reference number",
+      referenceNumberPlaceholder: "DOC-2026-0148",
       documentDate: "Document date",
       placeholderTitle: "Official transcript 2026",
       placeholderType: "Transcript, MoU, legal",
@@ -878,20 +1259,28 @@ const en = {
     institutionSettings: {
       unableUpdate: "Unable to update settings",
       saved: "Settings saved.",
-      identity: "Identity",
+      identity: "Institution Identity",
+      identityHint: "Legal name and short name used across credentials.",
       institutionName: "Institution name",
       institutionNameHint: "Full legal name of the institution",
       displayName: "Display name",
       displayNameHint: "Short name shown on public pages",
       websiteUrl: "Website URL",
+      websiteUrlPlaceholder: "https://university.edu",
       logoUrl: "Logo URL",
+      publicBranding: "Public Branding",
+      publicBrandingHint: "Shown on verification pages and certificates.",
+      verificationSettings: "Verification Settings",
+      verificationSettingsHint: "Controls domain matching and institution status.",
       configuration: "Configuration",
       primaryDomain: "Primary domain",
-      primaryDomainHint: "Used for verification and branding",
+      primaryDomainHint: "Used for verification URL matching",
       statusHint: "Controls issuance and public access",
-      blockchain: "Blockchain",
+      blockchain: "Blockchain Proof",
+      blockchainHint: "Wallet address used for on-chain proof anchoring.",
       issuerWallet: "Issuer wallet",
       issuerWalletHint: "Polygon Amoy address for on-chain proof anchoring",
+      issuerWalletPlaceholder: "0x...",
       saving: "Saving...",
       save: "Save settings",
     },
@@ -899,7 +1288,9 @@ const en = {
       unable: "Unable to create admin",
       success: "Admin account created.",
       username: "Username",
+      usernamePlaceholder: "baak_hi",
       password: "Password",
+      passwordPlaceholder: "********",
       role: "Role",
       showPassword: "Show password",
       hidePassword: "Hide password",
@@ -1692,6 +2083,16 @@ const id: typeof en = {
     title: "Panduan Admin",
     subtitle: "Cara mengoperasikan Certiva sebagai administrator institusi.",
     toc: "Isi panduan",
+    browseTitle: "Pilih topik",
+    browseDescription:
+      "Gunakan panduan ini sebagai referensi operasional untuk menerbitkan, memverifikasi, mencabut, menghapus, dan mengaudit catatan kredensial.",
+    topicListAria: "Topik panduan",
+    openTopic: "Buka topik",
+    backToGuide: "Kembali ke panduan",
+    detailLabel: "Topik panduan",
+    stepsLabel: "Langkah",
+    notesLabel: "Catatan",
+    rolesLabel: "Akses peran",
     sections: {
       overview: "Gambaran umum",
       workflow: "Alur kerja yang direkomendasikan",
@@ -1818,6 +2219,370 @@ const id: typeof en = {
         { label: "Pengaturan", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
       ],
     },
+    topics: [
+      {
+        id: "overview",
+        title: "Gambaran umum",
+        summary: "Peran Certiva dalam alur kredensial kampus.",
+        intro:
+          "Certiva adalah workspace institusi untuk membuat catatan registri kredensial, menjaga statusnya tetap jelas, dan memungkinkan pihak luar memverifikasinya lewat pemeriksaan publik yang bersifat read-only.",
+        steps: [],
+        details: [
+          {
+            title: "Registri sebagai sumber utama",
+            body: "Catatan registri adalah sumber utama status kredensial. Periksa Kredensial publik mengonfirmasi apakah kredensial ada, siapa penerbitnya, dan apakah statusnya aktif atau dicabut.",
+          },
+          {
+            title: "Bukti dokumen terpisah",
+            body: "Periksa Dokumen membandingkan hash PDF dengan catatan bukti yang terdaftar. Hash dokumen yang cocok membuktikan integritas file, bukan status akademik. Gunakan kedua pemeriksaan saat pihak pengguna membutuhkan kepastian lengkap.",
+          },
+        ],
+        notes: [
+          {
+            title: "Certiva tidak menggantikan keputusan institusi",
+            body: "Institusi tetap bertanggung jawab atas akurasi nama, program, tanggal, dan keputusan pencabutan yang dimasukkan ke registri.",
+          },
+        ],
+        actions: [
+          { label: "Buka registri", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "workflow",
+        title: "Alur kerja yang direkomendasikan",
+        summary: "Urutan praktis untuk penerbitan dan pemeriksaan harian.",
+        intro:
+          "Gunakan urutan yang konsisten agar catatan lengkap sebelum dibagikan, dan agar perubahan sensitif mudah diaudit kemudian.",
+        steps: [
+          { title: "Konfirmasi pengaturan institusi", body: "Periksa nama tampilan, domain, URL situs, status, dan wallet penerbit sebelum menerbitkan catatan. Nilai ini memengaruhi verifikasi publik dan tampilan sertifikat." },
+          { title: "Siapkan data kredensial", body: "Validasi nama mahasiswa, ID mahasiswa, nama gelar, tanggal, dan kolom CSV sebelum submit. Koreksi setelah penerbitan biasanya perlu pencabutan dan penerbitan ulang." },
+          { title: "Terbitkan catatan registri", body: "Buat satu kredensial dari halaman Terbitkan atau impor banyak kredensial melalui CSV. Certiva membuat referensi registri dan mengantrekan alur bukti." },
+          { title: "Daftarkan bukti dokumen saat PDF final siap", body: "Unggah PDF final yang sudah disetujui. Hash bukti harus cocok dengan file persis yang akan diverifikasi penerima nanti." },
+          { title: "Tinjau audit dan status antrean", body: "Gunakan Audit Trail, Log Verifikasi, dan monitor antrean untuk memastikan aktivitas, status bukti, dan kegagalan job blockchain." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Hindari menerbitkan dari data draf",
+            body: "Dokumen draf, nama sementara, dan judul program yang belum final akan menambah pekerjaan pembersihan. Validasi data sumber sebelum membuat catatan registri.",
+          },
+        ],
+        actions: [
+          { label: "Buka pengaturan", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
+          { label: "Terbitkan kredensial", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "lifecycle",
+        title: "Siklus hidup kredensial",
+        summary: "Pergerakan catatan dari aktif ke anchored, dicabut, atau dihapus.",
+        intro:
+          "Catatan kredensial dapat berstatus aktif, menunggu konfirmasi blockchain, anchored, dicabut, atau dihapus permanen jika penghapusan untuk catatan dicabut tersedia.",
+        steps: [
+          { title: "Aktif", body: "Catatan valid di registri dan pemeriksaan publik mengembalikan hasil aktif. Pihak pengguna dapat mencocokkan fakta registri dengan dokumen yang ditunjukkan." },
+          { title: "Anchor pending", body: "Catatan registri sudah ada, tetapi job bukti blockchain belum dikonfirmasi. Registri tetap menjadi sumber utama status." },
+          { title: "Anchored", body: "Hash kredensial sudah memiliki bukti audit on-chain yang terkonfirmasi. Ini adalah sinyal kepercayaan sekunder, bukan pengganti status registri." },
+          { title: "Dicabut", body: "Institusi menandai kredensial sebagai tidak valid. Pemeriksaan publik langsung menampilkan status dicabut dan alasan pencabutan jika tersedia." },
+          { title: "Dihapus", body: "Kredensial yang sudah dicabut dapat dihapus permanen oleh pengguna berwenang saat fitur penghapusan tersedia. Ini menghapus catatan dan asset yang dihasilkan dari workspace." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Pencabutan bukan status draf",
+            body: "Gunakan pencabutan hanya ketika institusi sudah memutuskan kredensial tidak boleh lagi dianggap valid.",
+          },
+        ],
+        actions: [
+          { label: "Buka registri", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "upload",
+        title: "Mengunggah kredensial",
+        summary: "Cara menyiapkan dan mengimpor data kredensial dengan aman.",
+        intro:
+          "Upload massal dipakai untuk membuat banyak catatan registri kredensial dari file CSV. Perlakukan file sebagai data sumber operasional dan tinjau sebelum submit.",
+        steps: [
+          { title: "Mulai dari template", body: "Gunakan template CSV dari halaman Terbitkan agar kolom wajib sesuai dengan sistem. Simpan satu penerima per baris." },
+          { title: "Rapikan baris data", body: "Hapus baris kosong, baris uji coba, ID mahasiswa duplikat, dan nama gelar yang tidak konsisten sebelum upload. Periksa nilai tanggal dengan teliti." },
+          { title: "Preview sebelum menerbitkan", body: "Tinjau hasil parsing, peringatan validasi, dan indikator duplikat. Jangan lanjutkan sebelum preview sesuai dengan batch yang dimaksud." },
+          { title: "Submit batch final", body: "Setelah dikonfirmasi, setiap baris valid membuat satu catatan kredensial. Baris tidak valid sebaiknya diperbaiki di CSV lalu diunggah kembali." },
+        ],
+        details: [
+          {
+            title: "Kapan memakai single issue",
+            body: "Gunakan single issue untuk koreksi, kredensial satuan, dan kasus volume kecil ketika review manual lebih aman daripada batch CSV.",
+          },
+        ],
+        notes: [
+          {
+            title: "Upload membuat catatan",
+            body: "Jangan mengunggah CSV untuk uji coba di workspace produksi kecuali Anda siap mencabut atau menghapus catatan yang terbentuk.",
+          },
+        ],
+        actions: [
+          { label: "Buka halaman terbitkan", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "issue",
+        title: "Menerbitkan kredensial",
+        summary: "Cara membuat satu catatan kredensial yang lengkap.",
+        intro:
+          "Penerbitan membuat catatan registri, referensi verifikasi, asset QR, metadata, dan job bukti yang dipakai oleh alur verifikasi publik.",
+        steps: [
+          { title: "Isi fakta penerima", body: "Masukkan nama mahasiswa, ID mahasiswa, judul kredensial atau gelar, dan tanggal terbit persis seperti yang ingin ditampilkan institusi." },
+          { title: "Submit catatan", body: "Certiva mendaftarkan kredensial dan membuatnya tersedia melalui Periksa Kredensial publik. Catatan dapat dibuka dari Registri setelah dibuat." },
+          { title: "Tinjau output publik", body: "Buka hasil publik dari halaman detail kredensial dan pastikan fakta yang tampil cocok dengan dokumen yang diterbitkan." },
+          { title: "Daftarkan bukti dokumen final", body: "Jika kredensial didistribusikan sebagai PDF tersegel, daftarkan bukti PDF final setelah PDF dibuat dan disetujui." },
+        ],
+        details: [
+          {
+            title: "Apa yang berubah setelah diterbitkan",
+            body: "Kredensial menjadi bagian dari registri institusi. Koreksi setelah penerbitan harus memakai keputusan operasional yang jelas, biasanya cabut dan terbitkan ulang.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Terbitkan kredensial", href: "/dashboard/issue", roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "status",
+        title: "Memeriksa status kredensial",
+        summary: "Cara admin memeriksa catatan dan hasil verifikasi publik.",
+        intro:
+          "Gunakan Registri dan halaman detail kredensial untuk memastikan apakah kredensial aktif, dicabut, pernah diperiksa publik, dan terhubung dengan catatan buktinya.",
+        steps: [
+          { title: "Filter registri", body: "Cari berdasarkan nama mahasiswa, ID mahasiswa, tahun kelulusan, atau status. Gunakan filter hanya dicabut saat menyiapkan pekerjaan pembersihan." },
+          { title: "Buka detail kredensial", body: "Tinjau fakta utama, jumlah verifikasi, waktu pemeriksaan terakhir, detail pencabutan, asset, dan status bukti blockchain." },
+          { title: "Buka hasil publik", body: "Gunakan tautan verifikasi publik untuk melihat apa yang dilihat pihak luar. Ini cara terbaik memastikan status yang tampil ke pengguna." },
+          { title: "Bandingkan sinyal kepercayaan", body: "Status kredensial, status penerbit, jumlah verifikasi, pendaftaran bukti, dan status blockchain perlu dibaca bersama, bukan sebagai badge terpisah." },
+        ],
+        details: [
+          {
+            title: "Detail dicabut",
+            body: "Catatan dicabut sebaiknya menampilkan waktu dan alasan pencabutan jika tersedia. Gunakan detail tersebut sebelum memutuskan apakah penghapusan tepat.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Buka registri", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "documentVerification",
+        title: "Verifikasi dokumen",
+        summary: "Cara bukti dokumen mengonfirmasi apakah file PDF berubah.",
+        intro:
+          "Verifikasi dokumen adalah pemeriksaan integritas file. Sistem membandingkan hash PDF yang diunggah dengan catatan bukti terdaftar dan tidak menentukan apakah kredensial akademik masih valid.",
+        steps: [
+          { title: "Daftarkan PDF final yang persis", body: "Unggah hanya file final yang akan diterima penerima. Ekspor ulang, kompresi, watermark, atau scan dapat mengubah hash." },
+          { title: "Bagikan referensi verifikasi", body: "Penerima dapat memakai referensi bukti atau mengunggah file lewat Periksa Dokumen." },
+          { title: "Baca hasilnya", body: "Authentic berarti byte file cocok dengan bukti terdaftar. Modified atau not found berarti file tidak cocok dengan catatan bukti tepercaya." },
+          { title: "Jalankan Periksa Kredensial terpisah", body: "Jika pihak pengguna membutuhkan validitas kredensial, periksa referensi registri di Periksa Kredensial sebagai langkah terpisah." },
+        ],
+        details: [
+          {
+            title: "Lookup PDF kredensial",
+            body: "Mengunggah PDF kredensial di Periksa Kredensial membaca QR atau referensi tertanam dan membuka catatan registri. Ini berbeda dari Periksa Dokumen berbasis hash.",
+          },
+        ],
+        notes: [
+          {
+            title: "Hash cocok bukan berarti kredensial aktif",
+            body: "Dokumen dapat cocok dengan buktinya walaupun kredensial sudah dicabut kemudian. Selalu konfirmasi status registri saat validitas penting.",
+          },
+        ],
+        actions: [
+          { label: "Buka dokumen aman", href: "/dashboard/document-proofs", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "singleRevoke",
+        title: "Cabut satu kredensial",
+        summary: "Cara mencabut satu kredensial dengan alasan yang jelas.",
+        intro:
+          "Cabut tunggal dipakai ketika satu kredensial tidak boleh lagi dianggap valid. Aksi ini segera memperbarui hasil registri publik dan mencatat alasan untuk audit.",
+        steps: [
+          { title: "Buka kredensial", body: "Temukan kredensial di Registri dan buka halaman detailnya. Pastikan mahasiswa, gelar, penerbit, dan status saat ini sebelum melanjutkan." },
+          { title: "Pilih cabut", body: "Gunakan aksi cabut, pilih alasan yang paling sesuai, dan tambahkan catatan jika konteksnya membantu auditor di masa depan." },
+          { title: "Konfirmasi hasil publik", body: "Setelah pencabutan, buka hasil verifikasi publik dan pastikan statusnya menampilkan dicabut." },
+          { title: "Tinjau riwayat audit", body: "Periksa Audit Trail atau aktivitas lifecycle untuk memastikan aksi tercatat dengan admin pelaku dan timestamp." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Pencabutan tidak dapat dibatalkan",
+            body: "Jika kredensial dicabut karena kesalahan, terbitkan pengganti yang benar daripada mencoba memulihkan catatan lama.",
+          },
+        ],
+        actions: [
+          { label: "Buka registri", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "bulkRevoke",
+        title: "Cabut massal",
+        summary: "Cara Super Admin mencabut beberapa kredensial aktif sekaligus.",
+        intro:
+          "Cabut massal dipakai untuk keputusan batch yang sudah terkonfirmasi, seperti import yang salah atau satu cohort yang harus dibatalkan bersama. Akses ini dibatasi untuk Super Admin.",
+        steps: [
+          { title: "Filter ke kelompok yang tepat", body: "Gunakan filter registri lebih dulu, lalu pilih hanya kredensial yang harus dicabut. Hindari pilihan terlalu luas pada daftar berisi status campuran." },
+          { title: "Mulai cabut yang dipilih", body: "Modal menampilkan jumlah pilihan dan meminta alasan. Hanya kredensial aktif dalam pilihan yang akan dicabut." },
+          { title: "Baca ringkasan selesai", body: "Periksa jumlah dicabut, dilewati, dan gagal. Item dilewati biasanya sudah dicabut atau tidak memenuhi syarat." },
+          { title: "Audit hasilnya", body: "Tinjau hasil publik dan event audit untuk kredensial terdampak ketika aksi bersifat sensitif." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Gunakan cabut massal seperlunya",
+            body: "Aksi massal memengaruhi banyak catatan sekaligus. Konfirmasi pilihan dengan admin lain ketika batch berdampak tinggi.",
+          },
+        ],
+        actions: [
+          { label: "Buka registri", href: "/dashboard/credentials", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "bulkDelete",
+        title: "Hapus massal kredensial dicabut",
+        summary: "Cara menghapus kredensial dicabut ketika penghapusan tersedia.",
+        intro:
+          "Hapus massal adalah alat pembersihan permanen untuk kredensial yang sudah dicabut. Gunakan hanya setelah institusi tidak lagi membutuhkan catatan atau asset yang dihasilkan di workspace.",
+        steps: [
+          { title: "Filter ke catatan dicabut", body: "Gunakan filter hanya dicabut dan pilih catatan persis yang direncanakan untuk dihapus." },
+          { title: "Konfirmasi kelayakan", body: "Hanya kredensial yang sudah dicabut yang dapat dihapus. Kredensial aktif harus dicabut dulu jika institusi sudah memutuskan tidak lagi valid." },
+          { title: "Konfirmasi penghapusan", body: "Modal menjelaskan bahwa catatan dan asset yang dihasilkan akan dihapus permanen. Lanjutkan hanya ketika pemulihan tidak diperlukan." },
+          { title: "Simpan bukti eksternal secara terpisah", body: "Jika kebijakan membutuhkan paket audit eksternal, export atau arsipkan sebelum menghapus catatan dari workspace." },
+        ],
+        details: [
+          {
+            title: "Penghapusan bukti dokumen",
+            body: "Catatan bukti dokumen aman juga dapat dihapus dari halaman Dokumen Aman saat tersedia. Ini menghapus catatan bukti dan harus dianggap permanen.",
+          },
+        ],
+        notes: [
+          {
+            title: "Penghapusan bukan alat koreksi",
+            body: "Gunakan penghapusan untuk pembersihan setelah pencabutan, bukan untuk menyembunyikan catatan aktif yang salah. Cabut dulu agar status publik berubah jelas.",
+          },
+        ],
+        actions: [
+          { label: "Buka filter dicabut", href: "/dashboard/credentials?status=revoked", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "roles",
+        title: "Peran dan izin",
+        summary: "Apa yang dapat dilakukan setiap peran workspace.",
+        intro:
+          "Certiva memisahkan operasional harian, kontrol administratif, dan visibilitas audit. Berikan akses paling kecil yang cukup untuk tanggung jawab pengguna.",
+        steps: [],
+        details: [],
+        notes: [
+          {
+            title: "Perubahan peran berlaku segera",
+            body: "Ketika Super Admin mengubah peran atau menonaktifkan akun, aksi berikutnya dari pengguna tersebut mengikuti level izin yang baru.",
+          },
+        ],
+        actions: [
+          { label: "Buka pengaturan tim", href: "/dashboard/team", roles: ["OWNER", "SUPER_ADMIN"] },
+        ],
+        roleCards: [
+          {
+            role: "Super Admin",
+            badge: "Akses penuh",
+            body: "Untuk pemilik institusi atau operator platform tepercaya yang dapat mengubah konfigurasi dan melakukan aksi destruktif.",
+            permissions: [
+              "Menerbitkan, mengelola, melihat, mencabut, dan menghapus catatan kredensial yang memenuhi syarat",
+              "Mencabut kredensial aktif secara massal dan menghapus kredensial dicabut secara massal",
+              "Mengelola akun tim, peran, status akun, dan pengaturan institusi",
+              "Melihat log verifikasi, status antrean, dan audit trail",
+            ],
+          },
+          {
+            role: "Admin / Operator",
+            badge: "Operasional harian",
+            body: "Untuk staf kampus yang membuat dan meninjau catatan, tetapi tidak perlu mengontrol akses akun atau pembersihan batch yang destruktif.",
+            permissions: [
+              "Menerbitkan kredensial dan mendaftarkan bukti dokumen",
+              "Melihat dan mengelola catatan kredensial dan dokumen operasional",
+              "Mencabut satu kredensial jika diizinkan kebijakan workspace",
+              "Melihat log verifikasi dan audit trail",
+            ],
+          },
+          {
+            role: "Auditor / Viewer",
+            badge: "Read-only",
+            body: "Untuk pengguna compliance, pimpinan, atau reviewer yang membutuhkan visibilitas tanpa akses tulis.",
+            permissions: [
+              "Melihat kredensial, bukti dokumen, log verifikasi, dan audit trail",
+              "Membuka detail kredensial dan hasil verifikasi publik",
+              "Tidak dapat menerbitkan, mengunggah, mencabut, menghapus, mengubah pengaturan, atau mengelola akun",
+            ],
+          },
+        ],
+      },
+      {
+        id: "audit",
+        title: "Audit trail",
+        summary: "Tempat memeriksa aksi, aktivitas verifikasi, dan status antrean bukti.",
+        intro:
+          "Surface audit membantu admin menjawab siapa mengubah apa, kapan verifikasi terjadi, dan apakah job bukti berjalan sehat.",
+        steps: [
+          { title: "Gunakan Log Verifikasi untuk pemeriksaan publik", body: "Tinjau aktivitas lookup kredensial, hasil, timestamp, dan referensi kredensial terkait." },
+          { title: "Gunakan Audit Trail untuk event administratif", body: "Tinjau penerbitan, pencabutan, penghapusan, lifecycle blockchain, dan operasi sensitif lain." },
+          { title: "Gunakan monitor antrean untuk kesehatan bukti", body: "Pantau job blockchain pending, diproses, gagal, dan selesai. Job gagal harus ditinjau sebelum mengandalkan lapisan bukti sekunder." },
+          { title: "Gunakan detail kredensial untuk riwayat terfokus", body: "Buka satu catatan untuk meninjau lifecycle, asset, hasil publik, dan sinyal kepercayaan dalam konteks." },
+        ],
+        details: [
+          {
+            title: "Log adalah bukti, bukan alat edit",
+            body: "Log audit dan verifikasi sebaiknya dibaca sebagai bukti operasional. Jangan mengharapkan baris log diedit manual dari UI.",
+          },
+        ],
+        notes: [],
+        actions: [
+          { label: "Buka audit trail", href: "/dashboard/blockchain", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+          { label: "Buka log verifikasi", href: "/dashboard/logs", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
+        id: "safety",
+        title: "Aturan keamanan",
+        summary: "Aturan operasional untuk aksi kredensial yang sensitif.",
+        intro:
+          "Gunakan aturan ini sebelum mencabut, menghapus, mengubah peran, atau menerbitkan catatan yang akan diperiksa pihak luar.",
+        steps: [
+          { title: "Periksa catatan yang tepat", body: "Konfirmasi identitas mahasiswa, gelar, penerbit, status, dan ID verifikasi sebelum aksi sensitif." },
+          { title: "Utamakan cabut sebelum hapus", body: "Pencabutan membuat status tidak valid terlihat di verifikasi publik. Penghapusan adalah pembersihan setelah institusi tidak lagi membutuhkan catatan." },
+          { title: "Batasi peran", body: "Berikan akses Super Admin hanya kepada orang yang membutuhkan pengaturan, manajemen tim, dan operasi destruktif." },
+          { title: "Verifikasi output publik", body: "Setelah menerbitkan atau mencabut, buka hasil publik untuk memastikan apa yang akan dilihat pengguna eksternal." },
+          { title: "Investigasi kegagalan antrean", body: "Catatan registri yang valid dapat ada saat bukti blockchain masih pending atau gagal. Perlakukan kesehatan antrean sebagai sinyal bukti sekunder." },
+        ],
+        details: [],
+        notes: [
+          {
+            title: "Aksi sensitif membutuhkan alasan",
+            body: "Catatan dan alasan memudahkan review di masa depan. Tulis konteks yang cukup agar admin lain memahami keputusan tersebut kemudian.",
+          },
+        ],
+        actions: [],
+        roleCards: [],
+      },
+    ],
   },
   home: {
     kicker: "Infrastruktur kredensial akademik",
@@ -1910,6 +2675,8 @@ const id: typeof en = {
   },
   verifyForm: {
     label: "ID Verifikasi",
+    compactPlaceholder: "vrf_...",
+    fullPlaceholder: "vrf_2f9a0cdbe7c14231f6",
     errorEmpty: "Masukkan ID verifikasi untuk melanjutkan.",
     submit: "Mulai Verifikasi",
     submitting: "Memverifikasi...",
@@ -2140,6 +2907,7 @@ const id: typeof en = {
     usernameLabel: "Nama Pengguna",
     usernamePlaceholder: "admin",
     passwordLabel: "Kata Sandi",
+    passwordPlaceholder: "********",
     showPassword: "Tampilkan kata sandi",
     hidePassword: "Sembunyikan kata sandi",
     submit: "Masuk ke workspace",
@@ -2164,6 +2932,7 @@ const id: typeof en = {
       studentName: "Nama mahasiswa",
       studentId: "ID mahasiswa",
       namePlaceholder: "Nama",
+      studentIdPlaceholder: "MHS-2026-001",
       graduationYear: "Tahun Kelulusan",
       allYears: "Semua tahun",
       allStatuses: "Semua status",
@@ -2346,7 +3115,9 @@ const id: typeof en = {
     issueCredential: {
       institution: "Institusi",
       studentName: "Nama mahasiswa",
+      studentNamePlaceholder: "Rafi Pratama",
       studentId: "ID mahasiswa",
+      studentIdPlaceholder: "MHS-2026-001",
       credentialTitle: "Judul kredensial",
       placeholderDegree: "Sarjana Ilmu Komputer",
       infoTitle: "Penerbitan registri inti",
@@ -2389,6 +3160,7 @@ const id: typeof en = {
       documentTitle: "Judul dokumen",
       documentType: "Jenis dokumen",
       referenceNumber: "Nomor referensi",
+      referenceNumberPlaceholder: "DOC-2026-0148",
       documentDate: "Tanggal dokumen",
       placeholderTitle: "Transkrip resmi 2026",
       placeholderType: "Transkrip, MoU, legal",
@@ -2403,20 +3175,28 @@ const id: typeof en = {
     institutionSettings: {
       unableUpdate: "Tidak dapat memperbarui pengaturan",
       saved: "Pengaturan disimpan.",
-      identity: "Identitas",
+      identity: "Identitas Institusi",
+      identityHint: "Nama resmi dan nama singkat yang dipakai di seluruh kredensial.",
       institutionName: "Nama institusi",
       institutionNameHint: "Nama legal lengkap institusi",
       displayName: "Nama tampilan",
       displayNameHint: "Nama pendek yang tampil di halaman publik",
       websiteUrl: "URL situs",
+      websiteUrlPlaceholder: "https://universitas.ac.id",
       logoUrl: "URL logo",
+      publicBranding: "Branding Publik",
+      publicBrandingHint: "Tampil di halaman verifikasi dan sertifikat.",
+      verificationSettings: "Pengaturan Verifikasi",
+      verificationSettingsHint: "Mengatur pencocokan domain dan status institusi.",
       configuration: "Konfigurasi",
       primaryDomain: "Domain utama",
-      primaryDomainHint: "Digunakan untuk verifikasi dan branding",
+      primaryDomainHint: "Digunakan untuk pencocokan URL verifikasi",
       statusHint: "Mengontrol penerbitan dan akses publik",
-      blockchain: "Blockchain",
+      blockchain: "Bukti Blockchain",
+      blockchainHint: "Alamat wallet untuk anchoring bukti on-chain.",
       issuerWallet: "Wallet penerbit",
       issuerWalletHint: "Alamat Polygon Amoy untuk anchoring bukti on-chain",
+      issuerWalletPlaceholder: "0x...",
       saving: "Menyimpan...",
       save: "Simpan pengaturan",
     },
@@ -2424,8 +3204,10 @@ const id: typeof en = {
       unable: "Tidak dapat membuat admin",
       success: "Akun admin dibuat.",
       username: "Nama pengguna",
+      usernamePlaceholder: "baak_hi",
       password: "Kata sandi",
-      role: "Role",
+      passwordPlaceholder: "********",
+      role: "Peran",
       showPassword: "Tampilkan kata sandi",
       hidePassword: "Sembunyikan kata sandi",
       creating: "Membuat...",

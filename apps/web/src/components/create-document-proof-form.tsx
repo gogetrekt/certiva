@@ -93,7 +93,7 @@ export function CreateDocumentProofForm() {
             id="reference-number"
             value={referenceNumber}
             onChange={(e) => setReferenceNumber(e.target.value)}
-            placeholder="DOC-2026-0148"
+            placeholder={t.forms.createDocumentProof.referenceNumberPlaceholder}
             className="field-shell w-full font-mono"
           />
         </div>

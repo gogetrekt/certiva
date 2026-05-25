@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpen,
+  CheckCircle,
   FileText,
   IdentificationCard,
-  Info,
   LockKey,
   Shield,
   ShieldWarning,
   Stack,
+  UploadSimple,
   UsersThree,
-  Warning,
 } from "@phosphor-icons/react/dist/ssr";
 
-import {
-  getCurrentAdmin,
-  getSessionToken,
-} from "../../../lib/api";
+import { getCurrentAdmin, getSessionToken } from "../../../lib/api";
+import type { Dictionary } from "../../../lib/i18n-dictionary";
 import { getServerDictionary } from "../../../lib/i18n-server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,336 +29,305 @@ export async function generateMetadata(): Promise<Metadata> {
 
 type AdminRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
-function isSuperAdmin(role: AdminRole) {
-  return role === "OWNER" || role === "SUPER_ADMIN";
+type GuideTopic = Dictionary["adminGuide"]["topics"][number];
+
+interface AdminGuidePageProps {
+  searchParams: Promise<{
+    topic?: string;
+  }>;
 }
 
-export default async function AdminGuidePage() {
+function isAllowed(role: AdminRole, roles: readonly string[]) {
+  return roles.includes(role);
+}
+
+function getTopicIcon(id: string) {
+  const icons = {
+    overview: BookOpen,
+    workflow: Stack,
+    lifecycle: IdentificationCard,
+    upload: UploadSimple,
+    issue: IdentificationCard,
+    status: CheckCircle,
+    documentVerification: FileText,
+    singleRevoke: ShieldWarning,
+    bulkRevoke: Shield,
+    bulkDelete: ShieldWarning,
+    roles: UsersThree,
+    audit: LockKey,
+    safety: ShieldWarning,
+  };
+
+  return icons[id as keyof typeof icons] ?? BookOpen;
+}
+
+function roleToneClass(index: number) {
+  if (index === 0) {
+    return "border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] text-[hsl(var(--status-valid-text))]";
+  }
+
+  if (index === 1) {
+    return "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-secondary))]";
+  }
+
+  return "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]";
+}
+
+export default async function AdminGuidePage({
+  searchParams,
+}: AdminGuidePageProps) {
   const token = await getSessionToken();
   if (!token) return null;
-  const [admin, t] = await Promise.all([getCurrentAdmin(token), getServerDictionary()]);
+
+  const [{ topic: selectedTopicId }, admin, t] = await Promise.all([
+    searchParams,
+    getCurrentAdmin(token),
+    getServerDictionary(),
+  ]);
+
   const role = admin.role as AdminRole;
-  const superAdmin = isSuperAdmin(role);
-
   const g = t.adminGuide;
-
-  const sectionIds = {
-    overview: "overview",
-    workflow: "workflow",
-    credentialLifecycle: "credential-lifecycle",
-    documentProofs: "document-proofs",
-    roles: "roles",
-    bulkActions: "bulk-actions",
-    auditLogs: "audit-logs",
-    safetyRules: "safety-rules",
-  };
-
-  const tocItems = [
-    { id: sectionIds.overview, label: g.sections.overview },
-    { id: sectionIds.workflow, label: g.sections.workflow },
-    { id: sectionIds.credentialLifecycle, label: g.sections.credentialLifecycle },
-    { id: sectionIds.documentProofs, label: g.sections.documentProofs },
-    { id: sectionIds.roles, label: g.sections.roles },
-    { id: sectionIds.bulkActions, label: g.sections.bulkActions },
-    { id: sectionIds.auditLogs, label: g.sections.auditLogs },
-    { id: sectionIds.safetyRules, label: g.sections.safetyRules },
-  ];
-
-  const roleBadgeColors: Record<string, string> = {
-    "Full access": "border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] text-[hsl(var(--status-valid-text))]",
-    "Daily operations": "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-secondary))]",
-    "Read-only": "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]",
-    "Akses penuh": "border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] text-[hsl(var(--status-valid-text))]",
-    "Operasional harian": "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-secondary))]",
-  };
+  const topics = g.topics as readonly GuideTopic[];
+  const selectedTopic = topics.find((topic) => topic.id === selectedTopicId);
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <p className="kicker mb-2">{g.kicker}</p>
         <h1 className="page-title">{g.title}</h1>
-        <p className="body-text mt-1.5 max-w-lg">{g.subtitle}</p>
+        <p className="body-text mt-1.5 max-w-2xl">{g.subtitle}</p>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[200px_minmax(0,1fr)]">
-        {/* TOC sidebar */}
-        <nav className="hidden xl:block" aria-label={g.toc}>
-          <p className="kicker mb-3">{g.toc}</p>
-          <ul className="space-y-1">
-            {tocItems.map((item) => (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  className="block rounded px-2 py-1.5 text-xs text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-subtle))] hover:text-[hsl(var(--text-primary))]"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+      {selectedTopic ? (
+        <TopicDetail topic={selectedTopic} labels={g} role={role} />
+      ) : (
+        <TopicIndex topics={topics} labels={g} role={role} />
+      )}
+    </div>
+  );
+}
 
-        {/* Main content */}
-        <div className="space-y-10 min-w-0">
+function TopicIndex({
+  topics,
+  labels,
+  role,
+}: {
+  topics: readonly GuideTopic[];
+  labels: Dictionary["adminGuide"];
+  role: AdminRole;
+}) {
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
+      <section className="space-y-4" aria-label={labels.topicListAria}>
+        <div>
+          <h2 className="section-title">{labels.browseTitle}</h2>
+          <p className="body-text mt-1 max-w-2xl">{labels.browseDescription}</p>
+        </div>
 
-          {/* Quick links */}
-          <div className="work-surface overflow-hidden p-0">
-            <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-              <div className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-                <p className="text-sm font-semibold text-[hsl(var(--text-primary))]">{g.quickLinks.title}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 px-5 py-4">
-              {g.quickLinks.links.map((link) => {
-                const allowed = (link.roles as readonly string[]).includes(role);
-                if (!allowed) return null;
-                return (
-                  <Link key={link.href} href={link.href} className="btn-ghost btn-sm">
-                    {link.label}
-                    <ArrowRight size={11} aria-hidden />
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section: Overview */}
-          <section id={sectionIds.overview} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <BookOpen size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.overview}</h2>
-            </div>
-            <div className="work-surface p-5 space-y-0">
-              <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-2">{g.overview.title}</h3>
-              <p className="text-sm leading-6 text-[hsl(var(--text-secondary))]">{g.overview.body}</p>
-            </div>
-          </section>
-
-          {/* Section: Recommended workflow */}
-          <section id={sectionIds.workflow} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <Stack size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.workflow}</h2>
-            </div>
-            <div className="work-surface overflow-hidden p-0">
-              <div className="px-5 py-4 border-b border-[hsl(var(--border-subtle))]">
-                <p className="text-xs text-[hsl(var(--text-tertiary))]">{g.workflow.intro}</p>
-              </div>
-              <ol className="divide-y divide-[hsl(var(--border-subtle))]">
-                {g.workflow.steps.map((step) => (
-                  <li key={step.n} className="flex gap-4 px-5 py-4">
-                    <span className="mt-0.5 shrink-0 font-mono text-[0.625rem] font-semibold text-[hsl(var(--text-quaternary))] w-5 pt-0.5">
-                      {step.n}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-[hsl(var(--text-primary))] mb-1">{step.title}</p>
-                      <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{step.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-
-          {/* Section: Credential lifecycle */}
-          <section id={sectionIds.credentialLifecycle} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <IdentificationCard size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.credentialLifecycle}</h2>
-            </div>
-            <div className="space-y-4">
-              {/* Status states */}
-              <div className="work-surface overflow-hidden p-0">
-                <ol className="divide-y divide-[hsl(var(--border-subtle))]">
-                  {g.credentialLifecycle.states.map((state) => (
-                    <li key={state.label} className="flex items-start gap-3 px-5 py-3.5">
-                      <span className="mt-0.5 shrink-0 inline-flex items-center rounded border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-1.5 py-0.5 text-[0.625rem] font-semibold text-[hsl(var(--text-secondary))]">
-                        {state.label}
-                      </span>
-                      <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{state.description}</p>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              {/* Issue + bulk issue + check status */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="work-surface p-5">
-                  <p className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-2">{g.credentialLifecycle.issueTitle}</p>
-                  <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{g.credentialLifecycle.issueBody}</p>
-                  {role !== "AUDITOR" && (
-                    <Link href="/dashboard/issue" className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors">
-                      {g.credentialLifecycle.issueTitle} <ArrowRight size={11} aria-hidden />
-                    </Link>
-                  )}
-                </div>
-                <div className="work-surface p-5">
-                  <p className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-2">{g.credentialLifecycle.bulkIssueTitle}</p>
-                  <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{g.credentialLifecycle.bulkIssueBody}</p>
-                </div>
-              </div>
-              <div className="work-surface p-5">
-                <p className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-2">{g.credentialLifecycle.checkTitle}</p>
-                <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{g.credentialLifecycle.checkBody}</p>
-                <Link href="/dashboard/credentials" className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors">
-                  {t.dashboardShell.items.registry} <ArrowRight size={11} aria-hidden />
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Section: Document proofs */}
-          <section id={sectionIds.documentProofs} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <FileText size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.documentProofs}</h2>
-            </div>
-            <div className="work-surface overflow-hidden p-0">
-              <div className="px-5 py-4 border-b border-[hsl(var(--border-subtle))]">
-                <p className="text-sm leading-6 text-[hsl(var(--text-secondary))]">{g.documentProofs.body}</p>
-              </div>
-              <ol className="divide-y divide-[hsl(var(--border-subtle))]">
-                {g.documentProofs.steps.map((step, i) => (
-                  <li key={i} className="flex gap-4 px-5 py-3.5">
-                    <span className="mt-0.5 shrink-0 font-mono text-[0.625rem] font-semibold text-[hsl(var(--text-quaternary))] w-5 pt-0.5">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{step}</p>
-                  </li>
-                ))}
-              </ol>
-              {role !== "AUDITOR" && (
-                <div className="px-5 py-3 border-t border-[hsl(var(--border-subtle))]">
-                  <Link href="/dashboard/document-proofs" className="inline-flex items-center gap-1 text-xs font-medium text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors">
-                    {t.dashboardShell.items.secureDocuments} <ArrowRight size={11} aria-hidden />
-                  </Link>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Section: Roles and permissions */}
-          <section id={sectionIds.roles} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <UsersThree size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.roles}</h2>
-            </div>
-            <div className="work-surface overflow-hidden p-0">
-              <div className="px-5 py-4 border-b border-[hsl(var(--border-subtle))]">
-                <p className="text-xs text-[hsl(var(--text-tertiary))]">{g.roles.intro}</p>
-              </div>
-              <div className="divide-y divide-[hsl(var(--border-subtle))]">
-                {g.roles.items.map((item) => (
-                  <div key={item.role} className="px-5 py-5">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className="text-sm font-semibold text-[hsl(var(--text-primary))]">{item.role}</span>
-                      <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[0.625rem] font-semibold ${roleBadgeColors[item.badge] ?? "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-secondary))]"}`}>
-                        {item.badge}
-                      </span>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {item.permissions.map((perm, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[hsl(var(--text-quaternary))]" aria-hidden />
-                          <span className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{perm}</span>
-                        </li>
-                      ))}
-                    </ul>
+        <div className="grid gap-3 md:grid-cols-2">
+          {topics.map((topic) => {
+            const Icon = getTopicIcon(topic.id);
+            return (
+              <Link
+                key={topic.id}
+                href={`/dashboard/guide?topic=${encodeURIComponent(topic.id)}`}
+                className="group flex min-h-36 cursor-pointer flex-col justify-between rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4 transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--bg-subtle))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--border-focus))]"
+              >
+                <div>
+                  <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))] transition-colors group-hover:text-[hsl(var(--text-primary))]">
+                    <Icon size={15} aria-hidden />
                   </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Section: Bulk actions (Super Admin only) */}
-          {superAdmin && (
-            <section id={sectionIds.bulkActions} className="scroll-mt-6">
-              <div className="flex items-center gap-2.5 mb-4">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                  <Shield size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
+                  <h2 className="text-sm font-semibold text-[hsl(var(--text-primary))]">
+                    {topic.title}
+                  </h2>
+                  <p className="mt-1.5 text-xs leading-5 text-[hsl(var(--text-tertiary))]">
+                    {topic.summary}
+                  </p>
+                </div>
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[hsl(var(--text-secondary))]">
+                  {labels.openTopic}
+                  <ArrowRight size={11} aria-hidden />
                 </span>
-                <h2 className="section-title">{g.sections.bulkActions}</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="work-surface overflow-hidden p-0">
-                  <div className="px-5 py-4 border-b border-[hsl(var(--border-subtle))]">
-                    <p className="text-xs text-[hsl(var(--text-tertiary))]">{g.bulkActions.intro}</p>
-                  </div>
-                  <div className="divide-y divide-[hsl(var(--border-subtle))]">
-                    {[
-                      { title: g.bulkActions.revokeTitle, body: g.bulkActions.revokeBody },
-                      { title: g.bulkActions.deleteCredTitle, body: g.bulkActions.deleteCredBody },
-                      { title: g.bulkActions.deleteProofTitle, body: g.bulkActions.deleteProofBody },
-                    ].map((item) => (
-                      <div key={item.title} className="px-5 py-4">
-                        <p className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-1.5">{item.title}</p>
-                        <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{item.body}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* Warning callout */}
-                <div className="flex gap-3 rounded-lg border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-4 py-3.5">
-                  <Warning size={15} className="mt-0.5 shrink-0 text-[hsl(var(--status-warn-text))]" aria-hidden />
-                  <p className="text-xs leading-5 text-[hsl(var(--status-warn-text))]">{g.bulkActions.warning}</p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Section: Audit logs */}
-          <section id={sectionIds.auditLogs} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <LockKey size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.auditLogs}</h2>
-            </div>
-            <div className="work-surface p-5">
-              <p className="text-sm leading-6 text-[hsl(var(--text-secondary))]">{g.auditLogs.body}</p>
-              <Link href="/dashboard/blockchain" className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors">
-                {t.dashboardShell.items.auditTrail} <ArrowRight size={11} aria-hidden />
               </Link>
-            </div>
-          </section>
+            );
+          })}
+        </div>
+      </section>
 
-          {/* Section: Safety rules */}
-          <section id={sectionIds.safetyRules} className="scroll-mt-6">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))]">
-                <ShieldWarning size={14} className="text-[hsl(var(--text-tertiary))]" aria-hidden />
-              </span>
-              <h2 className="section-title">{g.sections.safetyRules}</h2>
-            </div>
-            <div className="work-surface overflow-hidden p-0">
-              <ul className="divide-y divide-[hsl(var(--border-subtle))]">
-                {g.safetyRules.items.map((item, i) => (
-                  <li key={i} className="flex gap-3 px-5 py-4">
-                    <Info size={14} className="mt-0.5 shrink-0 text-[hsl(var(--text-quaternary))]" aria-hidden />
-                    <div>
-                      <p className="text-sm font-semibold text-[hsl(var(--text-primary))] mb-1">{item.rule}</p>
-                      <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">{item.detail}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
+      <aside className="space-y-4">
+        <div className="work-surface overflow-hidden p-0">
+          <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
+            <p className="kicker">{labels.quickLinks.title}</p>
+          </div>
+          <div className="flex flex-col gap-1 p-2">
+            {labels.quickLinks.links.map((link) => {
+              if (!isAllowed(role, link.roles)) return null;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex min-h-9 cursor-pointer items-center justify-between rounded px-3 py-2 text-xs font-medium text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-subtle))] hover:text-[hsl(var(--text-primary))]"
+                >
+                  {link.label}
+                  <ArrowRight size={11} aria-hidden />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
+    </div>
+  );
+}
 
+function TopicDetail({
+  topic,
+  labels,
+  role,
+}: {
+  topic: GuideTopic;
+  labels: Dictionary["adminGuide"];
+  role: AdminRole;
+}) {
+  const Icon = getTopicIcon(topic.id);
+  const allowedActions = topic.actions.filter((action) =>
+    isAllowed(role, action.roles),
+  );
+
+  return (
+    <article className="space-y-5">
+      <Link href="/dashboard/guide" className="btn-ghost btn-sm">
+        <ArrowLeft size={12} aria-hidden />
+        {labels.backToGuide}
+      </Link>
+
+      <div className="work-surface p-5">
+        <div className="flex items-start gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]">
+            <Icon size={18} aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="kicker mb-2">{labels.detailLabel}</p>
+            <h2 className="section-title">{topic.title}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[hsl(var(--text-secondary))]">
+              {topic.intro}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+
+      {topic.steps.length > 0 ? (
+        <section className="work-surface overflow-hidden p-0">
+          <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
+            <p className="kicker">{labels.stepsLabel}</p>
+          </div>
+          <ol className="divide-y divide-[hsl(var(--border-subtle))]">
+            {topic.steps.map((step, index) => (
+              <li key={step.title} className="flex gap-4 px-5 py-4">
+                <span className="mt-0.5 w-5 shrink-0 font-mono text-[0.625rem] font-semibold text-[hsl(var(--text-quaternary))]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="text-sm font-medium text-[hsl(var(--text-primary))]">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-[hsl(var(--text-tertiary))]">
+                    {step.body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      {topic.details.length > 0 ? (
+        <section className="grid gap-3 md:grid-cols-2">
+          {topic.details.map((detail) => (
+            <div
+              key={detail.title}
+              className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4"
+            >
+              <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">
+                {detail.title}
+              </h3>
+              <p className="mt-1.5 text-xs leading-5 text-[hsl(var(--text-tertiary))]">
+                {detail.body}
+              </p>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      {topic.roleCards.length > 0 ? (
+        <section className="work-surface overflow-hidden p-0">
+          <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
+            <p className="kicker">{labels.rolesLabel}</p>
+          </div>
+          <div className="divide-y divide-[hsl(var(--border-subtle))]">
+            {topic.roleCards.map((item, index) => (
+              <div key={item.role} className="px-5 py-5">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">
+                    {item.role}
+                  </h3>
+                  <span
+                    className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[0.625rem] font-semibold ${roleToneClass(index)}`}
+                  >
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="mb-3 text-xs leading-5 text-[hsl(var(--text-tertiary))]">
+                  {item.body}
+                </p>
+                <ul className="space-y-1.5">
+                  {item.permissions.map((permission) => (
+                    <li key={permission} className="flex items-start gap-2">
+                      <span
+                        className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[hsl(var(--text-quaternary))]"
+                        aria-hidden
+                      />
+                      <span className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">
+                        {permission}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {topic.notes.length > 0 ? (
+        <section className="space-y-2">
+          <p className="kicker">{labels.notesLabel}</p>
+          {topic.notes.map((note) => (
+            <div
+              key={note.title}
+              className="rounded-lg border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-4 py-3"
+            >
+              <h3 className="text-xs font-semibold text-[hsl(var(--status-warn-text))]">
+                {note.title}
+              </h3>
+              <p className="mt-1 text-xs leading-5 text-[hsl(var(--status-warn-text))]">
+                {note.body}
+              </p>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      {allowedActions.length > 0 ? (
+        <section className="flex flex-wrap gap-2">
+          {allowedActions.map((action) => (
+            <Link key={action.href} href={action.href} className="btn-ghost btn-sm">
+              {action.label}
+              <ArrowRight size={11} aria-hidden />
+            </Link>
+          ))}
+        </section>
+      ) : null}
+    </article>
   );
 }

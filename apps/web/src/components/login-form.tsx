@@ -76,7 +76,7 @@ export function LoginForm() {
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
+            placeholder={t.loginForm.passwordPlaceholder}
             autoComplete="current-password"
             required
             className="field-shell w-full pr-10 transition-colors"

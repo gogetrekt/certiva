@@ -64,7 +64,7 @@ export default async function DocumentProofPage() {
 
       {/* Primary workflow: registration */}
       <div className="grid gap-6 xl:grid-cols-[480px_1fr]">
-        {/* Left: registration form — hidden for AUDITOR */}
+        {/* Left: registration form hidden for AUDITOR */}
         {admin.role !== "AUDITOR" && (
           <div className="space-y-4">
             <div className="work-surface overflow-hidden p-0">
