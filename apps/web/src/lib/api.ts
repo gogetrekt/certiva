@@ -556,7 +556,7 @@ export async function getDocumentProof(token: string, id: string) {
   return apiFetch<DocumentProofRecord>(`/document-proofs/${id}`, { token });
 }
 
-// ─── Dashboard audit APIs ────────────────────────────────────────────────────
+// --- Dashboard audit APIs ----------------------------------------------------
 
 export interface DashboardMetrics {
   totalIssued: number;

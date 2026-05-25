@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 
 import { EmptyState } from "../../../components/empty-state";
@@ -45,7 +45,7 @@ export default async function BlockchainAuditPage() {
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ Page header + inline metrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -"--"- Page header + inline metrics -"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- */}
       <div className="pb-6 border-b border-[hsl(var(--border-default))]">
         <div className="mb-6">
           <p className="kicker mb-2">{t.dashboard.blockchain.title}</p>
@@ -76,7 +76,7 @@ export default async function BlockchainAuditPage() {
         </div>
       </div>
 
-      {/* â”€â”€ Audit records â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -"--"- Audit records -"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- */}
       {entries.length === 0 ? (
         <div className="work-surface p-10">
           <EmptyState
@@ -114,7 +114,7 @@ export default async function BlockchainAuditPage() {
                       entry.credential.issuer.name}
                   </p>
 
-                  {/* Detail grid â€” horizontal pairs, not a full table */}
+                  {/* Detail grid --" horizontal pairs, not a full table */}
                   <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 mb-4">
                     {[
                       {

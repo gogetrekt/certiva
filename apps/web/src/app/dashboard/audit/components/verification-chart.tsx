@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import type { AnalyticsBucket, VerificationAnalytics } from "../../../../lib/api";
 import { useLanguage } from "../../../../lib/i18n";
 
-// ─── Bar chart (pure CSS, no external lib) ───────────────────────────────────
+// --- Bar chart (pure CSS, no external lib) -----------------------------------
 
 function BarChart({ buckets }: { buckets: AnalyticsBucket[] }) {
   const { t } = useLanguage();
@@ -64,7 +64,7 @@ function BarChart({ buckets }: { buckets: AnalyticsBucket[] }) {
   );
 }
 
-// ─── Day labels row ───────────────────────────────────────────────────────────
+// --- Day labels row -----------------------------------------------------------
 
 function DayLabels({ buckets, days }: { buckets: AnalyticsBucket[]; days: number }) {
   const interval = days <= 7 ? 1 : days <= 30 ? 5 : 15;
@@ -92,7 +92,7 @@ function DayLabels({ buckets, days }: { buckets: AnalyticsBucket[]; days: number
   );
 }
 
-// ─── Period selector ──────────────────────────────────────────────────────────
+// --- Period selector ----------------------------------------------------------
 
 type Period = 7 | 30 | 90;
 
@@ -117,7 +117,7 @@ function PeriodTab({ value, active, onSelect, suffix }: PeriodTabProps) {
   );
 }
 
-// ─── Summary row ─────────────────────────────────────────────────────────────
+// --- Summary row -------------------------------------------------------------
 
 function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
   const { t } = useLanguage();
@@ -148,7 +148,7 @@ function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// --- Main component -----------------------------------------------------------
 
 interface VerificationChartProps {
   initialData: VerificationAnalytics;

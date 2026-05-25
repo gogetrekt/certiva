@@ -16,7 +16,7 @@ import type { ActivityFeedItem } from "../../../../lib/api";
 import { formatDateTime } from "../../../../lib/date-format";
 import { useLanguage } from "../../../../lib/i18n";
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
+// --- Status badge -------------------------------------------------------------
 
 function StatusPill({ status }: { status: string }) {
   const { t } = useLanguage();
@@ -42,7 +42,7 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-// ─── Action icon ──────────────────────────────────────────────────────────────
+// --- Action icon --------------------------------------------------------------
 
 function ActionIcon({ action, status }: { action: string; status: string }) {
   const ok = status === "VALID";
@@ -54,7 +54,7 @@ function ActionIcon({ action, status }: { action: string; status: string }) {
   return <XCircle size={14} weight="duotone" className={cls} aria-hidden />;
 }
 
-// ─── Detail drawer ────────────────────────────────────────────────────────────
+// --- Detail drawer ------------------------------------------------------------
 
 interface DrawerProps {
   item: ActivityFeedItem | null;
@@ -163,7 +163,7 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
   );
 }
 
-// ─── Activity feed ────────────────────────────────────────────────────────────
+// --- Activity feed ------------------------------------------------------------
 
 interface ActivityFeedProps {
   initialItems: ActivityFeedItem[];

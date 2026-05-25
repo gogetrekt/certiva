@@ -23,7 +23,7 @@ export default async function TeamPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Page header ──────────────────────────────── */}
+      {/* -- Page header -------------------------------- */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <p className="kicker mb-2">{t.dashboard.team.title}</p>
         <h1 className="page-title">{t.dashboard.team.title}</h1>
@@ -32,7 +32,7 @@ export default async function TeamPage() {
         </p>
       </div>
 
-      {/* ── Split layout ─────────────────────────────── */}
+      {/* -- Split layout ------------------------------- */}
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
         {/* Team table */}
         <div className="work-surface overflow-hidden p-0">

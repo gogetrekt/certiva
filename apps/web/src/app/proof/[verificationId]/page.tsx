@@ -83,7 +83,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
 
       <SiteHeader />
 
-      {/* ── Verdict banner ─────────────────────────────── */}
+      {/* -- Verdict banner ------------------------------- */}
       <section className={`border-b border-[hsl(var(--border-default))] ${state.accentClass}`}>
         <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
           <div className="flex items-start justify-between gap-4 sm:gap-6">
@@ -124,7 +124,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
         </div>
       </section>
 
-      {/* ── Main content ───────────────────────────────── */}
+      {/* -- Main content --------------------------------- */}
       <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_300px]">
 

@@ -13,7 +13,7 @@ import {
 import type { QueueHealthResponse } from "../../../../lib/api";
 import { useLanguage } from "../../../../lib/i18n";
 
-// ─── Health indicator ─────────────────────────────────────────────────────────
+// --- Health indicator ---------------------------------------------------------
 
 function HealthIndicator({ health }: { health: QueueHealthResponse["health"] }) {
   const { t } = useLanguage();
@@ -51,7 +51,7 @@ function HealthIndicator({ health }: { health: QueueHealthResponse["health"] }) 
   );
 }
 
-// ─── Stat cell ────────────────────────────────────────────────────────────────
+// --- Stat cell ----------------------------------------------------------------
 
 interface StatCellProps {
   label: string;
@@ -74,7 +74,7 @@ function StatCell({ label, value, icon: Icon, iconClass }: StatCellProps) {
   );
 }
 
-// ─── Queue monitor ────────────────────────────────────────────────────────────
+// --- Queue monitor ------------------------------------------------------------
 
 interface QueueMonitorProps {
   initialData: QueueHealthResponse;

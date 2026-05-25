@@ -297,12 +297,12 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
     <div className="app-shell">
       <div className="mx-auto grid min-h-dvh w-full grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
 
-        {/* ── Desktop Sidebar ─────────────────────────────── */}
+        {/* -- Desktop Sidebar ------------------------------- */}
         <aside className="sidebar-surface hidden lg:flex flex-col">
           <SidebarContent {...sidebarProps} />
         </aside>
 
-        {/* ── Mobile Drawer ────────────────────────────────── */}
+        {/* -- Mobile Drawer ---------------------------------- */}
         {drawerOpen && (
           <>
             <div
@@ -324,7 +324,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
           </>
         )}
 
-        {/* ── Main ────────────────────────────────────────── */}
+        {/* -- Main ------------------------------------------ */}
         <div className="flex min-w-0 flex-col">
           {/* Topbar */}
           <header className="topbar-surface sticky top-0 z-10 px-4 sm:px-6 py-0 h-12 flex items-center">

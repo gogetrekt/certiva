@@ -148,7 +148,7 @@ export function VerifyUploadPanel() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[hsl(var(--text-primary))] truncate">{selectedFile.name}</p>
                 <p className="mt-0.5 text-xs text-[hsl(var(--text-quaternary))]">
-                  {formatFileSize(selectedFile.size)} · {t.uploadPanel.clickToChange}
+                  {formatFileSize(selectedFile.size)} . {t.uploadPanel.clickToChange}
                 </p>
               </div>
             </div>

@@ -6,7 +6,7 @@ import { StatusBadge } from "../../../../components/status-badge";
 import { formatDate } from "../../../../lib/date-format";
 import { getServerDictionary } from "../../../../lib/i18n-server";
 
-// ─── Latest issuances ─────────────────────────────────────────────────────────
+// --- Latest issuances ---------------------------------------------------------
 
 export async function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
   const t = await getServerDictionary();
@@ -98,7 +98,7 @@ export async function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }
   );
 }
 
-// ─── Latest revocations ───────────────────────────────────────────────────────
+// --- Latest revocations -------------------------------------------------------
 
 export async function RevocationTable({ items }: { items: LatestRevocationRecord[] }) {
   const t = await getServerDictionary();

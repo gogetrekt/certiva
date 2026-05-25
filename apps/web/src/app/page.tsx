@@ -37,7 +37,7 @@ export default async function HomePage() {
 
       <SiteHeader />
 
-      {/* ── Hero ───────────────────────────────────────── */}
+      {/* -- Hero ----------------------------------------- */}
       <section className="relative overflow-hidden border-b border-[hsl(var(--border-default))]">
         <div className="mx-auto grid max-w-300 grid-cols-1 gap-0 px-4 sm:px-6 lg:px-8 md:grid-cols-[1fr_420px]">
 
@@ -78,7 +78,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Capabilities ───────────────────────────────── */}
+      {/* -- Capabilities --------------------------------- */}
       <section className="border-b border-[hsl(var(--border-default))]">
         <div className="mx-auto max-w-300 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
           <div className="grid gap-px bg-[hsl(var(--border-default))] rounded-xl overflow-hidden border border-[hsl(var(--border-default))] sm:grid-cols-3">
@@ -98,7 +98,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Entry points ───────────────────────────────── */}
+      {/* -- Entry points --------------------------------- */}
       <section className="mx-auto max-w-300 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
         <div className="mb-8 sm:mb-10 max-w-[520px]">
           <p className="kicker mb-3">{t.home.entryKicker}</p>

@@ -1,4 +1,4 @@
-﻿import { BulkIssueCredentials } from "../../../components/bulk-issue-credentials";
+import { BulkIssueCredentials } from "../../../components/bulk-issue-credentials";
 import { DisclosurePanel } from "../../../components/disclosure-panel";
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
 import { IssueCredentialForm } from "../../../components/issue-credential-form";
@@ -34,7 +34,7 @@ export default async function IssueCredentialPage() {
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ Page header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -"--"- Page header -"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <p className="kicker mb-2">{t.dashboard.issue.kicker}</p>
         <h1 className="page-title">{t.dashboard.issue.title}</h1>
@@ -43,7 +43,7 @@ export default async function IssueCredentialPage() {
         </p>
       </div>
 
-      {/* â”€â”€ Two-column form layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -"--"- Two-column form layout -"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- */}
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Single issue */}
         <div className="work-surface overflow-hidden p-0">

@@ -8,7 +8,7 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get(COOKIE)?.value;
 
   // Only block unauthenticated access to /dashboard.
-  // Do NOT redirect /login → /dashboard here: the edge runtime cannot verify
+  // Do NOT redirect /login -> /dashboard here: the edge runtime cannot verify
   // whether a token is actually valid (no backend call possible), so redirecting
   // based on presence alone causes an infinite loop when the cookie is stale.
   // The login page's Server Component does a real backend check and redirects

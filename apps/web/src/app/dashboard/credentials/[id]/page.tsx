@@ -55,7 +55,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
   return (
     <div className="space-y-6">
 
-      {/* ── Page header ──────────────────────────────── */}
+      {/* -- Page header -------------------------------- */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <Link
           href="/dashboard/credentials"
@@ -116,7 +116,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
         </div>
       </div>
 
-      {/* ── Main grid ────────────────────────────────── */}
+      {/* -- Main grid ---------------------------------- */}
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
 
         {/* Left column */}
