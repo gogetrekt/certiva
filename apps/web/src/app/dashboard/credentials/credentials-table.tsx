@@ -16,13 +16,14 @@ import { useLanguage } from "../../../lib/i18n";
 interface CredentialsTableProps {
   credentials: CredentialsResponse;
   role: AdminRole;
+  yearFilter?: string;
 }
 
 function isSuperAdmin(role: AdminRole): boolean {
   return role === "SUPER_ADMIN" || role === "OWNER";
 }
 
-export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
+export function CredentialsTable({ credentials, role, yearFilter }: CredentialsTableProps) {
   const { t } = useLanguage();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -31,9 +32,15 @@ export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
 
   const superAdmin = isSuperAdmin(role);
 
-  const allIds = credentials.items.map((c) => c.id);
-  const activeIds = credentials.items.filter((c) => !c.revoked).map((c) => c.id);
-  const revokedIds = credentials.items.filter((c) => c.revoked).map((c) => c.id);
+  const filteredItems = yearFilter
+    ? credentials.items.filter(
+        (c) => new Date(c.issuedAt).getFullYear() === Number(yearFilter),
+      )
+    : credentials.items;
+
+  const allIds = filteredItems.map((c) => c.id);
+  const activeIds = filteredItems.filter((c) => !c.revoked).map((c) => c.id);
+  const revokedIds = filteredItems.filter((c) => c.revoked).map((c) => c.id);
 
   const allSelected = allIds.length > 0 && allIds.every((id) => selected.has(id));
 
@@ -86,7 +93,7 @@ export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
   const selectedActiveIds = selectedArr.filter((id) => activeIds.includes(id));
   const selectedRevokedIds = selectedArr.filter((id) => revokedIds.includes(id));
 
-  if (credentials.items.length === 0) {
+  if (filteredItems.length === 0) {
     return (
       <div className="work-surface overflow-hidden p-0">
         <div className="p-10">
@@ -170,7 +177,7 @@ export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
               </tr>
             </thead>
             <tbody>
-              {credentials.items.map((item) => (
+              {filteredItems.map((item) => (
                 <tr key={item.id} className={selected.has(item.id) ? "bg-[hsl(var(--bg-muted))]" : undefined}>
                   {superAdmin && (
                     <td className="td-cell-sm w-10">
@@ -191,7 +198,7 @@ export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
                       {item.degree}
                     </Link>
                     <p className="meta-text font-mono truncate mt-0.5">
-                      {item.verificationId}
+                      {item.credentialExternalId}
                     </p>
                   </td>
                   <td className="td-cell-sm">
@@ -224,13 +231,15 @@ export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
                   <td className="td-cell-sm">
                     <div className="flex flex-col items-start gap-1.5">
                       <StatusBadge status={item.revoked ? "REVOKED" : "VALID"} />
-                      <StatusBadge
-                        status={
-                          item.anchorStatus === "ANCHORED"
-                            ? "ON_CHAIN_VERIFIED"
-                            : item.anchorStatus
-                        }
-                      />
+                      {!item.revoked && (
+                        <StatusBadge
+                          status={
+                            item.anchorStatus === "ANCHORED"
+                              ? "ON_CHAIN_VERIFIED"
+                              : item.anchorStatus
+                          }
+                        />
+                      )}
                     </div>
                   </td>
                   <td className="td-cell-sm">

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import {
   CheckCircle,
@@ -10,9 +9,8 @@ import {
   ArrowSquareOut,
 } from "@phosphor-icons/react/dist/ssr";
 
-import { AppLogo } from "../../../components/app-logo";
+import { SiteHeader } from "../../../components/site-header";
 import { StatusBadge } from "../../../components/status-badge";
-import { ThemeToggle } from "../../../components/theme-toggle";
 import { VerifySearchForm } from "../../../components/verify-search-form";
 import { apiFetch, type VerificationResponse } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
@@ -52,20 +50,10 @@ function getStateConfig(result: VerificationResponse["result"], t: Dictionary) {
       verdictClass: "badge badge-warn",
     };
   }
-  if (result === "TAMPERED") {
-    return {
-      verdict: t.verifyResult.states.tampered.verdict,
-      title: t.verifyResult.states.tampered.title,
-      description: t.verifyResult.states.tampered.description,
-      icon: XCircle,
-      accentClass: "result-accent-error",
-      verdictClass: "badge badge-error",
-    };
-  }
   return {
-    verdict: t.verifyResult.states.notFound.verdict,
-    title: t.verifyResult.states.notFound.title,
-    description: t.verifyResult.states.notFound.description,
+    verdict: t.verifyResult.states.notRegistered.verdict,
+    title: t.verifyResult.states.notRegistered.title,
+    description: t.verifyResult.states.notRegistered.description,
     icon: XCircle,
     accentClass: "result-accent-neutral",
     verdictClass: "badge badge-neutral",
@@ -86,28 +74,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
 
-      {/* ── Header ─────────────────────────────────────── */}
-      <header className="border-b border-[hsl(var(--border-default))]">
-        <div className="mx-auto flex h-13 w-full max-w-275 items-center justify-between px-8">
-          <AppLogo />
-          <nav className="flex items-center gap-1.5">
-            <Link
-              href="/verify"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              {t.verifyResult.navNewLookup}
-            </Link>
-            <Link
-              href="/verify/document"
-              className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
-            >
-              {t.nav.documentCheck}
-            </Link>
-            <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ── Verdict banner ─────────────────────────────── */}
       <section className={`border-b border-[hsl(var(--border-default))] ${state.accentClass}`}>
@@ -174,7 +141,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                         ...(verification.revocationReason ? [{ label: t.verifyResult.revocationReason, value: verification.revocationReason, mono: false }] : []),
                       ] : []),
                       { label: t.verifyResult.credentialStatus, value: verification.revoked ? t.common.revoked : t.common.active, mono: false },
-                      { label: t.verifyResult.documentIntegrity, value: verification.securePdfEnabled ? t.verifyResult.proofRegistered : t.common.notRegistered, mono: false },
+                      { label: t.verifyResult.securePdfProof, value: verification.securePdfEnabled ? t.verifyResult.proofRegistered : t.common.notEnabled, mono: false },
                       { label: t.verifyResult.blockchainProof, value: verification.blockchainStatus === "ON_CHAIN_VERIFIED" ? t.common.anchored : verification.blockchainStatus === "PENDING" ? t.common.pending : verification.blockchainStatus === "FAILED" ? t.common.failed : t.common.notAnchored, mono: false },
                       { label: t.verifyResult.verificationCount, value: String(verification.verificationCount), mono: false },
                       { label: t.verifyResult.lastChecked, value: verification.verifiedAtTimestamp ? formatDateTime(verification.verifiedAtTimestamp) : t.common.notAvailable, mono: false },

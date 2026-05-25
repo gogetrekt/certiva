@@ -99,16 +99,14 @@ export default async function BlockchainAuditPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge status={entry.status} />
-                      <span className="role-chip uppercase">
-                        {formatOperationLabel(entry.operation, t)}
-                      </span>
                       <span className="text-sm font-medium text-[hsl(var(--text-primary))] truncate">
                         {entry.credential.degree}
                       </span>
                     </div>
-                    <p className="meta-text shrink-0">
-                      {formatDateTime(entry.updatedAt)}
-                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="role-chip">{formatOperationLabel(entry.operation, t)}</span>
+                      <p className="meta-text">{formatDateTime(entry.updatedAt)}</p>
+                    </div>
                   </div>
                   <p className="meta-text mb-4">
                     {entry.credential.studentName} /{" "}
@@ -117,7 +115,7 @@ export default async function BlockchainAuditPage() {
                   </p>
 
                   {/* Detail grid â€” horizontal pairs, not a full table */}
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 mb-4">
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 mb-4">
                     {[
                       {
                         label: t.dashboard.blockchain.credentialId,
@@ -134,13 +132,6 @@ export default async function BlockchainAuditPage() {
                       {
                         label: t.dashboard.blockchain.chainStatus,
                         value: entry.credential.chainStatus,
-                        mono: false,
-                      },
-                      {
-                        label: t.dashboard.blockchain.revocation,
-                        value: entry.credential.revokedAt
-                          ? t.common.revoked
-                          : t.common.active,
                         mono: false,
                       },
                     ].map((row) => (
@@ -221,4 +212,5 @@ function Stat({
     </div>
   );
 }
+
 

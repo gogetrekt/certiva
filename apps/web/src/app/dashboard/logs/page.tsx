@@ -3,7 +3,6 @@ import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 
 import { EmptyState } from "../../../components/empty-state";
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
-import { StatusBadge } from "../../../components/status-badge";
 import type { VerificationLogRecord } from "../../../lib/api";
 import {
   getCurrentAdmin,
@@ -152,7 +151,7 @@ export default async function VerificationLogsPage() {
                       </p>
                     </td>
                     <td className="td-cell-sm">
-                      <StatusBadge status={log.status} />
+                      <LogStatusBadge status={log.status} t={t} />
                     </td>
                   </tr>
                 ))}
@@ -181,4 +180,24 @@ function Stat({
       <p className="meta-text mt-1">{note}</p>
     </div>
   );
+}
+
+type LogStatus = "VALID" | "INVALID" | "REVOKED" | "NOT_FOUND" | "TAMPERED";
+
+function LogStatusBadge({
+  status,
+  t,
+}: {
+  status: LogStatus;
+  t: Awaited<ReturnType<typeof getServerDictionary>>;
+}) {
+  const map: Record<LogStatus, { label: string; cls: string }> = {
+    VALID:      { label: t.dashboard.logs.statusVerified,      cls: "badge badge-valid" },
+    REVOKED:    { label: t.dashboard.logs.statusRevoked,       cls: "badge badge-warn" },
+    NOT_FOUND:  { label: t.dashboard.logs.statusNotRegistered, cls: "badge badge-neutral" },
+    TAMPERED:   { label: t.dashboard.logs.statusModified,      cls: "badge badge-error" },
+    INVALID:    { label: t.dashboard.logs.statusInvalid,       cls: "badge badge-error" },
+  };
+  const { label, cls } = map[status] ?? map.INVALID;
+  return <span className={cls}>{label}</span>;
 }

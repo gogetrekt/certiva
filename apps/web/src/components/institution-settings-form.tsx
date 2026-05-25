@@ -23,7 +23,7 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
       displayName: String(formData.get("displayName") ?? "") || undefined,
       domain: String(formData.get("domain") ?? ""),
       websiteUrl: String(formData.get("websiteUrl") ?? "") || undefined,
-      logoUrl: String(formData.get("logoUrl") ?? "") || undefined,
+      logoUrl: undefined,
       wallet: String(formData.get("wallet") ?? "") || undefined,
       status: String(formData.get("status") ?? institution.status),
     };
@@ -73,25 +73,12 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
             className="field-shell w-full"
           />
         </SettingsRow>
-        <SettingsRow
-          label={t.forms.institutionSettings.websiteUrl}
-        >
+        <SettingsRow label={t.forms.institutionSettings.websiteUrl}>
           <input
             id="websiteUrl"
             name="websiteUrl"
             defaultValue={institution.websiteUrl ?? ""}
             placeholder="https://university.edu"
-            className="field-shell w-full"
-          />
-        </SettingsRow>
-        <SettingsRow
-          label={t.forms.institutionSettings.logoUrl}
-        >
-          <input
-            id="logoUrl"
-            name="logoUrl"
-            defaultValue={institution.logoUrl ?? ""}
-            placeholder="https://..."
             className="field-shell w-full"
           />
         </SettingsRow>
@@ -145,7 +132,7 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
       </SettingsSection>
 
       {/* Footer */}
-      <div className="pt-5 border-t border-[hsl(var(--border-default))] flex items-center gap-3">
+      <div className="pt-4 flex items-center gap-3">
         <button
           type="submit"
           disabled={isSubmitting}
@@ -168,9 +155,9 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
 
 function SettingsSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-[hsl(var(--border-subtle))] pb-5 mb-5">
-      <p className="kicker mb-3">{label}</p>
-      <div className="space-y-3">{children}</div>
+    <div className="border-b border-[hsl(var(--border-subtle))] pb-3 mb-3">
+      <p className="kicker mb-2">{label}</p>
+      <div className="space-y-2">{children}</div>
     </div>
   );
 }
@@ -185,7 +172,7 @@ function SettingsRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-1.5 sm:grid-cols-[200px_1fr] sm:items-start">
+    <div className="grid gap-1 sm:grid-cols-[180px_1fr] sm:items-start">
       <div className="pt-1.5">
         <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">{label}</p>
         {hint ? <p className="text-[0.6875rem] leading-4 text-[hsl(var(--text-quaternary))] mt-0.5">{hint}</p> : null}

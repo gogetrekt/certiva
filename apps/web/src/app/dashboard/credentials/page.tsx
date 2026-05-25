@@ -16,6 +16,7 @@ interface CredentialsPageProps {
     studentId?: string;
     studentName?: string;
     status?: string;
+    year?: string;
   }>;
 }
 
@@ -30,6 +31,7 @@ export default async function CredentialsPage({
     studentId = "",
     studentName = "",
     status = "all",
+    year = "",
   } = await searchParams;
   const revoked =
     status === "active" ? false : status === "revoked" ? true : undefined;
@@ -100,6 +102,32 @@ export default async function CredentialsPage({
               className="field-shell w-full font-mono"
             />
           </div>
+          <div className="w-36">
+            <label htmlFor="year" className="field-label">
+              {t.dashboard.registry.graduationYear}
+            </label>
+            <select
+              id="year"
+              name="year"
+              defaultValue={year}
+              className="field-shell w-full font-mono"
+            >
+              <option value="">{t.dashboard.registry.allYears}</option>
+              {Array.from(
+                new Set(
+                  credentials.items
+                    .map((c) => new Date(c.issuedAt).getFullYear())
+                    .filter(Boolean),
+                ),
+              )
+                .sort((a, b) => b - a)
+                .map((y) => (
+                  <option key={y} value={String(y)}>
+                    {y}
+                  </option>
+                ))}
+            </select>
+          </div>
           <div className="w-40">
             <label htmlFor="status" className="field-label">
               {t.common.status}
@@ -118,7 +146,7 @@ export default async function CredentialsPage({
           <button type="submit" className="btn-ghost">
             {t.dashboard.registry.applyFilters}
           </button>
-          {(studentName || studentId || status !== "all") && (
+          {(studentName || studentId || status !== "all" || year) && (
             <Link
               href="/dashboard/credentials"
               className="btn-ghost text-[hsl(var(--text-tertiary))]"
@@ -130,7 +158,7 @@ export default async function CredentialsPage({
       </div>
 
       {/* Table (client component — handles selection, bulk actions) */}
-      <CredentialsTable credentials={credentials} role={admin.role} />
+      <CredentialsTable credentials={credentials} role={admin.role} yearFilter={year} />
     </div>
   );
 }

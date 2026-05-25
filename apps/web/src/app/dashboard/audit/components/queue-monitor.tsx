@@ -166,9 +166,15 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
 
       {/* Stats */}
       <div className="px-5">
-        {cells.map((cell) => (
-          <StatCell key={cell.label} {...cell} />
-        ))}
+        {data.pending === 0 && data.processing === 0 && data.failed === 0 ? (
+          <p className="py-4 text-xs text-[hsl(var(--text-tertiary))]">
+            {t.auditComponents.queue.noActiveJobs}
+          </p>
+        ) : (
+          cells.map((cell) => (
+            <StatCell key={cell.label} {...cell} />
+          ))
+        )}
       </div>
 
       {/* Health note */}
@@ -191,11 +197,8 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
         </div>
       )}
 
-      {/* Queue name tag */}
-      <div className="px-5 pb-4 flex items-center justify-between">
-        <span className="hash-text text-[hsl(var(--text-quaternary))] text-[10px]">
-          {t.auditComponents.queue.queueName}
-        </span>
+      {/* Last refreshed */}
+      <div className="px-5 pb-4 flex items-center justify-end">
         <span className="meta-text text-[hsl(var(--text-quaternary))] text-[10px]">
           {timeLabel}
         </span>

@@ -100,9 +100,10 @@ interface PeriodTabProps {
   value: Period;
   active: boolean;
   onSelect: (v: Period) => void;
+  suffix: string;
 }
 
-function PeriodTab({ value, active, onSelect }: PeriodTabProps) {
+function PeriodTab({ value, active, onSelect, suffix }: PeriodTabProps) {
   return (
     <button
       onClick={() => onSelect(value)}
@@ -111,7 +112,7 @@ function PeriodTab({ value, active, onSelect }: PeriodTabProps) {
           : "text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-secondary))]"
         }`}
     >
-      {value}d
+      {value}{suffix}
     </button>
   );
 }
@@ -173,6 +174,8 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
     }
   }, [period]);
 
+  const hasData = data.buckets.some((b) => b.total > 0);
+
   return (
     <div className="work-surface overflow-hidden p-0">
       {/* Header */}
@@ -188,21 +191,35 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
               value={p}
               active={period === p}
               onSelect={changePeriod}
+              suffix={t.auditComponents.verificationChart.daysSuffix}
             />
           ))}
         </div>
       </div>
 
-      {/* Chart area */}
-      <div className={`px-5 pt-5 pb-3 transition-opacity ${loading ? "opacity-40" : ""}`}>
-        <BarChart buckets={data.buckets} />
-        <DayLabels buckets={data.buckets} days={period} />
-      </div>
+      {hasData ? (
+        <>
+          {/* Chart area */}
+          <div className={`px-5 pt-5 pb-3 transition-opacity ${loading ? "opacity-40" : ""}`}>
+            <BarChart buckets={data.buckets} />
+            <DayLabels buckets={data.buckets} days={period} />
+          </div>
 
-      {/* Summary */}
-      <div className="px-5 py-3 border-t border-[hsl(var(--border-subtle))]">
-        <ChartSummary buckets={data.buckets} />
-      </div>
+          {/* Summary */}
+          <div className="px-5 py-3 border-t border-[hsl(var(--border-subtle))]">
+            <ChartSummary buckets={data.buckets} />
+          </div>
+        </>
+      ) : (
+        <div className="px-5 py-10 text-center">
+          <p className="text-xs font-medium text-[hsl(var(--text-secondary))] mb-1">
+            {t.auditComponents.verificationChart.noDataTitle}
+          </p>
+          <p className="meta-text max-w-xs mx-auto">
+            {t.auditComponents.verificationChart.noDataDescription}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

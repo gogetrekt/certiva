@@ -71,9 +71,11 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           </div>
           <div className="flex flex-wrap items-start gap-2">
             <StatusBadge status={status} />
-            <StatusBadge
-              status={credential.anchorStatus === "ANCHORED" ? "ON_CHAIN_VERIFIED" : credential.anchorStatus}
-            />
+            {!credential.revoked && (
+              <StatusBadge
+                status={credential.anchorStatus === "ANCHORED" ? "ON_CHAIN_VERIFIED" : credential.anchorStatus}
+              />
+            )}
             {credential.certificateUri ? (
               <a
                 href={credential.certificateUri}
