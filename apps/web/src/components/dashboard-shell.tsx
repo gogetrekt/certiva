@@ -25,6 +25,22 @@ import { useLanguage } from "../lib/i18n";
 
 type DashboardRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
+type DashboardGroupKey = "overview" | "credentials" | "documents" | "activity" | "administration";
+type DashboardItemKey = "dashboard" | "registry" | "issue" | "secureDocuments" | "verificationLogs" | "auditTrail" | "administrators" | "settings" | "guide";
+
+type NavItem = {
+  readonly href: string;
+  readonly labelKey: DashboardItemKey;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly icon: React.ComponentType<any>;
+  readonly roles: DashboardRole[];
+};
+
+type NavGroup = {
+  readonly titleKey: DashboardGroupKey;
+  readonly items: NavItem[];
+};
+
 function isSuperAdmin(role: DashboardRole): boolean {
   return role === "SUPER_ADMIN" || role === "OWNER";
 }
@@ -139,7 +155,7 @@ function SidebarContent({
   institutionLabel: string;
   operatorLabel: string;
   roleLabel: string;
-  visibleGroups: typeof navigationGroups[number][];
+  visibleGroups: NavGroup[];
   onNavClick?: () => void;
 }) {
   return (
