@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
 import type { InstitutionRecord } from "../lib/api";
+import { useLanguage } from "../lib/i18n";
 
 export function InstitutionSettingsForm({ institution }: { institution: InstitutionRecord }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,11 +35,11 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
         body: JSON.stringify(payload),
       });
       const body = (await response.json()) as { message?: string };
-      if (!response.ok) throw new Error(body.message ?? "Unable to update settings");
-      setSuccess("Settings saved.");
+      if (!response.ok) throw new Error(body.message ?? t.forms.institutionSettings.unableUpdate);
+      setSuccess(t.forms.institutionSettings.saved);
       startTransition(() => { router.refresh(); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update settings");
+      setError(err instanceof Error ? err.message : t.forms.institutionSettings.unableUpdate);
     } finally {
       setIsSubmitting(false);
     }
@@ -47,10 +49,10 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
     <form action={handleSubmit} className="space-y-0">
 
       {/* Group: Identity */}
-      <SettingsSection label="Identity">
+      <SettingsSection label={t.forms.institutionSettings.identity}>
         <SettingsRow
-          label="Institution name"
-          hint="Full legal name of the institution"
+          label={t.forms.institutionSettings.institutionName}
+          hint={t.forms.institutionSettings.institutionNameHint}
         >
           <input
             id="name"
@@ -61,8 +63,8 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
           />
         </SettingsRow>
         <SettingsRow
-          label="Display name"
-          hint="Short name shown on public pages"
+          label={t.forms.institutionSettings.displayName}
+          hint={t.forms.institutionSettings.displayNameHint}
         >
           <input
             id="displayName"
@@ -72,7 +74,7 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
           />
         </SettingsRow>
         <SettingsRow
-          label="Website URL"
+          label={t.forms.institutionSettings.websiteUrl}
         >
           <input
             id="websiteUrl"
@@ -83,23 +85,23 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
           />
         </SettingsRow>
         <SettingsRow
-          label="Logo URL"
+          label={t.forms.institutionSettings.logoUrl}
         >
           <input
             id="logoUrl"
             name="logoUrl"
             defaultValue={institution.logoUrl ?? ""}
-            placeholder="https://…"
+            placeholder="https://..."
             className="field-shell w-full"
           />
         </SettingsRow>
       </SettingsSection>
 
       {/* Group: Domain & Status */}
-      <SettingsSection label="Configuration">
+      <SettingsSection label={t.forms.institutionSettings.configuration}>
         <SettingsRow
-          label="Primary domain"
-          hint="Used for verification and branding"
+          label={t.forms.institutionSettings.primaryDomain}
+          hint={t.forms.institutionSettings.primaryDomainHint}
         >
           <input
             id="domain"
@@ -110,8 +112,8 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
           />
         </SettingsRow>
         <SettingsRow
-          label="Status"
-          hint="Controls issuance and public access"
+          label={t.common.status}
+          hint={t.forms.institutionSettings.statusHint}
         >
           <select
             id="status"
@@ -119,24 +121,24 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
             defaultValue={institution.status}
             className="field-shell w-full"
           >
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-            <option value="SUSPENDED">Suspended</option>
+            <option value="ACTIVE">{t.common.active}</option>
+            <option value="INACTIVE">{t.common.inactive}</option>
+            <option value="SUSPENDED">{t.common.suspended}</option>
           </select>
         </SettingsRow>
       </SettingsSection>
 
       {/* Group: Blockchain */}
-      <SettingsSection label="Blockchain">
+      <SettingsSection label={t.forms.institutionSettings.blockchain}>
         <SettingsRow
-          label="Issuer wallet"
-          hint="Polygon Amoy address for on-chain proof anchoring"
+          label={t.forms.institutionSettings.issuerWallet}
+          hint={t.forms.institutionSettings.issuerWalletHint}
         >
           <input
             id="wallet"
             name="wallet"
             defaultValue={institution.wallet ?? ""}
-            placeholder="0x…"
+            placeholder="0x..."
             className="field-shell w-full font-mono"
           />
         </SettingsRow>
@@ -149,7 +151,7 @@ export function InstitutionSettingsForm({ institution }: { institution: Institut
           disabled={isSubmitting}
           className="btn-primary"
         >
-          {isSubmitting ? "Saving…" : "Save settings"}
+          {isSubmitting ? t.forms.institutionSettings.saving : t.forms.institutionSettings.save}
         </button>
 
         {success ? (

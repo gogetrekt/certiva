@@ -1,3 +1,7 @@
+"use client";
+
+import { useLanguage } from "../lib/i18n";
+
 type StatusKind =
   | "ACTIVE"
   | "INACTIVE"
@@ -25,30 +29,30 @@ type StatusKind =
 
 type BadgeTone = "valid" | "warn" | "error" | "neutral";
 
-const config: Record<StatusKind, { label: string; tone: BadgeTone }> = {
-  ACTIVE:              { label: "Active",        tone: "valid" },
-  VALID:               { label: "Valid",         tone: "valid" },
-  AUTHENTIC:           { label: "Authentic",     tone: "valid" },
-  ISSUED:              { label: "Issued",        tone: "valid" },
-  ANCHORED:            { label: "Anchored",      tone: "valid" },
-  ON_CHAIN_VERIFIED:   { label: "On-chain",      tone: "valid" },
-  REVOKED:             { label: "Revoked",       tone: "warn" },
-  SUSPENDED:           { label: "Suspended",     tone: "warn" },
-  PENDING:             { label: "Pending",       tone: "warn" },
-  RETRYING:            { label: "Retrying",      tone: "warn" },
-  NOT_ANCHORED:        { label: "Not anchored",  tone: "warn" },
-  DUPLICATE:           { label: "Duplicate",     tone: "warn" },
-  EXISTS:              { label: "Exists",        tone: "warn" },
-  INVALID:             { label: "Invalid",       tone: "error" },
-  TAMPERED:            { label: "Tampered",      tone: "error" },
-  DOCUMENT_MODIFIED:   { label: "Modified",      tone: "error" },
-  NOT_FOUND:           { label: "Not found",     tone: "error" },
-  FAILED:              { label: "Failed",        tone: "error" },
-  ISSUER_UNAUTHORIZED: { label: "Unauthorized",  tone: "error" },
-  MISMATCH:            { label: "Mismatch",      tone: "error" },
-  INACTIVE:            { label: "Inactive",      tone: "neutral" },
-  ARCHIVED_V1:         { label: "Archived",      tone: "neutral" },
-  UNAVAILABLE:         { label: "Unavailable",   tone: "neutral" },
+const config: Record<StatusKind, { labelKey: keyof ReturnType<typeof getStatusLabels>; tone: BadgeTone }> = {
+  ACTIVE:              { labelKey: "active",       tone: "valid" },
+  VALID:               { labelKey: "valid",        tone: "valid" },
+  AUTHENTIC:           { labelKey: "authentic",    tone: "valid" },
+  ISSUED:              { labelKey: "issued",       tone: "valid" },
+  ANCHORED:            { labelKey: "anchored",     tone: "valid" },
+  ON_CHAIN_VERIFIED:   { labelKey: "onChain",      tone: "valid" },
+  REVOKED:             { labelKey: "revoked",      tone: "warn" },
+  SUSPENDED:           { labelKey: "suspended",    tone: "warn" },
+  PENDING:             { labelKey: "pending",      tone: "warn" },
+  RETRYING:            { labelKey: "retrying",     tone: "warn" },
+  NOT_ANCHORED:        { labelKey: "notAnchored",  tone: "warn" },
+  DUPLICATE:           { labelKey: "duplicate",    tone: "warn" },
+  EXISTS:              { labelKey: "exists",       tone: "warn" },
+  INVALID:             { labelKey: "invalid",      tone: "error" },
+  TAMPERED:            { labelKey: "tampered",     tone: "error" },
+  DOCUMENT_MODIFIED:   { labelKey: "modified",     tone: "error" },
+  NOT_FOUND:           { labelKey: "notFound",     tone: "error" },
+  FAILED:              { labelKey: "failed",       tone: "error" },
+  ISSUER_UNAUTHORIZED: { labelKey: "unauthorized", tone: "error" },
+  MISMATCH:            { labelKey: "mismatch",     tone: "error" },
+  INACTIVE:            { labelKey: "inactive",     tone: "neutral" },
+  ARCHIVED_V1:         { labelKey: "archived",     tone: "neutral" },
+  UNAVAILABLE:         { labelKey: "unavailable",  tone: "neutral" },
 };
 
 const toneClass: Record<BadgeTone, string> = {
@@ -66,7 +70,9 @@ const dotClass: Record<BadgeTone, string> = {
 };
 
 export function StatusBadge({ status }: { status: StatusKind }) {
-  const { label, tone } = config[status] ?? config.UNAVAILABLE;
+  const { t } = useLanguage();
+  const labels = getStatusLabels(t);
+  const { labelKey, tone } = config[status] ?? config.UNAVAILABLE;
 
   return (
     <span className={toneClass[tone]}>
@@ -74,7 +80,35 @@ export function StatusBadge({ status }: { status: StatusKind }) {
         className={`h-1 w-1 shrink-0 rounded-full ${dotClass[tone]}`}
         aria-hidden="true"
       />
-      {label}
+      {labels[labelKey]}
     </span>
   );
+}
+
+function getStatusLabels(t: ReturnType<typeof useLanguage>["t"]) {
+  return {
+    active: t.common.active,
+    valid: t.common.valid,
+    authentic: t.common.authentic,
+    issued: t.common.issued,
+    anchored: t.common.anchored,
+    onChain: t.common.onChain,
+    revoked: t.common.revoked,
+    suspended: t.common.suspended,
+    pending: t.common.pending,
+    retrying: t.common.retrying,
+    notAnchored: t.common.notAnchored,
+    duplicate: t.common.duplicate,
+    exists: t.common.exists,
+    invalid: t.common.invalid,
+    tampered: t.common.tampered,
+    modified: t.common.modified,
+    notFound: t.common.notFound,
+    failed: t.common.failed,
+    unauthorized: t.common.unauthorized,
+    mismatch: t.common.mismatch,
+    inactive: t.common.inactive,
+    archived: t.common.archived,
+    unavailable: t.common.unavailable,
+  };
 }

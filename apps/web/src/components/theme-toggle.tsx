@@ -3,7 +3,10 @@
 import { Moon, Sun } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 export function ThemeToggle() {
+  const { t } = useLanguage();
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -32,8 +35,8 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       className="theme-toggle"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Light mode" : "Dark mode"}
+      aria-label={isDark ? t.common.switchToLight : t.common.switchToDark}
+      title={isDark ? t.common.themeLight : t.common.themeDark}
     >
       {isDark ? (
         <Sun size={14} weight="regular" />

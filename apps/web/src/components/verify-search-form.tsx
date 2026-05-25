@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 
+import { useLanguage } from "../lib/i18n";
+
 interface VerifySearchFormProps {
   initialValue?: string;
   compact?: boolean;
@@ -12,6 +14,7 @@ interface VerifySearchFormProps {
 export function VerifySearchForm({ initialValue = "", compact = false }: VerifySearchFormProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [verificationId, setVerificationId] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +34,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
     const formData = new FormData(event.currentTarget);
     const value = String(formData.get("verificationId") ?? "").trim();
     if (!value) {
-      setError("Enter a verification ID to continue.");
+      setError(t.verifyForm.errorEmpty);
       return;
     }
 
@@ -62,7 +65,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
           disabled={isSubmitting}
           className="btn-primary btn-sm shrink-0 inline-flex items-center gap-1.5"
         >
-          {isSubmitting ? "..." : <><span>Verify</span><ArrowRight size={11} weight="bold" /></>}
+          {isSubmitting ? "..." : <><span>{t.verifyForm.compactSubmit}</span><ArrowRight size={11} weight="bold" /></>}
         </button>
       </form>
     );
@@ -72,7 +75,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="space-y-1.5">
         <label htmlFor="verificationId" className="field-label">
-          Verification ID
+          {t.verifyForm.label}
         </label>
         <input
           id="verificationId"
@@ -90,7 +93,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
         disabled={isSubmitting}
         className="btn-primary inline-flex w-full items-center justify-center gap-2"
       >
-        {isSubmitting ? "Verifying..." : "Run verification"}
+        {isSubmitting ? t.verifyForm.submitting : t.verifyForm.submit}
         {!isSubmitting && <ArrowRight size={14} weight="bold" />}
       </button>
     </form>

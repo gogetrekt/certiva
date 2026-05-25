@@ -12,12 +12,14 @@ import {
   type BlockchainAuditRecord,
 } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
 export default async function BlockchainAuditPage() {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const admin = await getCurrentAdmin(token);
   let entries: BlockchainAuditRecord[];
@@ -46,31 +48,30 @@ export default async function BlockchainAuditPage() {
       {/* â”€â”€ Page header + inline metrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="pb-6 border-b border-[hsl(var(--border-default))]">
         <div className="mb-6">
-          <p className="kicker mb-2">Audit Trail</p>
-          <h1 className="page-title">Audit Trail</h1>
+          <p className="kicker mb-2">{t.dashboard.blockchain.title}</p>
+          <h1 className="page-title">{t.dashboard.blockchain.title}</h1>
           <p className="body-text mt-2">
-            On-chain lifecycle events, confirmation state, and explorer
-            references.
+            {t.dashboard.blockchain.description}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-8">
           <Stat
-            label="Audit events"
+            label={t.dashboard.blockchain.auditEvents}
             value={entries.length}
-            note="Lifecycle entries"
+            note={t.dashboard.blockchain.lifecycleEntries}
           />
           <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
-            label="Confirmed writes"
+            label={t.dashboard.blockchain.confirmedWrites}
             value={confirmedCount}
-            note="Anchored operations"
+            note={t.dashboard.blockchain.anchoredOperations}
           />
           <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
-            label="Issuances"
+            label={t.dashboard.blockchain.issuances}
             value={issuanceCount}
-            note={`${revocationCount} revocations`}
+            note={`${revocationCount} ${t.dashboard.blockchain.revocations}`}
           />
         </div>
       </div>
@@ -79,8 +80,8 @@ export default async function BlockchainAuditPage() {
       {entries.length === 0 ? (
         <div className="work-surface p-10">
           <EmptyState
-            title="No blockchain audit events yet"
-            description="Anchoring and revocation operations will appear here once credentials move through the registry."
+            title={t.dashboard.blockchain.emptyTitle}
+            description={t.dashboard.blockchain.emptyDescription}
           />
         </div>
       ) : (
@@ -99,7 +100,7 @@ export default async function BlockchainAuditPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge status={entry.status} />
                       <span className="role-chip uppercase">
-                        {formatOperationLabel(entry.operation)}
+                        {formatOperationLabel(entry.operation, t)}
                       </span>
                       <span className="text-sm font-medium text-[hsl(var(--text-primary))] truncate">
                         {entry.credential.degree}
@@ -110,7 +111,7 @@ export default async function BlockchainAuditPage() {
                     </p>
                   </div>
                   <p className="meta-text mb-4">
-                    {entry.credential.studentName} Â·{" "}
+                    {entry.credential.studentName} /{" "}
                     {entry.credential.issuer.displayName ??
                       entry.credential.issuer.name}
                   </p>
@@ -119,27 +120,27 @@ export default async function BlockchainAuditPage() {
                   <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 mb-4">
                     {[
                       {
-                        label: "Credential ID",
+                        label: t.dashboard.blockchain.credentialId,
                         value: entry.credential.id,
                         mono: true,
                       },
                       {
-                        label: "Block",
+                        label: t.dashboard.blockchain.block,
                         value: entry.blockNumber
                           ? String(entry.blockNumber)
-                          : "Pending",
+                          : t.common.pending,
                         mono: false,
                       },
                       {
-                        label: "Chain status",
+                        label: t.dashboard.blockchain.chainStatus,
                         value: entry.credential.chainStatus,
                         mono: false,
                       },
                       {
-                        label: "Revocation",
+                        label: t.dashboard.blockchain.revocation,
                         value: entry.credential.revokedAt
-                          ? "Revoked"
-                          : "Active",
+                          ? t.common.revoked
+                          : t.common.active,
                         mono: false,
                       },
                     ].map((row) => (
@@ -157,7 +158,7 @@ export default async function BlockchainAuditPage() {
                   {/* Transaction hash */}
                   {transactionHash && (
                     <div className="mb-4 p-3 rounded-lg bg-[hsl(var(--bg-subtle))] border border-[hsl(var(--border-default))]">
-                      <p className="kicker mb-1.5">Transaction hash</p>
+                      <p className="kicker mb-1.5">{t.dashboard.blockchain.transactionHash}</p>
                       <p className="hash-text text-[hsl(var(--text-secondary))]">
                         {transactionHash}
                       </p>
@@ -170,7 +171,7 @@ export default async function BlockchainAuditPage() {
                       href={`/dashboard/credentials/${entry.credential.id}`}
                       className="btn-ghost btn-sm"
                     >
-                      Open credential
+                      {t.dashboard.blockchain.openCredential}
                     </Link>
                     {transactionHash && (
                       <a
@@ -179,7 +180,7 @@ export default async function BlockchainAuditPage() {
                         rel="noreferrer"
                         className="btn-ghost btn-sm"
                       >
-                        View on Polygonscan
+                        {t.dashboard.blockchain.viewOnPolygonscan}
                         <ArrowSquareOut size={11} aria-hidden />
                       </a>
                     )}
@@ -194,8 +195,13 @@ export default async function BlockchainAuditPage() {
   );
 }
 
-function formatOperationLabel(operation: BlockchainAuditRecord["operation"]) {
-  return operation === "REVOCATION" ? "Revocation" : "Issuance";
+function formatOperationLabel(
+  operation: BlockchainAuditRecord["operation"],
+  t: Awaited<ReturnType<typeof getServerDictionary>>,
+) {
+  return operation === "REVOCATION"
+    ? t.dashboard.blockchain.operationRevocation
+    : t.dashboard.blockchain.operationIssuance;
 }
 
 function Stat({

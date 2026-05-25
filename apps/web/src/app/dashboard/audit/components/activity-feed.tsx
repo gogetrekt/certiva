@@ -14,10 +14,12 @@ import {
 
 import type { ActivityFeedItem } from "../../../../lib/api";
 import { formatDateTime } from "../../../../lib/date-format";
+import { useLanguage } from "../../../../lib/i18n";
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
 function StatusPill({ status }: { status: string }) {
+  const { t } = useLanguage();
   const map: Record<string, string> = {
     VALID: "badge-valid",
     INVALID: "badge-error",
@@ -25,9 +27,17 @@ function StatusPill({ status }: { status: string }) {
     NOT_FOUND: "badge-neutral",
     TAMPERED: "badge-warn",
   };
+  const labels: Record<string, string> = {
+    VALID: t.common.valid,
+    INVALID: t.common.invalid,
+    REVOKED: t.common.revoked,
+    NOT_FOUND: t.common.notFound,
+    TAMPERED: t.common.tampered,
+  };
+
   return (
     <span className={`badge ${map[status] ?? "badge-neutral"}`}>
-      {status.replace("_", " ")}
+      {labels[status] ?? status.replace("_", " ")}
     </span>
   );
 }
@@ -52,6 +62,7 @@ interface DrawerProps {
 }
 
 function DetailDrawer({ item, onClose }: DrawerProps) {
+  const { t } = useLanguage();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,15 +82,15 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
   if (!item) return null;
 
   const rows: [string, string | null | boolean][] = [
-    ["Credential ID", item.credentialId],
-    ["Action", item.action],
-    ["Status", item.status],
-    ["Student", item.studentName],
-    ["Degree", item.degree],
-    ["Institution", item.institution],
-    ["IP Address", item.ipAddress],
-    ["Hash Matched", String(item.matched)],
-    ["Occurred At", formatDateTime(item.occurredAt)],
+    [t.auditComponents.activityFeed.rows.credentialId, item.credentialId],
+    [t.auditComponents.activityFeed.rows.action, item.action],
+    [t.auditComponents.activityFeed.rows.status, item.status],
+    [t.auditComponents.activityFeed.rows.student, item.studentName],
+    [t.auditComponents.activityFeed.rows.degree, item.degree],
+    [t.auditComponents.activityFeed.rows.institution, item.institution],
+    [t.auditComponents.activityFeed.rows.ipAddress, item.ipAddress],
+    [t.auditComponents.activityFeed.rows.hashMatched, item.matched ? t.common.yes : t.common.no],
+    [t.auditComponents.activityFeed.rows.occurredAt, formatDateTime(item.occurredAt)],
   ];
 
   return (
@@ -97,20 +108,20 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="Activity detail"
+        aria-label={t.auditComponents.activityFeed.detailLabel}
         className="fixed right-0 top-0 z-50 h-full w-full max-w-sm bg-[hsl(var(--bg-base))] border-l border-[hsl(var(--border-default))] flex flex-col outline-none"
         style={{ boxShadow: "-20px 0 40px -10px hsl(var(--z-950)/0.2)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))] shrink-0">
           <div>
-            <p className="kicker mb-0.5">Activity Detail</p>
+            <p className="kicker mb-0.5">{t.auditComponents.activityFeed.detailTitle}</p>
             <p className="section-title truncate max-w-[220px]">{item.action}</p>
           </div>
           <button
             onClick={onClose}
             className="theme-toggle ml-2"
-            aria-label="Close detail panel"
+            aria-label={t.auditComponents.activityFeed.closeDetail}
           >
             <X size={14} aria-hidden />
           </button>
@@ -142,7 +153,7 @@ function DetailDrawer({ item, onClose }: DrawerProps) {
               href={`/dashboard/credentials/${item.credentialDbId}`}
               className="btn-ghost w-full justify-between"
             >
-              View full credential record
+              {t.auditComponents.activityFeed.viewFullRecord}
               <ArrowRight size={13} aria-hidden />
             </Link>
           </div>
@@ -161,6 +172,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeedProps) {
+  const { t } = useLanguage();
   const [items, setItems] = useState<ActivityFeedItem[]>(initialItems);
   const [total, setTotal] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
@@ -192,30 +204,30 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))]">
           <div>
-            <p className="kicker mb-1">Live feed</p>
-            <h2 className="section-title">Recent Activity</h2>
+            <p className="kicker mb-1">{t.auditComponents.activityFeed.liveFeed}</p>
+            <h2 className="section-title">{t.auditComponents.activityFeed.recentActivity}</h2>
           </div>
           <p className="meta-text">
-            {items.length} of {total}
+            {items.length} {t.auditComponents.activityFeed.of} {total}
           </p>
         </div>
 
         {/* Table */}
         {items.length === 0 ? (
           <div className="px-5 py-8 text-center">
-            <p className="body-text">No activity recorded yet.</p>
+            <p className="body-text">{t.auditComponents.activityFeed.empty}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="th-cell">Time</th>
-                  <th className="th-cell">Action</th>
-                  <th className="th-cell">Credential ID</th>
-                  <th className="th-cell">Student</th>
-                  <th className="th-cell">Status</th>
-                  <th className="th-cell w-8" aria-label="Open detail" />
+                  <th className="th-cell">{t.auditComponents.activityFeed.time}</th>
+                  <th className="th-cell">{t.auditComponents.activityFeed.action}</th>
+                  <th className="th-cell">{t.auditComponents.activityFeed.credentialId}</th>
+                  <th className="th-cell">{t.auditComponents.activityFeed.student}</th>
+                  <th className="th-cell">{t.common.status}</th>
+                  <th className="th-cell w-8" aria-label={t.auditComponents.activityFeed.openDetail} />
                 </tr>
               </thead>
               <tbody>
@@ -226,7 +238,7 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
                     onClick={() => setSelected(item)}
                     tabIndex={0}
                     role="button"
-                    aria-label={`View detail for ${item.credentialId}`}
+                    aria-label={`${t.auditComponents.activityFeed.viewDetailPrefix} ${item.credentialId}`}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") setSelected(item);
                     }}
@@ -291,7 +303,9 @@ export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeed
               disabled={loading}
               className="btn-ghost btn-sm w-full justify-center"
             >
-              {loading ? "Loading…" : `Load more (${total - items.length} remaining)`}
+              {loading
+                ? t.auditComponents.activityFeed.loading
+                : `${t.auditComponents.activityFeed.loadMorePrefix} (${total - items.length} ${t.auditComponents.activityFeed.remaining})`}
             </button>
           </div>
         )}

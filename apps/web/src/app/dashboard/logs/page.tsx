@@ -12,10 +12,12 @@ import {
   isInstitutionSetupRequired,
 } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 export default async function VerificationLogsPage() {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const admin = await getCurrentAdmin(token);
   let logs: VerificationLogRecord[];
@@ -44,15 +46,15 @@ export default async function VerificationLogsPage() {
       <div className="pb-6 border-b border-[hsl(var(--border-default))]">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <p className="kicker mb-2">Verification Logs</p>
-            <h1 className="page-title">Verification Logs</h1>
+            <p className="kicker mb-2">{t.dashboard.logs.title}</p>
+            <h1 className="page-title">{t.dashboard.logs.title}</h1>
           </div>
           <Link
             href="/verify"
             target="_blank"
             className="btn-ghost btn-sm mt-1"
           >
-            Public check
+            {t.dashboard.logs.publicCheck}
             <ArrowSquareOut size={11} aria-hidden />
           </Link>
         </div>
@@ -60,17 +62,17 @@ export default async function VerificationLogsPage() {
         {/* Inline metric row */}
         <div className="flex flex-wrap gap-8">
           <Stat
-            label="Recent events"
+            label={t.dashboard.logs.recentEvents}
             value={visibleLogs.length}
-            note="Credential-linked"
+            note={t.dashboard.logs.credentialLinked}
           />
           <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
-          <Stat label="Valid results" value={validCount} note="Successful" />
+          <Stat label={t.dashboard.logs.validResults} value={validCount} note={t.dashboard.logs.successful} />
           <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
-            label="Exceptions"
+            label={t.dashboard.logs.exceptions}
             value={revokedCount + invalidCount}
-            note="Revoked or invalid"
+            note={t.dashboard.logs.revokedOrInvalid}
           />
         </div>
       </div>
@@ -80,8 +82,8 @@ export default async function VerificationLogsPage() {
         {visibleLogs.length === 0 ? (
           <div className="p-10">
             <EmptyState
-              title="No verification logs yet"
-              description="Activity will appear here when relying parties verify credentials."
+              title={t.dashboard.logs.emptyTitle}
+              description={t.dashboard.logs.emptyDescription}
             />
           </div>
         ) : (
@@ -89,12 +91,12 @@ export default async function VerificationLogsPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="th-cell">Checked</th>
-                  <th className="th-cell">Credential</th>
-                  <th className="th-cell">Institution</th>
-                  <th className="th-cell">Lookup type</th>
-                  <th className="th-cell">IP address</th>
-                  <th className="th-cell">Result</th>
+                  <th className="th-cell">{t.common.checked}</th>
+                  <th className="th-cell">{t.common.credential}</th>
+                  <th className="th-cell">{t.common.institution}</th>
+                  <th className="th-cell">{t.dashboard.logs.lookupType}</th>
+                  <th className="th-cell">{t.dashboard.logs.ipAddress}</th>
+                  <th className="th-cell">{t.common.status}</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +121,7 @@ export default async function VerificationLogsPage() {
                           </p>
                         </>
                       ) : (
-                        <span className="meta-text">Unavailable</span>
+                        <span className="meta-text">{t.common.unavailable}</span>
                       )}
                     </td>
                     <td className="td-cell-sm">
@@ -134,14 +136,14 @@ export default async function VerificationLogsPage() {
                           </p>
                         </>
                       ) : (
-                        <span className="meta-text">Not available</span>
+                        <span className="meta-text">{t.common.notAvailable}</span>
                       )}
                     </td>
                     <td className="td-cell-sm">
                       <p className="hash-text text-[hsl(var(--text-tertiary))]">
                         {log.uploadedHash
-                          ? `Hash: ${log.uploadedHash.slice(0, 14)}...`
-                          : "ID lookup"}
+                          ? `${t.common.hashPrefix}: ${log.uploadedHash.slice(0, 14)}...`
+                          : t.common.lookupId}
                       </p>
                     </td>
                     <td className="td-cell-sm">

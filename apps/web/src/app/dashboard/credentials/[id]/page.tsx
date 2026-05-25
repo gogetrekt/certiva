@@ -15,6 +15,7 @@ import {
   isInstitutionSetupRequired,
 } from "../../../../lib/api";
 import { formatDate, formatDateTime } from "../../../../lib/date-format";
+import { getServerDictionary } from "../../../../lib/i18n-server";
 
 const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
@@ -25,6 +26,7 @@ interface CredentialDetailPageProps {
 export default async function CredentialDetailPage({ params }: CredentialDetailPageProps) {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const admin = await getCurrentAdmin(token);
   const { id } = await params;
@@ -58,12 +60,12 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           className="inline-flex items-center gap-1 kicker hover:text-[hsl(var(--text-secondary))] transition-colors mb-3"
         >
           <CaretLeft size={11} aria-hidden />
-          Credential registry
+          {t.dashboard.credentialDetail.back}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="page-title">{credential.degree}</h1>
-            <p className="body-text mt-1">{credential.studentName} · {credential.studentId}</p>
+            <p className="body-text mt-1">{credential.studentName} / {credential.studentId}</p>
           </div>
           <div className="flex flex-wrap items-start gap-2">
             <StatusBadge status={status} />
@@ -77,7 +79,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                 rel="noreferrer"
                 className="btn-primary btn-sm"
               >
-                Certificate PDF
+                {t.dashboard.credentialDetail.certificatePdf}
                 <ArrowSquareOut size={11} aria-hidden />
               </a>
             ) : null}
@@ -117,25 +119,25 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           {/* Core facts */}
           <div className="work-surface overflow-hidden p-0">
             <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-              <p className="kicker mb-1">Core facts</p>
-              <h2 className="section-title">Credential summary</h2>
+              <p className="kicker mb-1">{t.dashboard.credentialDetail.coreFacts}</p>
+              <h2 className="section-title">{t.dashboard.credentialDetail.credentialSummary}</h2>
             </div>
             <table className="w-full text-sm">
               <tbody>
                 {[
-                  { label: "Student name", value: credential.studentName, mono: false },
-                  { label: "Student ID", value: credential.studentId, mono: true },
-                  { label: "Institution", value: institutionLabel, mono: false },
-                  { label: "Degree / credential", value: credential.degree, mono: false },
-                  { label: "Issued at", value: formatDateTime(credential.issuedAt), mono: false },
-                  { label: "Status", value: credential.revoked ? "Revoked" : "Active", mono: false },
+                  { label: t.dashboard.credentialDetail.labels.studentName, value: credential.studentName, mono: false },
+                  { label: t.dashboard.credentialDetail.labels.studentId, value: credential.studentId, mono: true },
+                  { label: t.dashboard.credentialDetail.labels.institution, value: institutionLabel, mono: false },
+                  { label: t.dashboard.credentialDetail.labels.degreeCredential, value: credential.degree, mono: false },
+                  { label: t.dashboard.credentialDetail.labels.issuedAt, value: formatDateTime(credential.issuedAt), mono: false },
+                  { label: t.dashboard.credentialDetail.labels.status, value: credential.revoked ? t.common.revoked : t.common.active, mono: false },
                   ...(credential.revoked && credential.revokedAt ? [
-                    { label: "Revoked at", value: formatDateTime(credential.revokedAt), mono: false },
-                    { label: "Revocation reason", value: credential.revocationReason ?? "Not specified", mono: false },
+                    { label: t.dashboard.credentialDetail.labels.revokedAt, value: formatDateTime(credential.revokedAt), mono: false },
+                    { label: t.dashboard.credentialDetail.labels.revocationReason, value: credential.revocationReason ?? t.common.notSpecified, mono: false },
                   ] : []),
-                  { label: "Credential ID", value: credential.credentialExternalId, mono: true },
-                  { label: "Verification count", value: String(credential.verificationCount), mono: false },
-                  { label: "Last verified", value: credential.verifiedAt ? formatDateTime(credential.verifiedAt) : "No public checks yet", mono: false },
+                  { label: t.dashboard.credentialDetail.labels.credentialId, value: credential.credentialExternalId, mono: true },
+                  { label: t.dashboard.credentialDetail.labels.verificationCount, value: String(credential.verificationCount), mono: false },
+                  { label: t.dashboard.credentialDetail.labels.lastVerified, value: credential.verifiedAt ? formatDateTime(credential.verifiedAt) : t.common.noPublicChecksYet, mono: false },
                 ].map((row, i) => (
                   <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                     <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
@@ -153,13 +155,13 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           {/* Public verification */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <p className="kicker">Public verification</p>
+              <p className="kicker">{t.dashboard.credentialDetail.publicVerification}</p>
               <Link
                 href={`/verify/${credential.credentialExternalId}`}
                 target="_blank"
                 className="inline-flex items-center gap-1 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
               >
-                Open public result
+                {t.dashboard.credentialDetail.openPublicResult}
                 <ArrowSquareOut size={11} aria-hidden />
               </Link>
             </div>
@@ -174,8 +176,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
           <div className="work-surface overflow-hidden p-0">
             <div className="flex items-center justify-between px-6 py-5 border-b border-[hsl(var(--border-default))]">
               <div>
-                <p className="kicker mb-1">Blockchain proof</p>
-                <h2 className="section-title">Secondary trust layer</h2>
+                <p className="kicker mb-1">{t.dashboard.credentialDetail.blockchainProof}</p>
+                <h2 className="section-title">{t.dashboard.credentialDetail.secondaryTrustLayer}</h2>
               </div>
               <StatusBadge
                 status={credential.anchorStatus === "ANCHORED" ? "ON_CHAIN_VERIFIED" : credential.anchorStatus}
@@ -184,12 +186,12 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
             <table className="w-full text-sm">
               <tbody>
                 {[
-                  { label: "Network", value: "Polygon Amoy", mono: false },
-                  { label: "Chain ID", value: credential.chainId ? String(credential.chainId) : "80002", mono: false },
-                  { label: "Transaction hash", value: credential.txHash ?? "Awaiting transaction", mono: true },
-                  { label: "Block number", value: credential.blockNumber ? String(credential.blockNumber) : "Awaiting confirmation", mono: false },
-                  { label: "Anchored at", value: credential.anchoredAt ? formatDateTime(credential.anchoredAt) : "Awaiting confirmation", mono: false },
-                  { label: "Issuer wallet", value: credential.issuer.wallet ?? "Not configured", mono: true },
+                  { label: t.dashboard.credentialDetail.labels.network, value: "Polygon Amoy", mono: false },
+                  { label: t.dashboard.credentialDetail.labels.chainId, value: credential.chainId ? String(credential.chainId) : "80002", mono: false },
+                  { label: t.dashboard.credentialDetail.labels.transactionHash, value: credential.txHash ?? t.common.awaitingTransaction, mono: true },
+                  { label: t.dashboard.credentialDetail.labels.blockNumber, value: credential.blockNumber ? String(credential.blockNumber) : t.common.awaitingConfirmation, mono: false },
+                  { label: t.dashboard.credentialDetail.labels.anchoredAt, value: credential.anchoredAt ? formatDateTime(credential.anchoredAt) : t.common.awaitingConfirmation, mono: false },
+                  { label: t.dashboard.credentialDetail.labels.issuerWallet, value: credential.issuer.wallet ?? t.common.notConfigured, mono: true },
                 ].map((row, i) => (
                   <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                     <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
@@ -206,39 +208,39 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
               <div className="flex flex-wrap gap-2 px-6 py-4 border-t border-[hsl(var(--border-default))]">
                 {transactionUrl && (
                   <a href={transactionUrl} target="_blank" rel="noreferrer" className="btn-ghost btn-sm">
-                    View transaction <ArrowSquareOut size={11} aria-hidden />
+                    {t.dashboard.credentialDetail.viewTransaction} <ArrowSquareOut size={11} aria-hidden />
                   </a>
                 )}
                 {issuerAddressUrl && (
                   <a href={issuerAddressUrl} target="_blank" rel="noreferrer" className="btn-ghost btn-sm">
-                    View issuer address <ArrowSquareOut size={11} aria-hidden />
+                    {t.dashboard.credentialDetail.viewIssuerAddress} <ArrowSquareOut size={11} aria-hidden />
                   </a>
                 )}
               </div>
             ) : (
               <div className="px-6 py-4 border-t border-[hsl(var(--border-default))]">
-                <p className="meta-text">Waiting for blockchain confirmation.</p>
+                <p className="meta-text">{t.dashboard.credentialDetail.waitingForBlockchain}</p>
               </div>
             )}
           </div>
 
           {/* Technical details (collapsed) */}
-          <DisclosurePanel summary="Show technical and audit details">
+          <DisclosurePanel summary={t.dashboard.credentialDetail.technicalSummary}>
             <div className="space-y-4 pt-2">
               <div className="work-surface overflow-hidden p-0">
                 <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-                  <p className="kicker mb-1">Technical references</p>
-                  <h3 className="section-title">Assets and stored hashes</h3>
+                  <p className="kicker mb-1">{t.dashboard.credentialDetail.technicalReferences}</p>
+                  <h3 className="section-title">{t.dashboard.credentialDetail.assetsAndHashes}</h3>
                 </div>
                 <table className="w-full text-sm">
                   <tbody>
                     {[
-                      { label: "Internal DB ID", value: credential.id, mono: true },
-                      { label: "Verification code", value: credential.verificationCode, mono: true },
-                      { label: "Record hash", value: credential.hash, mono: true },
-                      { label: "Registry proof hash", value: credential.chainProofHash, mono: true },
-                      { label: "PDF integrity hash", value: credential.documentHash ?? "Not enabled", mono: true },
-                      { label: "File size", value: formatFileSize(credential.fileSize), mono: false },
+                      { label: t.dashboard.credentialDetail.labels.internalDbId, value: credential.id, mono: true },
+                      { label: t.dashboard.credentialDetail.labels.verificationCode, value: credential.verificationCode, mono: true },
+                      { label: t.dashboard.credentialDetail.labels.recordHash, value: credential.hash, mono: true },
+                      { label: t.dashboard.credentialDetail.labels.registryProofHash, value: credential.chainProofHash, mono: true },
+                      { label: t.dashboard.credentialDetail.labels.pdfIntegrityHash, value: credential.documentHash ?? t.common.notEnabled, mono: true },
+                      { label: t.dashboard.credentialDetail.labels.fileSize, value: formatFileSize(credential.fileSize, t.common.notAvailable), mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
@@ -246,9 +248,9 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                       </tr>
                     ))}
                     {[
-                      { label: "Metadata URI", value: credential.metadataUri, href: credential.metadataUri },
-                      { label: "QR asset", value: credential.qrCodeUri, href: credential.qrCodeUri },
-                      { label: "Certificate PDF", value: credential.certificateUri ?? "Not available", href: credential.certificateUri ?? undefined },
+                      { label: t.dashboard.credentialDetail.labels.metadataUri, value: credential.metadataUri, href: credential.metadataUri },
+                      { label: t.dashboard.credentialDetail.labels.qrAsset, value: credential.qrCodeUri, href: credential.qrCodeUri },
+                      { label: t.dashboard.credentialDetail.labels.certificatePdf, value: credential.certificateUri ?? t.common.notAvailable, href: credential.certificateUri ?? undefined },
                     ].map((row, i) => (
                       <tr key={row.label} className={(i + 5) % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
@@ -271,8 +273,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
               {(credential.activities ?? []).length > 0 && (
                 <div className="work-surface overflow-hidden p-0">
                   <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-                    <p className="kicker mb-1">Activity timeline</p>
-                    <h3 className="section-title">Recent lifecycle events</h3>
+                    <p className="kicker mb-1">{t.dashboard.credentialDetail.activityTimeline}</p>
+                    <h3 className="section-title">{t.dashboard.credentialDetail.recentLifecycleEvents}</h3>
                   </div>
                   <div>
                     {(credential.activities ?? []).map((activity, i, arr) => (
@@ -302,16 +304,16 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
         {/* Right column -- snapshot */}
         <div className="work-surface overflow-hidden p-0 h-fit">
           <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-            <p className="kicker mb-1">At a glance</p>
-            <h2 className="section-title">Operational snapshot</h2>
+            <p className="kicker mb-1">{t.dashboard.credentialDetail.atAGlance}</p>
+            <h2 className="section-title">{t.dashboard.credentialDetail.operationalSnapshot}</h2>
           </div>
           <div>
             {[
-              { label: "Institution", value: institutionLabel },
-              { label: "Checks", value: `${credential.verificationCount} verification${credential.verificationCount !== 1 ? "s" : ""}` },
-              { label: "Revocation", value: credential.revokedAt ? formatDate(credential.revokedAt) : "Not revoked" },
-              { label: "Updated", value: formatDate(credential.updatedAt) },
-              { label: "Anchor state", value: credential.anchorStatus.replace(/_/g, " ") },
+              { label: t.dashboard.credentialDetail.labels.institution, value: institutionLabel },
+              { label: t.dashboard.credentialDetail.labels.checks, value: `${credential.verificationCount} ${credential.verificationCount === 1 ? t.common.verificationSingular : t.common.verificationPlural}` },
+              { label: t.dashboard.credentialDetail.labels.revocation, value: credential.revokedAt ? formatDate(credential.revokedAt) : t.common.active },
+              { label: t.dashboard.credentialDetail.labels.updated, value: formatDate(credential.updatedAt) },
+              { label: t.dashboard.credentialDetail.labels.anchorState, value: credential.anchorStatus.replace(/_/g, " ") },
             ].map((row, i, arr) => (
               <div
                 key={row.label}
@@ -330,8 +332,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
   );
 }
 
-function formatFileSize(size: number | null) {
-  if (!size) return "Not available";
+function formatFileSize(size: number | null, fallback: string) {
+  if (!size) return fallback;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
   return `${(size / (1024 * 1024)).toFixed(2)} MB`;
 }

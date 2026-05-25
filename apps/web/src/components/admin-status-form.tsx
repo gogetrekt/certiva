@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 type AdminRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
 export function AdminStatusForm({
@@ -19,6 +21,7 @@ export function AdminStatusForm({
   disabled?: boolean;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const titleId = useId();
   const descriptionId = useId();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +70,7 @@ export function AdminStatusForm({
       });
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to delete admin account");
+        throw new Error(body.message ?? t.forms.adminStatus.unableDelete);
       }
       setIsDeleteOpen(false);
       startTransition(() => {
@@ -75,7 +78,7 @@ export function AdminStatusForm({
       });
     } catch (err) {
       setDeleteError(
-        err instanceof Error ? err.message : "Unable to delete admin account",
+        err instanceof Error ? err.message : t.forms.adminStatus.unableDelete,
       );
     } finally {
       setIsSubmitting(false);
@@ -94,7 +97,7 @@ export function AdminStatusForm({
             }
             className="btn-ghost btn-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {role === "SUPER_ADMIN" ? "Set as admin" : "Set as super admin"}
+            {role === "SUPER_ADMIN" ? t.forms.adminStatus.setAsAdmin : t.forms.adminStatus.setAsSuperAdmin}
           </button>
         )}
         <button
@@ -107,7 +110,7 @@ export function AdminStatusForm({
               : "border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-secondary))] hover:border-[hsl(var(--border-strong))] hover:text-[hsl(var(--text-primary))]"
           }`}
         >
-          {active ? "Deactivate" : "Reactivate"}
+          {active ? t.forms.adminStatus.deactivate : t.forms.adminStatus.reactivate}
         </button>
         {!active && !disabled ? (
           <button
@@ -119,7 +122,7 @@ export function AdminStatusForm({
             }}
             className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
           >
-            Delete
+            {t.common.delete}
           </button>
         ) : null}
       </div>
@@ -143,23 +146,22 @@ export function AdminStatusForm({
                 id={titleId}
                 className="text-sm font-semibold text-[hsl(var(--text-primary))]"
               >
-                Delete admin account?
+                {t.forms.adminStatus.deleteTitle}
               </p>
             </div>
             <div id={descriptionId} className="space-y-4 px-6 py-5">
               <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 py-3">
-                <p className="kicker mb-1.5">Account</p>
+                <p className="kicker mb-1.5">{t.forms.adminStatus.account}</p>
                 <p className="break-all text-sm font-medium text-[hsl(var(--text-primary))]">
                   @{username}
                 </p>
               </div>
               <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs leading-5 text-[hsl(var(--status-error-text))]">
-                <p>This action permanently removes this account.</p>
+                <p>{t.forms.adminStatus.warning1}</p>
                 <p className="mt-2">
-                  Accounts with existing credentials, verification activity,
-                  audit logs, or related records cannot be deleted.
+                  {t.forms.adminStatus.warning2}
                 </p>
-                <p className="mt-2">This action cannot be undone.</p>
+                <p className="mt-2">{t.common.cannotBeUndone}</p>
               </div>
               {deleteError ? (
                 <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs text-[hsl(var(--status-error-text))]">
@@ -173,7 +175,7 @@ export function AdminStatusForm({
                 onClick={() => setIsDeleteOpen(false)}
                 className="btn-ghost btn-sm"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -181,7 +183,7 @@ export function AdminStatusForm({
                 disabled={isSubmitting}
                 className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-3 py-1.5 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               >
-                {isSubmitting ? "Deleting..." : "Delete"}
+                {isSubmitting ? t.forms.adminStatus.deleting : t.common.delete}
               </button>
             </div>
           </div>

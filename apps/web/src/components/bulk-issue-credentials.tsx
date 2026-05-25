@@ -5,6 +5,7 @@ import { startTransition, useMemo, useState } from "react";
 import { FileArrowUp, ArrowRight } from "@phosphor-icons/react";
 
 import { StatusBadge } from "./status-badge";
+import { useLanguage } from "../lib/i18n";
 
 type BulkIssueMode = "preview" | "issue";
 
@@ -43,6 +44,7 @@ interface BulkIssueCredentialsProps {
 
 export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [csvText, setCsvText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
@@ -62,7 +64,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
 
   async function loadFile(file: File) {
     if (!file.name.toLowerCase().endsWith(".csv")) {
-      setError("Please upload a .csv file.");
+      setError(t.forms.bulkIssue.errorCsv);
       return;
     }
     const text = await file.text();
@@ -81,7 +83,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
   }
 
   async function handlePreview() {
-    if (!canPreview) { setError("Upload a CSV before previewing."); return; }
+    if (!canPreview) { setError(t.forms.bulkIssue.errorPreviewFirst); return; }
     setIsPreviewing(true);
     setError(null);
     setSuccess(null);
@@ -92,17 +94,17 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
         body: JSON.stringify({ csv: csvText, commit: false }),
       });
       const body = (await response.json()) as BulkIssueResponse & { message?: string };
-      if (!response.ok) throw new Error(body.message ?? "Unable to preview CSV data.");
+      if (!response.ok) throw new Error(body.message ?? t.forms.bulkIssue.unablePreview);
       setPreview(body);
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Unable to preview CSV data.");
+      setError(caughtError instanceof Error ? caughtError.message : t.forms.bulkIssue.unablePreview);
     } finally {
       setIsPreviewing(false);
     }
   }
 
   async function handleIssue() {
-    if (!canPreview) { setError("Upload a CSV before issuing."); return; }
+    if (!canPreview) { setError(t.forms.bulkIssue.errorIssueFirst); return; }
     setIsIssuing(true);
     setError(null);
     setSuccess(null);
@@ -113,12 +115,12 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
         body: JSON.stringify({ csv: csvText, commit: true }),
       });
       const body = (await response.json()) as BulkIssueResponse & { message?: string };
-      if (!response.ok) throw new Error(body.message ?? "Unable to issue credentials.");
+      if (!response.ok) throw new Error(body.message ?? t.forms.bulkIssue.unableIssue);
       setPreview(body);
-      setSuccess(`Issued ${body.issuedRows} credential(s). ${body.failedRows} failed.`);
+      setSuccess(`${t.forms.bulkIssue.issuedPrefix} ${body.issuedRows} ${t.forms.bulkIssue.issuedMiddle} ${body.failedRows} ${t.forms.bulkIssue.issuedSuffix}`);
       startTransition(() => { router.refresh(); });
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Unable to issue credentials.");
+      setError(caughtError instanceof Error ? caughtError.message : t.forms.bulkIssue.unableIssue);
     } finally {
       setIsIssuing(false);
     }
@@ -148,13 +150,13 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
     <div className="space-y-5">
       {institutionName ? (
         <div className="space-y-1.5">
-          <p className="field-label">Institution</p>
+          <p className="field-label">{t.forms.bulkIssue.institution}</p>
           <input value={institutionName} readOnly disabled className="field-shell w-full text-sm opacity-60" />
         </div>
       ) : null}
 
       <div className="space-y-3">
-        <p className="field-label">Upload CSV</p>
+        <p className="field-label">{t.forms.bulkIssue.uploadCsv}</p>
         <label
           htmlFor="csvFile"
           onDrop={handleDrop}
@@ -165,12 +167,12 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
             <FileArrowUp size={16} />
           </div>
           <div>
-            <p className="text-xs font-mono text-[hsl(var(--text-tertiary))] mb-1">CSV format: studentName, studentId, degree</p>
-            <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{fileName ?? "Drop CSV here or click to browse"}</p>
+            <p className="text-xs font-mono text-[hsl(var(--text-tertiary))] mb-1">{t.forms.bulkIssue.csvFormat}</p>
+            <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{fileName ?? t.forms.bulkIssue.dropCsv}</p>
             {fileName ? (
-              <p className="text-xs text-[hsl(var(--text-quaternary))]">{fileSize !== null ? formatBytes(fileSize) : ""} · Click to change</p>
+              <p className="text-xs text-[hsl(var(--text-quaternary))]">{fileSize !== null ? formatBytes(fileSize) : ""} / {t.forms.bulkIssue.clickToChange}</p>
             ) : (
-              <p className="text-xs text-[hsl(var(--text-quaternary))]">One file at a time.</p>
+              <p className="text-xs text-[hsl(var(--text-quaternary))]">{t.forms.bulkIssue.oneFile}</p>
             )}
           </div>
         </label>
@@ -183,7 +185,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
             onClick={handlePreview}
             className="btn-ghost btn-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {isPreviewing ? "Previewing…" : "Preview rows"}
+            {isPreviewing ? t.forms.bulkIssue.previewing : t.forms.bulkIssue.previewRows}
           </button>
           <button
             type="button"
@@ -191,7 +193,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
             onClick={handleIssue}
             className="btn-primary btn-sm inline-flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {isIssuing ? "Issuing…" : "Issue credentials"}
+            {isIssuing ? t.forms.bulkIssue.issuing : t.forms.bulkIssue.issueCredentials}
             {!isIssuing && <ArrowRight size={11} weight="bold" />}
           </button>
           <button
@@ -200,7 +202,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
             onClick={handleReset}
             className="inline-flex items-center px-3 py-2 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer transition-colors"
           >
-            Clear
+            {t.common.clear}
           </button>
         </div>
       </div>
@@ -217,11 +219,11 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
         <div className="space-y-4">
           <div className="metric-strip grid-cols-5">
             {[
-              { label: "Total rows", value: preview.totalRows },
-              { label: "Valid", value: preview.validRows },
-              { label: "Invalid", value: preview.invalidRows },
-              { label: "Issued", value: preview.issuedRows },
-              { label: "Failed", value: preview.failedRows },
+              { label: t.forms.bulkIssue.totalRows, value: preview.totalRows },
+              { label: t.common.valid, value: preview.validRows },
+              { label: t.common.invalid, value: preview.invalidRows },
+              { label: t.common.issued, value: preview.issuedRows },
+              { label: t.common.failed, value: preview.failedRows },
             ].map((tile) => (
               <div key={tile.label} className="metric-cell">
                 <p className="kicker mb-1">{tile.label}</p>
@@ -234,11 +236,11 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[hsl(var(--border-default))]">
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">Row</th>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">Student</th>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">Credential</th>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">Status</th>
-                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">Details</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">{t.forms.bulkIssue.row}</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">{t.common.student}</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">{t.common.credential}</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">{t.common.status}</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-semibold uppercase tracking-widest text-[hsl(var(--text-quaternary))]">{t.common.details}</th>
                 </tr>
               </thead>
               <tbody>
@@ -252,7 +254,7 @@ export function BulkIssueCredentials({ institutionName }: BulkIssueCredentialsPr
                     <td className="px-4 py-3 text-sm text-[hsl(var(--text-secondary))]">{row.degree || "-"}</td>
                     <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                     <td className="px-4 py-3 text-xs text-[hsl(var(--text-tertiary))]">
-                      {row.verificationId ? "Issued successfully" : (row.message ?? "")}
+                      {row.verificationId ? t.forms.bulkIssue.issuedSuccessfully : (row.message ?? "")}
                     </td>
                   </tr>
                 ))}

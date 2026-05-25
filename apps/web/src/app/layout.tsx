@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "../components/providers";
+import { getServerDictionary, getServerLanguage } from "../lib/i18n-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,23 +14,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Certiva",
-    template: "%s | Certiva",
-  },
-  description:
-    "Institutional academic credential infrastructure. Issue, anchor, and verify credentials with blockchain-backed audit trails.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerDictionary();
 
-export default function RootLayout({
+  return {
+    title: {
+      default: "Certiva",
+      template: "%s | Certiva",
+    },
+    description: t.metadata.defaultDescription,
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const language = await getServerLanguage();
+
   return (
     <html
-      lang="en"
+      lang={language}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -41,7 +48,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
-        {children}
+        <Providers initialLanguage={language}>{children}</Providers>
       </body>
     </html>
   );

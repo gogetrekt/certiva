@@ -3,6 +3,8 @@
 import { useRef, useState } from "react";
 import { FilePdf, ArrowRight } from "@phosphor-icons/react";
 
+import { useLanguage } from "../lib/i18n";
+
 interface CredentialPdfLookupResponse {
   result: "VALID" | "INVALID" | "REVOKED" | "NOT_FOUND" | "TAMPERED";
   verificationId?: string | null;
@@ -14,6 +16,7 @@ interface CredentialPdfLookupResponse {
 
 export function VerifyPdfReferenceForm() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { t } = useLanguage();
   const [fileName, setFileName] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -24,7 +27,7 @@ export function VerifyPdfReferenceForm() {
     const file = inputRef.current?.files?.[0];
 
     if (!file) {
-      setMessage("Choose a PDF that contains a Certiva QR/reference.");
+      setMessage(t.verifyPdfForm.errorNoFile);
       return;
     }
 
@@ -41,7 +44,7 @@ export function VerifyPdfReferenceForm() {
         | { message?: string };
 
       if (!response.ok) {
-        throw new Error("message" in payload ? payload.message : "Unable to read this PDF.");
+        throw new Error("message" in payload ? payload.message : t.verifyPdfForm.errorUnableToRead);
       }
 
       const verificationId =
@@ -54,9 +57,9 @@ export function VerifyPdfReferenceForm() {
         return;
       }
 
-      setMessage("No Certiva registry reference was found in this PDF.");
+      setMessage(t.verifyPdfForm.errorNoReference);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to read this PDF.");
+      setMessage(error instanceof Error ? error.message : t.verifyPdfForm.errorUnableToRead);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,10 +89,10 @@ export function VerifyPdfReferenceForm() {
         </div>
         <div>
           <p className="text-sm font-medium text-[hsl(var(--text-primary))]">
-            {fileName ?? "Choose a credential PDF"}
+            {fileName ?? t.verifyPdfForm.chooseFile}
           </p>
           <p className="mt-0.5 text-xs text-[hsl(var(--text-quaternary))]">
-            {fileName ? "Click to change file" : "PDF with embedded Certiva QR or reference"}
+            {fileName ? t.verifyPdfForm.changeFile : t.verifyPdfForm.fileSubtitle}
           </p>
         </div>
       </div>
@@ -101,7 +104,7 @@ export function VerifyPdfReferenceForm() {
         disabled={isSubmitting}
         className="btn-primary inline-flex w-full items-center justify-center gap-2"
       >
-        {isSubmitting ? "Reading reference..." : "Read QR / reference"}
+        {isSubmitting ? t.verifyPdfForm.submitting : t.verifyPdfForm.submit}
         {!isSubmitting && <ArrowRight size={14} weight="bold" />}
       </button>
     </form>

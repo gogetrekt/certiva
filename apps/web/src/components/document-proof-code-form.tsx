@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "@phosphor-icons/react";
 
+import { useLanguage } from "../lib/i18n";
+
 interface DocumentProofCodeFormProps {
   compact?: boolean;
   initialValue?: string;
@@ -11,6 +13,7 @@ interface DocumentProofCodeFormProps {
 
 export function DocumentProofCodeForm({ compact = false, initialValue = "" }: DocumentProofCodeFormProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,7 +24,7 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
 
     const trimmed = value.trim();
     if (!trimmed) {
-      setError("Enter a document proof ID or verification code.");
+      setError(t.documentProofForm.errorEmpty);
       return;
     }
 
@@ -37,7 +40,7 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
         | null;
 
       if (!response.ok) {
-        throw new Error(payload?.message ?? "Unable to verify this document proof.");
+        throw new Error(payload?.message ?? t.documentProofForm.errorUnableToVerify);
       }
 
       if (payload?.verificationId) {
@@ -45,9 +48,9 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
         router.refresh();
         return;
       }
-      setError("No secure document proof matched that reference.");
+      setError(t.documentProofForm.errorNotFound);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to verify this document proof.");
+      setError(err instanceof Error ? err.message : t.documentProofForm.errorUnableToVerify);
     } finally {
       setIsSubmitting(false);
     }
@@ -59,7 +62,7 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="DP-3F7A84C1..."
+          placeholder={t.documentProofForm.compactPlaceholder}
           className="field-shell min-w-0 flex-1 font-mono text-xs"
         />
         <button
@@ -67,7 +70,7 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
           disabled={isSubmitting}
           className="btn-primary btn-sm shrink-0 inline-flex items-center gap-1.5"
         >
-          {isSubmitting ? "…" : <><span>Check</span><ArrowRight size={11} weight="bold" /></>}
+          {isSubmitting ? "..." : <><span>{t.documentProofForm.compactSubmit}</span><ArrowRight size={11} weight="bold" /></>}
         </button>
       </form>
     );
@@ -77,13 +80,13 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="space-y-1.5">
         <label htmlFor="document-proof-reference" className="field-label">
-          Document Proof ID
+          {t.documentProofForm.label}
         </label>
         <input
           id="document-proof-reference"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="dpf_... or DP-XXXXXXXX"
+          placeholder={t.documentProofForm.fullPlaceholder}
           className="field-shell w-full font-mono"
         />
         {error ? <p className="text-xs text-[hsl(var(--status-error-text))]">{error}</p> : null}
@@ -93,7 +96,7 @@ export function DocumentProofCodeForm({ compact = false, initialValue = "" }: Do
         disabled={isSubmitting}
         className="btn-primary inline-flex w-full items-center justify-center gap-2"
       >
-        {isSubmitting ? "Looking up…" : "Look up record"}
+        {isSubmitting ? t.documentProofForm.submitting : t.documentProofForm.submit}
         {!isSubmitting && <ArrowRight size={14} weight="bold" />}
       </button>
     </form>

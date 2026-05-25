@@ -11,25 +11,27 @@ import {
 } from "@phosphor-icons/react";
 
 import type { QueueHealthResponse } from "../../../../lib/api";
+import { useLanguage } from "../../../../lib/i18n";
 
 // ─── Health indicator ─────────────────────────────────────────────────────────
 
 function HealthIndicator({ health }: { health: QueueHealthResponse["health"] }) {
+  const { t } = useLanguage();
   const map = {
     healthy: {
-      label: "Healthy",
+      label: t.auditComponents.queue.healthy,
       dotClass: "dot-valid",
       textClass: "text-[hsl(var(--status-valid-text))]",
       bgClass: "badge-valid",
     },
     warning: {
-      label: "Warning",
+      label: t.auditComponents.queue.warning,
       dotClass: "dot-warn",
       textClass: "text-[hsl(var(--status-warn-text))]",
       bgClass: "badge-warn",
     },
     critical: {
-      label: "Critical",
+      label: t.auditComponents.queue.critical,
       dotClass: "dot-error",
       textClass: "text-[hsl(var(--status-error-text))]",
       bgClass: "badge-error",
@@ -79,6 +81,7 @@ interface QueueMonitorProps {
 }
 
 export function QueueMonitor({ initialData }: QueueMonitorProps) {
+  const { t } = useLanguage();
   const [data, setData] = useState<QueueHealthResponse>(initialData);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
@@ -104,25 +107,25 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
 
   const cells: StatCellProps[] = [
     {
-      label: "Pending",
+      label: t.auditComponents.queue.pending,
       value: data.pending,
       icon: Circle,
       iconClass: "text-[hsl(var(--status-warn-dot))]",
     },
     {
-      label: "Processing",
+      label: t.auditComponents.queue.processing,
       value: data.processing,
       icon: Spinner,
       iconClass: "text-[hsl(var(--text-tertiary))] animate-spin",
     },
     {
-      label: "Failed",
+      label: t.auditComponents.queue.failed,
       value: data.failed,
       icon: XCircle,
       iconClass: "text-[hsl(var(--status-error-dot))]",
     },
     {
-      label: "Completed",
+      label: t.auditComponents.queue.completed,
       value: data.completed,
       icon: CheckCircle,
       iconClass: "text-[hsl(var(--status-valid-dot))]",
@@ -140,8 +143,8 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))]">
         <div>
-          <p className="kicker mb-1">Blockchain queue</p>
-          <h2 className="section-title">Queue Monitor</h2>
+          <p className="kicker mb-1">{t.auditComponents.queue.blockchainQueue}</p>
+          <h2 className="section-title">{t.auditComponents.queue.queueMonitor}</h2>
         </div>
         <div className="flex items-center gap-2">
           <HealthIndicator health={data.health} />
@@ -149,8 +152,8 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
             onClick={refresh}
             disabled={refreshing}
             className="theme-toggle"
-            aria-label="Refresh queue stats"
-            title="Refresh"
+            aria-label={t.auditComponents.queue.refreshAria}
+            title={t.auditComponents.queue.refreshTitle}
           >
             <ArrowClockwise
               size={13}
@@ -178,8 +181,12 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
           />
           <p className="text-xs text-[hsl(var(--status-warn-text))] leading-snug">
             {data.health === "critical"
-              ? `${data.failed} jobs failed. Review blockchain logs and check RPC connectivity.`
-              : `${data.failed} job${data.failed !== 1 ? "s" : ""} failed. Monitor for continued failures.`}
+              ? `${data.failed} ${t.auditComponents.queue.criticalMessageSuffix}`
+              : `${data.failed} ${
+                  data.failed === 1
+                    ? t.auditComponents.queue.warningJob
+                    : t.auditComponents.queue.warningJobs
+                }`}
           </p>
         </div>
       )}
@@ -187,7 +194,7 @@ export function QueueMonitor({ initialData }: QueueMonitorProps) {
       {/* Queue name tag */}
       <div className="px-5 pb-4 flex items-center justify-between">
         <span className="hash-text text-[hsl(var(--text-quaternary))] text-[10px]">
-          queue: credential-anchor
+          {t.auditComponents.queue.queueName}
         </span>
         <span className="meta-text text-[hsl(var(--text-quaternary))] text-[10px]">
           {timeLabel}

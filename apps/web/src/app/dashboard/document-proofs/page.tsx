@@ -15,10 +15,12 @@ import {
   type DocumentProofRecord,
 } from "../../../lib/api";
 import { formatDate, formatDateTime } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 export default async function DocumentProofPage() {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const admin = await getCurrentAdmin(token);
   let proofs: { total: number; items: DocumentProofRecord[] };
@@ -48,10 +50,10 @@ export default async function DocumentProofPage() {
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="kicker mb-1.5">Secure Documents</p>
-            <h1 className="page-title">Secure Documents</h1>
+            <p className="kicker mb-1.5">{t.dashboard.documentProofs.title}</p>
+            <h1 className="page-title">{t.dashboard.documentProofs.title}</h1>
             <p className="body-text mt-1.5 max-w-lg">
-              SHA-256 document integrity and proof records
+              {t.dashboard.documentProofs.subtitle}
             </p>
           </div>
           <Link
@@ -59,7 +61,7 @@ export default async function DocumentProofPage() {
             target="_blank"
             className="btn-ghost btn-sm mt-1 shrink-0"
           >
-            Public check
+            {t.dashboard.documentProofs.publicCheck}
             <ArrowSquareOut size={11} aria-hidden />
           </Link>
         </div>
@@ -71,9 +73,9 @@ export default async function DocumentProofPage() {
         <div className="space-y-4">
           <div className="work-surface overflow-hidden p-0">
             <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-              <h2 className="section-title">Register proof hash</h2>
+              <h2 className="section-title">{t.dashboard.documentProofs.registerHash}</h2>
               <p className="meta-text mt-0.5">
-                Upload a final PDF to anchor its SHA-256 hash.
+                {t.dashboard.documentProofs.registerDescription}
               </p>
             </div>
             <div className="px-5 py-5">
@@ -86,15 +88,15 @@ export default async function DocumentProofPage() {
             {[
               {
                 n: "01",
-                text: "Upload the final, signed PDF. The file payload is not stored.",
+                text: t.dashboard.documentProofs.workflow[0],
               },
               {
                 n: "02",
-                text: "SHA-256 is computed on upload and anchored to the proof record.",
+                text: t.dashboard.documentProofs.workflow[1],
               },
               {
                 n: "03",
-                text: "Public users verify integrity by uploading the PDF. The hash is compared against this registered record.",
+                text: t.dashboard.documentProofs.workflow[2],
               },
             ].map(({ n, text }) => (
               <div key={n} className="flex gap-3 py-2">
@@ -118,7 +120,7 @@ export default async function DocumentProofPage() {
                 {proofs.total}
               </span>
               <span className="ml-1.5 text-xs text-[hsl(var(--text-tertiary))]">
-                proof records
+                {t.dashboard.documentProofs.proofRecords}
               </span>
             </div>
             <div className="w-px h-4 bg-[hsl(var(--border-default))]" />
@@ -127,7 +129,7 @@ export default async function DocumentProofPage() {
                 {hashOnlyCount}
               </span>
               <span className="ml-1.5 text-xs text-[hsl(var(--text-tertiary))]">
-                hash-only
+                {t.dashboard.documentProofs.hashOnly}
               </span>
             </div>
             <div className="w-px h-4 bg-[hsl(var(--border-default))]" />
@@ -136,7 +138,7 @@ export default async function DocumentProofPage() {
                 {totalChecks}
               </span>
               <span className="ml-1.5 text-xs text-[hsl(var(--text-tertiary))]">
-                public checks
+                {t.dashboard.documentProofs.publicChecks}
               </span>
             </div>
           </div>
@@ -144,8 +146,8 @@ export default async function DocumentProofPage() {
           {/* Records list */}
           {proofs.items.length === 0 ? (
             <EmptyState
-              title="No document proofs yet"
-              description="Register the first official PDF to start the integrity workflow."
+              title={t.dashboard.documentProofs.emptyTitle}
+              description={t.dashboard.documentProofs.emptyDescription}
             />
           ) : (
             <div className="space-y-2">
@@ -181,46 +183,46 @@ export default async function DocumentProofPage() {
                         <tbody>
                           {[
                             {
-                              label: "SHA-256 hash",
+                              label: t.dashboard.documentProofs.sha256Hash,
                               value: proof.sourceHash,
                               mono: true,
                             },
                             {
-                              label: "Document Proof ID",
+                              label: t.dashboard.documentProofs.documentProofId,
                               value: proof.verificationId,
                               mono: true,
                             },
                             {
-                              label: "Document type",
-                              value: proof.documentType ?? "Not specified",
+                              label: t.dashboard.documentProofs.documentType,
+                              value: proof.documentType ?? t.common.notSpecified,
                               mono: false,
                             },
                             {
-                              label: "Document date",
+                              label: t.dashboard.documentProofs.documentDate,
                               value: proof.documentDate
                                 ? formatDate(proof.documentDate)
-                                : "Not provided",
+                                : t.common.notProvided,
                               mono: false,
                             },
                             {
-                              label: "File name",
+                              label: t.dashboard.documentProofs.fileName,
                               value: proof.fileName,
                               mono: false,
                             },
                             {
-                              label: "Public checks",
+                              label: t.dashboard.documentProofs.publicChecks,
                               value: String(proof.verificationCount),
                               mono: false,
                             },
                             {
-                              label: "Last checked",
+                              label: t.dashboard.documentProofs.lastChecked,
                               value: proof.verifiedAt
                                 ? formatDateTime(proof.verifiedAt)
-                                : "Not yet checked",
+                                : t.common.neverChecked,
                               mono: false,
                             },
                             {
-                              label: "Registered",
+                              label: t.dashboard.documentProofs.registered,
                               value: formatDateTime(proof.createdAt),
                               mono: false,
                             },
@@ -248,7 +250,7 @@ export default async function DocumentProofPage() {
                           href={proof.proofUrl}
                           className="btn-ghost btn-sm"
                         >
-                          View
+                          {t.common.view}
                         </Link>
                         <DeleteDocumentProofButton
                           proofId={proof.id}
@@ -263,7 +265,7 @@ export default async function DocumentProofPage() {
                           rel="noreferrer"
                           className="btn-ghost btn-sm"
                         >
-                          Metadata
+                          {t.common.metadata}
                           <ArrowSquareOut size={10} aria-hidden />
                         </a>
                       </div>

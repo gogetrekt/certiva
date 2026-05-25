@@ -8,10 +8,12 @@ import {
   getTeamAdmins,
 } from "../../../lib/api";
 import { formatDate } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 export default async function TeamPage() {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const [admin, team] = await Promise.all([
     getCurrentAdmin(token),
@@ -23,10 +25,10 @@ export default async function TeamPage() {
     <div className="space-y-6">
       {/* ── Page header ──────────────────────────────── */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
-        <p className="kicker mb-2">Administrators</p>
-        <h1 className="page-title">Administrators</h1>
+        <p className="kicker mb-2">{t.dashboard.team.title}</p>
+        <h1 className="page-title">{t.dashboard.team.title}</h1>
         <p className="body-text mt-2">
-          Manage institution operator accounts and permissions
+          {t.dashboard.team.description}
         </p>
       </div>
 
@@ -35,17 +37,17 @@ export default async function TeamPage() {
         {/* Team table */}
         <div className="work-surface overflow-hidden p-0">
           <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-            <p className="kicker mb-1">Current team</p>
-            <h2 className="section-title">Authorized accounts</h2>
+            <p className="kicker mb-1">{t.dashboard.team.currentTeam}</p>
+            <h2 className="section-title">{t.dashboard.team.authorizedAccounts}</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="th-cell">Account</th>
-                  <th className="th-cell">Role</th>
-                  <th className="th-cell">Status</th>
-                  <th className="th-cell">Actions</th>
+                  <th className="th-cell">{t.common.account}</th>
+                  <th className="th-cell">{t.common.role}</th>
+                  <th className="th-cell">{t.common.status}</th>
+                  <th className="th-cell">{t.common.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,18 +58,18 @@ export default async function TeamPage() {
                         @{member.username ?? member.email.split("@")[0]}
                       </p>
                       <p className="meta-text mt-0.5">
-                        Added {formatDate(member.createdAt)}
+                        {t.dashboard.team.addedPrefix} {formatDate(member.createdAt)}
                       </p>
                     </td>
                     <td className="td-cell">
                       <span className="role-chip">
                         {member.role === "OWNER"
-                          ? "Owner"
+                          ? t.roles.owner
                           : member.role === "SUPER_ADMIN"
-                            ? "Super admin"
+                            ? t.roles.superAdmin
                             : member.role === "AUDITOR"
-                              ? "Auditor"
-                              : "Admin"}
+                              ? t.roles.auditor
+                              : t.roles.admin}
                       </span>
                     </td>
                     <td className="td-cell">
@@ -78,7 +80,7 @@ export default async function TeamPage() {
                           className={`h-1.5 w-1.5 rounded-full ${member.active ? "dot-valid" : "dot-neutral"}`}
                           aria-hidden
                         />
-                        {member.active ? "Active" : "Inactive"}
+                        {member.active ? t.common.active : t.common.inactive}
                       </span>
                     </td>
                     <td className="td-cell">
@@ -100,10 +102,10 @@ export default async function TeamPage() {
         {/* Add admin form */}
         <div className="work-surface overflow-hidden p-0 h-fit">
           <div className="px-6 py-5 border-b border-[hsl(var(--border-default))]">
-            <p className="kicker mb-1">Add admin</p>
-            <h2 className="section-title">Create internal access</h2>
+            <p className="kicker mb-1">{t.dashboard.team.addAdmin}</p>
+            <h2 className="section-title">{t.dashboard.team.createInternalAccess}</h2>
             <p className="meta-text mt-1">
-              Create a new operator or super admin account.
+              {t.dashboard.team.createDescription}
             </p>
           </div>
           <div className="px-6 py-6">

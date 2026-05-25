@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 
+import { useLanguage } from "../lib/i18n";
+
 interface QrCodeCardProps {
   verificationId: string;
   verificationUrl: string;
@@ -16,9 +18,11 @@ export function QrCodeCard({
   verificationId,
   verificationUrl,
   qrCodeUri,
-  label = "Credential Verification QR",
+  label,
   size = 180,
 }: QrCodeCardProps) {
+  const { t } = useLanguage();
+  const resolvedLabel = label ?? t.forms.qrCode.defaultLabel;
   const normalizedVerificationUrl = normalizeVerificationUrl(verificationId, verificationUrl);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,32 +45,32 @@ export function QrCodeCard({
         }
       } catch (caughtError) {
         if (isActive) {
-          setError(caughtError instanceof Error ? caughtError.message : "Unable to generate QR code.");
+          setError(caughtError instanceof Error ? caughtError.message : t.forms.qrCode.unable);
         }
       }
     }
 
     void generateQrCode();
     return () => { isActive = false; };
-  }, [normalizedVerificationUrl, size]);
+  }, [normalizedVerificationUrl, size, t.forms.qrCode.unable]);
 
   return (
     <div className="work-surface overflow-hidden p-0">
       <div className="border-b border-[hsl(var(--border-default))] px-5 py-4">
-        <p className="kicker">{label}</p>
-        <p className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">Scan to open the public credential verification page. To verify document integrity, upload a PDF on the verification page.</p>
+        <p className="kicker">{resolvedLabel}</p>
+        <p className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">{t.forms.qrCode.description}</p>
       </div>
       <div className="flex flex-col sm:flex-row items-start gap-5 p-5">
         <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] p-3">
           {dataUrl ? (
-            <img src={dataUrl} alt={`Verification QR for ${verificationId}`} className="h-full w-full" />
+            <img src={dataUrl} alt={`${t.forms.qrCode.altPrefix} ${verificationId}`} className="h-full w-full" />
           ) : (
             <div className="skeleton h-full w-full rounded-md" />
           )}
         </div>
         <div className="flex-1 space-y-4">
           <div>
-            <p className="kicker mb-1.5">Verification URL</p>
+            <p className="kicker mb-1.5">{t.forms.qrCode.verificationUrl}</p>
             <p className="hash-text wrap-break-word leading-5">
               {normalizedVerificationUrl}
             </p>
@@ -79,7 +83,7 @@ export function QrCodeCard({
               rel="noreferrer"
               className="btn-ghost btn-sm inline-flex items-center gap-1.5"
             >
-              Open verification
+              {t.forms.qrCode.openVerification}
               <ArrowSquareOut size={11} />
             </a>
             <a
@@ -88,7 +92,7 @@ export function QrCodeCard({
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded border border-[hsl(var(--border-subtle))] bg-transparent px-3 py-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:border-[hsl(var(--border-default))] hover:text-[hsl(var(--text-secondary))]"
             >
-              Open QR asset
+              {t.forms.qrCode.openQrAsset}
               <ArrowSquareOut size={11} />
             </a>
           </div>

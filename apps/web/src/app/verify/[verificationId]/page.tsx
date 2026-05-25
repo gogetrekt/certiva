@@ -16,6 +16,8 @@ import { ThemeToggle } from "../../../components/theme-toggle";
 import { VerifySearchForm } from "../../../components/verify-search-form";
 import { apiFetch, type VerificationResponse } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
+import type { Dictionary } from "../../../lib/i18n-dictionary";
 
 const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
@@ -25,15 +27,16 @@ interface VerifyResultPageProps {
 
 export async function generateMetadata({ params }: VerifyResultPageProps): Promise<Metadata> {
   const { verificationId } = await params;
-  return { title: `Verification ${verificationId}` };
+  const t = await getServerDictionary();
+  return { title: `${t.metadata.verificationTitlePrefix} ${verificationId}` };
 }
 
-function getStateConfig(result: VerificationResponse["result"]) {
+function getStateConfig(result: VerificationResponse["result"], t: Dictionary) {
   if (result === "VALID") {
     return {
-      verdict: "Active",
-      title: "Credential record found and active.",
-      description: "The credential ID matches an active registry record. Compare the details below with the presented document. To verify file integrity, use Document Check.",
+      verdict: t.verifyResult.states.valid.verdict,
+      title: t.verifyResult.states.valid.title,
+      description: t.verifyResult.states.valid.description,
       icon: CheckCircle,
       accentClass: "result-accent-valid",
       verdictClass: "badge badge-valid",
@@ -41,9 +44,9 @@ function getStateConfig(result: VerificationResponse["result"]) {
   }
   if (result === "REVOKED") {
     return {
-      verdict: "Revoked",
-      title: "This credential has been revoked.",
-      description: "The verification reference matches a known record, but the institution has marked it as no longer valid.",
+      verdict: t.verifyResult.states.revoked.verdict,
+      title: t.verifyResult.states.revoked.title,
+      description: t.verifyResult.states.revoked.description,
       icon: Warning,
       accentClass: "result-accent-warn",
       verdictClass: "badge badge-warn",
@@ -51,18 +54,18 @@ function getStateConfig(result: VerificationResponse["result"]) {
   }
   if (result === "TAMPERED") {
     return {
-      verdict: "Tampered",
-      title: "Registry proof mismatch detected.",
-      description: "The record exists, but the stored proof checks do not align with the expected result.",
+      verdict: t.verifyResult.states.tampered.verdict,
+      title: t.verifyResult.states.tampered.title,
+      description: t.verifyResult.states.tampered.description,
       icon: XCircle,
       accentClass: "result-accent-error",
       verdictClass: "badge badge-error",
     };
   }
   return {
-    verdict: "Not found",
-    title: "No matching credential found.",
-    description: "No active credential matched this reference. Confirm the verification ID with the issuing institution.",
+    verdict: t.verifyResult.states.notFound.verdict,
+    title: t.verifyResult.states.notFound.title,
+    description: t.verifyResult.states.notFound.description,
     icon: XCircle,
     accentClass: "result-accent-neutral",
     verdictClass: "badge badge-neutral",
@@ -71,11 +74,13 @@ function getStateConfig(result: VerificationResponse["result"]) {
 
 export default async function VerifyResultPage({ params }: VerifyResultPageProps) {
   const { verificationId } = await params;
+  const t = await getServerDictionary();
   const verification = await apiFetch<VerificationResponse>(
     `/verify/${encodeURIComponent(verificationId)}`,
   );
-  const state = getStateConfig(verification.result);
-  const institutionLabel = verification.issuer?.displayName ?? verification.issuer?.name ?? "Issuing institution";
+  const state = getStateConfig(verification.result, t);
+  const institutionLabel =
+    verification.issuer?.displayName ?? verification.issuer?.name ?? t.verifyResult.fallbackInstitution;
   const StateIcon = state.icon;
 
   return (
@@ -90,13 +95,13 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
               href="/verify"
               className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
             >
-              New lookup
+              {t.verifyResult.navNewLookup}
             </Link>
             <Link
               href="/verify/document"
               className="h-8 px-3 rounded-md inline-flex items-center text-xs font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))]"
             >
-              Document Check
+              {t.nav.documentCheck}
             </Link>
             <div className="mx-1 h-4 w-px bg-[hsl(var(--border-default))]" />
             <ThemeToggle />
@@ -128,18 +133,18 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
           {/* Key stats */}
           <div className="mt-8 grid gap-px bg-[hsl(var(--border-default))] rounded-xl overflow-hidden border border-[hsl(var(--border-default))] sm:grid-cols-3">
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Registry verdict</p>
+              <p className="kicker mb-2">{t.verifyResult.registryVerdict}</p>
               <div className="flex flex-wrap items-start gap-2">
                 <StatusBadge status={verification.result} />
                 <StatusBadge status={verification.blockchainStatus} />
               </div>
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Credential ID</p>
-              <p className="hash-text text-[hsl(var(--text-secondary))]">{verification.credentialExternalId ?? "Not available"}</p>
+              <p className="kicker mb-2">{t.verifyResult.credentialId}</p>
+              <p className="hash-text text-[hsl(var(--text-secondary))]">{verification.credentialExternalId ?? t.common.notAvailable}</p>
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Run another lookup</p>
+              <p className="kicker mb-2">{t.verifyResult.runAnotherLookup}</p>
               <VerifySearchForm initialValue={verificationId} compact />
             </div>
           </div>
@@ -155,24 +160,24 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
 
             {/* Credential facts */}
             <div>
-              <p className="kicker mb-3">Credential facts</p>
+              <p className="kicker mb-3">{t.verifyResult.credentialFacts}</p>
               <div className="work-surface overflow-hidden p-0">
                 <table className="w-full text-sm">
                   <tbody>
                     {[
-                      { label: "Student name", value: verification.credential?.studentName ?? "Not available", mono: false },
-                      { label: "Student ID", value: verification.credential?.studentId ?? "Not available", mono: true },
-                      { label: "Degree / credential", value: verification.degree ?? "Not available", mono: false },
-                      { label: "Issued at", value: verification.issuedAt ? formatDateTime(verification.issuedAt) : "Not available", mono: false },
+                      { label: t.verifyResult.studentName, value: verification.credential?.studentName ?? t.common.notAvailable, mono: false },
+                      { label: t.verifyResult.studentId, value: verification.credential?.studentId ?? t.common.notAvailable, mono: true },
+                      { label: t.verifyResult.degreeCredential, value: verification.degree ?? t.common.notAvailable, mono: false },
+                      { label: t.verifyResult.issuedAt, value: verification.issuedAt ? formatDateTime(verification.issuedAt) : t.common.notAvailable, mono: false },
                       ...(verification.revoked && verification.revokedAt ? [
-                        { label: "Revoked at", value: formatDateTime(verification.revokedAt), mono: false },
-                        ...(verification.revocationReason ? [{ label: "Revocation reason", value: verification.revocationReason, mono: false }] : []),
+                        { label: t.verifyResult.revokedAt, value: formatDateTime(verification.revokedAt), mono: false },
+                        ...(verification.revocationReason ? [{ label: t.verifyResult.revocationReason, value: verification.revocationReason, mono: false }] : []),
                       ] : []),
-                      { label: "Credential status", value: verification.revoked ? "Revoked" : "Active", mono: false },
-                      { label: "Document integrity", value: verification.securePdfEnabled ? "Proof registered. Upload PDF to verify." : "Not registered", mono: false },
-                      { label: "Blockchain proof", value: verification.blockchainStatus === "ON_CHAIN_VERIFIED" ? "Anchored" : verification.blockchainStatus === "PENDING" ? "Pending" : verification.blockchainStatus === "FAILED" ? "Failed" : "Not anchored", mono: false },
-                      { label: "Verification count", value: String(verification.verificationCount), mono: false },
-                      { label: "Last checked", value: verification.verifiedAtTimestamp ? formatDateTime(verification.verifiedAtTimestamp) : "Not available", mono: false },
+                      { label: t.verifyResult.credentialStatus, value: verification.revoked ? t.common.revoked : t.common.active, mono: false },
+                      { label: t.verifyResult.documentIntegrity, value: verification.securePdfEnabled ? t.verifyResult.proofRegistered : t.common.notRegistered, mono: false },
+                      { label: t.verifyResult.blockchainProof, value: verification.blockchainStatus === "ON_CHAIN_VERIFIED" ? t.common.anchored : verification.blockchainStatus === "PENDING" ? t.common.pending : verification.blockchainStatus === "FAILED" ? t.common.failed : t.common.notAnchored, mono: false },
+                      { label: t.verifyResult.verificationCount, value: String(verification.verificationCount), mono: false },
+                      { label: t.verifyResult.lastChecked, value: verification.verifiedAtTimestamp ? formatDateTime(verification.verifiedAtTimestamp) : t.common.notAvailable, mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
@@ -190,7 +195,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
 
             {/* Trust signals */}
             <div>
-              <p className="kicker mb-3">Trust signals</p>
+              <p className="kicker mb-3">{t.verifyResult.trustSignals}</p>
               <div className="work-surface overflow-hidden p-0">
                 <table className="w-full">
                   <tbody>
@@ -218,18 +223,18 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden className="shrink-0">
                   <path d="M4 5l2 2 2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Show technical references
+                {t.verifyResult.technicalSummary}
               </summary>
               <div className="mt-4 work-surface overflow-hidden p-0">
                 <table className="w-full text-sm">
                   <tbody>
                     {[
-                      { label: "Verification URL", value: verification.verificationUrl ?? "Not available", href: verification.verificationUrl ?? undefined },
-                      { label: "Metadata JSON", value: verification.metadataUri ?? "Not available", href: verification.metadataUri ?? undefined },
-                      { label: "Certificate PDF", value: verification.certificateUri ?? "Not available", href: verification.certificateUri ?? undefined },
-                      { label: "QR asset", value: verification.qrCodeUri ?? "Not available", href: verification.qrCodeUri ?? undefined },
-                      { label: "Internal DB ID", value: verification.credential?.id ?? "Not available", mono: true },
-                      { label: "Blockchain tx hash", value: verification.txHash ?? "Not available", mono: true },
+                      { label: t.verifyResult.verificationUrl, value: verification.verificationUrl ?? t.common.notAvailable, href: verification.verificationUrl ?? undefined },
+                      { label: t.verifyResult.metadataJson, value: verification.metadataUri ?? t.common.notAvailable, href: verification.metadataUri ?? undefined },
+                      { label: t.verifyResult.certificatePdf, value: verification.certificateUri ?? t.common.notAvailable, href: verification.certificateUri ?? undefined },
+                      { label: t.verifyResult.qrAsset, value: verification.qrCodeUri ?? t.common.notAvailable, href: verification.qrCodeUri ?? undefined },
+                      { label: t.verifyResult.internalDbId, value: verification.credential?.id ?? t.common.notAvailable, mono: true },
+                      { label: t.verifyResult.blockchainTxHash, value: verification.txHash ?? t.common.notAvailable, mono: true },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
@@ -262,15 +267,15 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
             {/* Issuer card */}
             <div className="work-surface overflow-hidden p-0">
               <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-                <p className="kicker mb-1">Issuing institution</p>
+                <p className="kicker mb-1">{t.verifyResult.issuingInstitution}</p>
                 <h2 className="section-title">{institutionLabel}</h2>
               </div>
               <div>
                 {[
-                  { icon: Buildings, label: "Status", value: verification.issuer?.status ?? "Unknown" },
-                  { icon: Globe, label: "Domain", value: verification.issuer?.domain ?? "Not available", mono: true },
-                  { icon: LinkSimple, label: "Verifications", value: String(verification.verificationCount) },
-                  { icon: Warning, label: "Revoked", value: verification.revoked ? "Yes" : "No" },
+                  { icon: Buildings, label: t.common.status, value: verification.issuer?.status ?? t.common.unavailable },
+                  { icon: Globe, label: t.verifyResult.domain, value: verification.issuer?.domain ?? t.common.notAvailable, mono: true },
+                  { icon: LinkSimple, label: t.verifyResult.verifications, value: String(verification.verificationCount) },
+                  { icon: Warning, label: t.common.revoked, value: verification.revoked ? t.common.yes : t.common.no },
                 ].map((row, i, arr) => (
                   <div
                     key={row.label}
@@ -294,7 +299,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
                   >
-                    Visit institution website
+                    {t.verifyResult.visitInstitutionWebsite}
                     <ArrowSquareOut size={11} aria-hidden />
                   </a>
                 </div>
@@ -305,17 +310,17 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
             <div className="work-surface overflow-hidden p-0">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))]">
                 <div>
-                  <p className="kicker mb-1">Blockchain proof</p>
-                  <p className="meta-text">Secondary audit layer</p>
+                  <p className="kicker mb-1">{t.verifyResult.blockchainProof}</p>
+                  <p className="meta-text">{t.verifyResult.secondaryAuditLayer}</p>
                 </div>
                 <StatusBadge status={verification.blockchainStatus} />
               </div>
               <div>
                 {[
-                  { label: "Network", value: "Polygon Amoy" },
-                  { label: "Verified", value: verification.blockchainVerified ? "Yes" : "No" },
-                  { label: "Block", value: verification.blockNumber ? String(verification.blockNumber) : "Pending" },
-                  { label: "Anchored", value: verification.anchoredAt ? formatDateTime(verification.anchoredAt) : "Pending" },
+                  { label: t.verifyResult.network, value: "Polygon Amoy" },
+                  { label: t.verifyResult.verified, value: verification.blockchainVerified ? t.common.yes : t.common.no },
+                  { label: t.verifyResult.block, value: verification.blockNumber ? String(verification.blockNumber) : t.common.pending },
+                  { label: t.common.anchored, value: verification.anchoredAt ? formatDateTime(verification.anchoredAt) : t.common.pending },
                 ].map((row, i, arr) => (
                   <div
                     key={row.label}
@@ -327,7 +332,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                 ))}
                 {verification.txHash && (
                   <div className="px-5 py-3 border-t border-[hsl(var(--border-subtle))]">
-                    <p className="kicker mb-1.5">Transaction hash</p>
+                    <p className="kicker mb-1.5">{t.verifyResult.transactionHash}</p>
                     <p className="hash-text text-[hsl(var(--text-tertiary))]">{verification.txHash}</p>
                   </div>
                 )}
@@ -340,7 +345,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
                   >
-                    View on Polygonscan
+                    {t.verifyResult.viewOnPolygonscan}
                     <ArrowSquareOut size={11} aria-hidden />
                   </a>
                 </div>
@@ -349,9 +354,9 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
 
             {/* Note */}
             <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-5 py-4">
-              <p className="kicker mb-1.5">About this verification</p>
+              <p className="kicker mb-1.5">{t.verifyResult.aboutThisVerification}</p>
               <p className="meta-text">
-                Certiva is an independent verification infrastructure. Results reflect the institutional registry state at the time of this check.
+                {t.verifyResult.aboutBody}
               </p>
             </div>
           </div>

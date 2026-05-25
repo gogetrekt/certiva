@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 type CredentialSummary = {
   studentName: string;
   studentId: string;
@@ -20,6 +22,7 @@ export function DeleteCredentialButton({
   summary: CredentialSummary;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const titleId = useId();
   const descriptionId = useId();
   const warningId = useId();
@@ -46,7 +49,7 @@ export function DeleteCredentialButton({
       const response = await fetch(`/api/credentials/${credentialId}`, { method: "DELETE" });
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to delete credential");
+        throw new Error(body.message ?? t.forms.deleteCredential.unable);
       }
       setIsOpen(false);
       startTransition(() => {
@@ -54,7 +57,7 @@ export function DeleteCredentialButton({
         router.refresh();
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to delete credential");
+      setError(err instanceof Error ? err.message : t.forms.deleteCredential.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -67,7 +70,7 @@ export function DeleteCredentialButton({
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 cursor-pointer"
       >
-        Delete
+        {t.forms.deleteCredential.delete}
       </button>
 
       {isOpen ? (
@@ -85,23 +88,23 @@ export function DeleteCredentialButton({
             className="relative w-full max-w-md rounded-xl border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] shadow-2xl"
           >
             <div className="border-b border-[hsl(var(--border-default))] px-6 py-5">
-              <p id={titleId} className="text-sm font-semibold text-[hsl(var(--text-primary))]">Delete credential</p>
+              <p id={titleId} className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t.forms.deleteCredential.title}</p>
               <p id={descriptionId} className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">
-                This permanently removes the credential record and its generated assets.
+                {t.forms.deleteCredential.description}
               </p>
             </div>
             <div className="space-y-4 px-6 py-5">
               <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 py-3">
-                <p className="kicker mb-1.5">Credential</p>
+                <p className="kicker mb-1.5">{t.forms.deleteCredential.credential}</p>
                 <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{summary.degree}</p>
-                <p className="text-xs text-[hsl(var(--text-tertiary))]">{summary.studentName} · {summary.studentId}</p>
+                <p className="text-xs text-[hsl(var(--text-tertiary))]">{summary.studentName} / {summary.studentId}</p>
                 {summary.issuerName ? <p className="text-xs text-[hsl(var(--text-quaternary))]">{summary.issuerName}</p> : null}
               </div>
               <div
                 id={warningId}
                 className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs leading-5 text-[hsl(var(--status-error-text))]"
               >
-                This cannot be undone. Verification activity logs tied to this credential will be removed.
+                {t.forms.deleteCredential.warning}
               </div>
               {error ? (
                 <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs text-[hsl(var(--status-error-text))]">
@@ -115,7 +118,7 @@ export function DeleteCredentialButton({
                 onClick={() => setIsOpen(false)}
                 className="btn-ghost btn-sm"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -123,7 +126,7 @@ export function DeleteCredentialButton({
                 disabled={isSubmitting}
                 className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-3 py-1.5 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Deleting…" : "Confirm delete"}
+                {isSubmitting ? t.forms.deleteCredential.deleting : t.forms.deleteCredential.confirm}
               </button>
             </div>
           </div>

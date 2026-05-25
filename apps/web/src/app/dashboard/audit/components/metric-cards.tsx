@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 
 import type { DashboardMetrics } from "../../../../lib/api";
+import { useLanguage } from "../../../../lib/i18n";
 
 interface MetricCardsProps {
   metrics: DashboardMetrics;
@@ -24,46 +25,47 @@ interface CardDef {
 }
 
 export function MetricCards({ metrics }: MetricCardsProps) {
+  const { t } = useLanguage();
   const cards: CardDef[] = [
     {
-      label: "Issued",
+      label: t.auditComponents.metrics.issued,
       value: String(metrics.totalIssued),
-      note: "Total credentials issued",
+      note: t.auditComponents.metrics.issuedNote,
       icon: IdentificationCard,
       variant: "default",
     },
     {
-      label: "Verified",
+      label: t.auditComponents.metrics.verified,
       value: String(metrics.totalVerified),
-      note: "Total verification events",
+      note: t.auditComponents.metrics.verifiedNote,
       icon: CheckCircle,
       variant: "valid",
     },
     {
-      label: "Revoked",
+      label: t.auditComponents.metrics.revoked,
       value: String(metrics.revokedCount),
-      note: "Credentials revoked",
+      note: t.auditComponents.metrics.revokedNote,
       icon: ArrowCounterClockwise,
       variant: metrics.revokedCount > 0 ? "error" : "default",
     },
     {
-      label: "Pending Anchor",
+      label: t.auditComponents.metrics.pendingAnchor,
       value: String(metrics.pendingAnchor),
-      note: "Awaiting blockchain confirmation",
+      note: t.auditComponents.metrics.pendingNote,
       icon: Timer,
       variant: metrics.pendingAnchor > 0 ? "warn" : "default",
     },
     {
-      label: "Success Rate",
+      label: t.auditComponents.metrics.successRate,
       value: `${metrics.successRate}%`,
-      note: "Verifications passed",
+      note: t.auditComponents.metrics.successRateNote,
       icon: ShieldCheck,
       variant: metrics.successRate >= 95 ? "valid" : metrics.successRate >= 80 ? "warn" : "error",
     },
     {
-      label: "Active Credentials",
+      label: t.auditComponents.metrics.activeCredentials,
       value: String(metrics.activeCredentials),
-      note: "Issued minus revoked",
+      note: t.auditComponents.metrics.activeNote,
       icon: Cube,
       variant: "default",
     },

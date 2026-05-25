@@ -2,17 +2,19 @@
 
 import { useCallback, useState } from "react";
 import type { AnalyticsBucket, VerificationAnalytics } from "../../../../lib/api";
+import { useLanguage } from "../../../../lib/i18n";
 
 // ─── Bar chart (pure CSS, no external lib) ───────────────────────────────────
 
 function BarChart({ buckets }: { buckets: AnalyticsBucket[] }) {
+  const { t } = useLanguage();
   const maxVal = Math.max(...buckets.map((b) => b.total), 1);
 
   return (
     <div
       className="flex items-end gap-1 h-32 w-full"
       role="img"
-      aria-label="Verification activity bar chart"
+      aria-label={t.auditComponents.verificationChart.aria}
     >
       {buckets.map((bucket) => {
         const heightPct = Math.max((bucket.total / maxVal) * 100, 2);
@@ -26,7 +28,7 @@ function BarChart({ buckets }: { buckets: AnalyticsBucket[] }) {
           <div
             key={bucket.date}
             className="group flex-1 flex flex-col items-center gap-1 cursor-default"
-            title={`${label}: ${bucket.total} verifications (${bucket.valid} valid, ${bucket.invalid} invalid)`}
+            title={`${label}: ${bucket.total} ${bucket.total === 1 ? t.common.verificationSingular : t.common.verificationPlural} (${bucket.valid} ${t.auditComponents.verificationChart.titleValid}, ${bucket.invalid} ${t.auditComponents.verificationChart.titleInvalid})`}
           >
             <div className="relative w-full flex flex-col justify-end" style={{ height: "100px" }}>
               {/* Valid portion */}
@@ -104,11 +106,10 @@ function PeriodTab({ value, active, onSelect }: PeriodTabProps) {
   return (
     <button
       onClick={() => onSelect(value)}
-      className={`px-2.5 py-1 text-[0.6875rem] font-medium rounded-md transition-colors cursor-pointer ${
-        active
+      className={`px-2.5 py-1 text-[0.6875rem] font-medium rounded-md transition-colors cursor-pointer ${active
           ? "bg-[hsl(var(--bg-muted))] text-[hsl(var(--text-primary))] border border-[hsl(var(--border-default))]"
           : "text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-secondary))]"
-      }`}
+        }`}
     >
       {value}d
     </button>
@@ -118,16 +119,17 @@ function PeriodTab({ value, active, onSelect }: PeriodTabProps) {
 // ─── Summary row ─────────────────────────────────────────────────────────────
 
 function ChartSummary({ buckets }: { buckets: AnalyticsBucket[] }) {
+  const { t } = useLanguage();
   const totalValid = buckets.reduce((s, b) => s + b.valid, 0);
   const totalInvalid = buckets.reduce((s, b) => s + b.invalid, 0);
   const totalAll = totalValid + totalInvalid;
   const rate = totalAll > 0 ? Math.round((totalValid / totalAll) * 100) : 0;
 
   const items = [
-    { label: "Total", value: String(totalAll), dotClass: "dot-neutral" },
-    { label: "Valid", value: String(totalValid), dotClass: "dot-valid" },
-    { label: "Invalid", value: String(totalInvalid), dotClass: "dot-error" },
-    { label: "Pass Rate", value: `${rate}%`, dotClass: rate >= 90 ? "dot-valid" : rate >= 70 ? "dot-warn" : "dot-error" },
+    { label: t.auditComponents.verificationChart.total, value: String(totalAll), dotClass: "dot-neutral" },
+    { label: t.auditComponents.verificationChart.valid, value: String(totalValid), dotClass: "dot-valid" },
+    { label: t.auditComponents.verificationChart.invalid, value: String(totalInvalid), dotClass: "dot-error" },
+    { label: t.auditComponents.verificationChart.passRate, value: `${rate}%`, dotClass: rate >= 90 ? "dot-valid" : rate >= 70 ? "dot-warn" : "dot-error" },
   ];
 
   return (
@@ -152,6 +154,7 @@ interface VerificationChartProps {
 }
 
 export function VerificationChart({ initialData }: VerificationChartProps) {
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<Period>((initialData.days as Period) ?? 7);
   const [data, setData] = useState<VerificationAnalytics>(initialData);
   const [loading, setLoading] = useState(false);
@@ -175,8 +178,8 @@ export function VerificationChart({ initialData }: VerificationChartProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--border-default))]">
         <div>
-          <p className="kicker mb-1">Analytics</p>
-          <h2 className="section-title">Verification activity</h2>
+          <p className="kicker mb-1">{t.auditComponents.verificationChart.analytics}</p>
+          <h2 className="section-title">{t.auditComponents.verificationChart.activity}</h2>
         </div>
         <div className="flex items-center gap-1">
           {([7, 30, 90] as Period[]).map((p) => (

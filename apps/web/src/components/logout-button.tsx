@@ -3,8 +3,11 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 export function LogoutButton() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleLogout() {
@@ -27,7 +30,7 @@ export function LogoutButton() {
       disabled={isSubmitting}
       className="btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {isSubmitting ? "Signing out…" : "Sign out"}
+      {isSubmitting ? t.forms.logout.signingOut : t.forms.logout.signOut}
     </button>
   );
 }

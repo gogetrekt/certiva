@@ -13,6 +13,7 @@ import {
   isInstitutionSetupRequired,
 } from "../../../lib/api";
 import { formatDate } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 interface CredentialsPageProps {
   searchParams: Promise<{
@@ -27,6 +28,7 @@ export default async function CredentialsPage({
 }: CredentialsPageProps) {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const {
     studentId = "",
@@ -60,14 +62,14 @@ export default async function CredentialsPage({
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <p className="kicker mb-2">Registry</p>
-            <h1 className="page-title">Registry</h1>
+            <p className="kicker mb-2">{t.dashboard.registry.title}</p>
+            <h1 className="page-title">{t.dashboard.registry.title}</h1>
             <p className="body-text mt-1">
-              {credentials.total} record{credentials.total !== 1 ? "s" : ""}
+              {credentials.total} {credentials.total === 1 ? t.common.recordsSingular : t.common.recordsPlural}
             </p>
           </div>
           <Link href="/dashboard/issue" className="btn-primary btn-sm mt-1">
-            Issue credential
+            {t.dashboard.registry.issueCredential}
           </Link>
         </div>
 
@@ -75,19 +77,19 @@ export default async function CredentialsPage({
         <form className="flex flex-wrap items-end gap-3">
           <div className="min-w-40 flex-1">
             <label htmlFor="studentName" className="field-label">
-              Student name
+              {t.dashboard.registry.studentName}
             </label>
             <input
               id="studentName"
               name="studentName"
               defaultValue={studentName}
-              placeholder="Name"
+              placeholder={t.dashboard.registry.namePlaceholder}
               className="field-shell w-full"
             />
           </div>
           <div className="min-w-35 flex-1">
             <label htmlFor="studentId" className="field-label">
-              Student ID
+              {t.dashboard.registry.studentId}
             </label>
             <input
               id="studentId"
@@ -99,7 +101,7 @@ export default async function CredentialsPage({
           </div>
           <div className="w-40">
             <label htmlFor="status" className="field-label">
-              Status
+              {t.common.status}
             </label>
             <select
               id="status"
@@ -107,20 +109,20 @@ export default async function CredentialsPage({
               defaultValue={status}
               className="field-shell w-full"
             >
-              <option value="all">All statuses</option>
-              <option value="active">Active only</option>
-              <option value="revoked">Revoked only</option>
+              <option value="all">{t.dashboard.registry.allStatuses}</option>
+              <option value="active">{t.dashboard.registry.activeOnly}</option>
+              <option value="revoked">{t.dashboard.registry.revokedOnly}</option>
             </select>
           </div>
           <button type="submit" className="btn-ghost">
-            Apply filters
+            {t.dashboard.registry.applyFilters}
           </button>
           {(studentName || studentId || status !== "all") && (
             <Link
               href="/dashboard/credentials"
               className="btn-ghost text-[hsl(var(--text-tertiary))]"
             >
-              Clear
+              {t.common.clear}
             </Link>
           )}
         </form>
@@ -131,8 +133,8 @@ export default async function CredentialsPage({
         {credentials.items.length === 0 ? (
           <div className="p-10">
             <EmptyState
-              title="No matching credentials"
-              description="Adjust the filters or issue a new credential."
+              title={t.dashboard.registry.noMatchingTitle}
+              description={t.dashboard.registry.noMatchingDescription}
             />
           </div>
         ) : (
@@ -140,12 +142,12 @@ export default async function CredentialsPage({
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="th-cell">Credential</th>
-                  <th className="th-cell">Student</th>
-                  <th className="th-cell">Issued</th>
-                  <th className="th-cell">Checks</th>
-                  <th className="th-cell">Status</th>
-                  <th className="th-cell">Actions</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.credential}</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.student}</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.issued}</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.checks}</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.status}</th>
+                  <th className="th-cell">{t.dashboard.registry.columns.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,13 +180,12 @@ export default async function CredentialsPage({
                     </td>
                     <td className="td-cell-sm whitespace-nowrap">
                       <p className="text-sm text-[hsl(var(--text-secondary))]">
-                        {item.verificationCount} check
-                        {item.verificationCount !== 1 ? "s" : ""}
+                        {item.verificationCount} {item.verificationCount === 1 ? t.common.checksSingular : t.common.checksPlural}
                       </p>
                       <p className="meta-text mt-0.5">
                         {item.verifiedAt
-                          ? `Last ${formatDate(item.verifiedAt)}`
-                          : "Never checked"}
+                          ? `${t.common.lastPrefix} ${formatDate(item.verifiedAt)}`
+                          : t.common.neverChecked}
                       </p>
                     </td>
                     <td className="td-cell-sm">
@@ -207,7 +208,7 @@ export default async function CredentialsPage({
                           href={`/dashboard/credentials/${item.id}`}
                           className="btn-ghost btn-sm"
                         >
-                          Open
+                          {t.dashboard.registry.open}
                         </Link>
                         {item.revoked ? (
                           <DeleteCredentialButton

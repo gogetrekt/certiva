@@ -13,6 +13,8 @@ import { SiteHeader } from "../../../components/site-header";
 import { StatusBadge } from "../../../components/status-badge";
 import { apiFetch, type DocumentProofVerificationResponse } from "../../../lib/api";
 import { formatDate, formatDateTime } from "../../../lib/date-format";
+import { getServerDictionary } from "../../../lib/i18n-server";
+import type { Dictionary } from "../../../lib/i18n-dictionary";
 
 interface ProofPageProps {
   params: Promise<{ verificationId: string }>;
@@ -20,15 +22,16 @@ interface ProofPageProps {
 
 export async function generateMetadata({ params }: ProofPageProps): Promise<Metadata> {
   const { verificationId } = await params;
-  return { title: `Document Proof ${verificationId}` };
+  const t = await getServerDictionary();
+  return { title: `${t.metadata.documentProofTitlePrefix} ${verificationId}` };
 }
 
-function getStateConfig(status: DocumentProofVerificationResponse["status"]) {
+function getStateConfig(status: DocumentProofVerificationResponse["status"], t: Dictionary) {
   if (status === "AUTHENTIC") {
     return {
-      verdict: "Authentic",
-      title: "Document hash verified.",
-      description: "The uploaded or referenced document matches the registered SHA-256 proof record.",
+      verdict: t.proofResult.states.authentic.verdict,
+      title: t.proofResult.states.authentic.title,
+      description: t.proofResult.states.authentic.description,
       icon: CheckCircle,
       accentClass: "result-accent-valid",
       verdictClass: "badge badge-valid",
@@ -36,9 +39,9 @@ function getStateConfig(status: DocumentProofVerificationResponse["status"]) {
   }
   if (status === "REVOKED") {
     return {
-      verdict: "Revoked",
-      title: "This proof record has been revoked.",
-      description: "The proof exists, but it is no longer active.",
+      verdict: t.proofResult.states.revoked.verdict,
+      title: t.proofResult.states.revoked.title,
+      description: t.proofResult.states.revoked.description,
       icon: Warning,
       accentClass: "result-accent-warn",
       verdictClass: "badge badge-warn",
@@ -46,18 +49,18 @@ function getStateConfig(status: DocumentProofVerificationResponse["status"]) {
   }
   if (status === "DOCUMENT_MODIFIED") {
     return {
-      verdict: "Modified",
-      title: "Document hash mismatch detected.",
-      description: "A proof record was found, but the compared file does not match the registered SHA-256.",
+      verdict: t.proofResult.states.modified.verdict,
+      title: t.proofResult.states.modified.title,
+      description: t.proofResult.states.modified.description,
       icon: XCircle,
       accentClass: "result-accent-error",
       verdictClass: "badge badge-error",
     };
   }
   return {
-    verdict: "Not found",
-    title: "No trusted proof matched this reference.",
-    description: "Confirm the proof ID or verification code with the issuing institution.",
+    verdict: t.proofResult.states.notFound.verdict,
+    title: t.proofResult.states.notFound.title,
+    description: t.proofResult.states.notFound.description,
     icon: XCircle,
     accentClass: "result-accent-neutral",
     verdictClass: "badge badge-neutral",
@@ -66,12 +69,14 @@ function getStateConfig(status: DocumentProofVerificationResponse["status"]) {
 
 export default async function ProofPage({ params }: ProofPageProps) {
   const { verificationId } = await params;
+  const t = await getServerDictionary();
   const proof = await apiFetch<DocumentProofVerificationResponse>(
     `/proof/${encodeURIComponent(verificationId)}`,
   );
-  const state = getStateConfig(proof.status);
+  const state = getStateConfig(proof.status, t);
   const StateIcon = state.icon;
-  const institutionLabel = proof.issuer?.displayName ?? proof.issuer?.name ?? "Issuing institution";
+  const institutionLabel =
+    proof.issuer?.displayName ?? proof.issuer?.name ?? t.proofResult.fallbackInstitution;
 
   return (
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
@@ -102,17 +107,17 @@ export default async function ProofPage({ params }: ProofPageProps) {
           {/* Stats row */}
           <div className="mt-8 grid gap-px bg-[hsl(var(--border-default))] rounded-xl overflow-hidden border border-[hsl(var(--border-default))] sm:grid-cols-3">
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Status</p>
+              <p className="kicker mb-2">{t.common.status}</p>
               <p className="text-lg font-semibold tracking-tight text-[hsl(var(--text-primary))]">
                 {state.verdict}
               </p>
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Proof ID</p>
+              <p className="kicker mb-2">{t.proofResult.proofId}</p>
               <p className="hash-text text-[hsl(var(--text-secondary))]">{proof.verificationId ?? verificationId}</p>
             </div>
             <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
-              <p className="kicker mb-2">Run another lookup</p>
+              <p className="kicker mb-2">{t.proofResult.runAnotherLookup}</p>
               <DocumentProofCodeForm compact initialValue={verificationId} />
             </div>
           </div>
@@ -128,17 +133,17 @@ export default async function ProofPage({ params }: ProofPageProps) {
 
             {/* Hash comparison */}
             <div>
-              <p className="kicker mb-3">Hash comparison</p>
+              <p className="kicker mb-3">{t.proofResult.hashComparison}</p>
               <div className="work-surface overflow-hidden p-0">
                 <table className="w-full text-sm">
                   <tbody>
                     {[
-                      { label: "Registered SHA-256", value: proof.registeredHash ?? "Not available", mono: true },
-                      { label: "Uploaded SHA-256", value: proof.uploadedHash ?? "No uploaded document in this check", mono: true },
-                      { label: "Hash comparison", value: proof.integrityMatched ? "Match" : "Mismatch", mono: false },
-                      { label: "Tamper detected", value: proof.tamperDetected ? "Yes" : "No", mono: false },
-                      { label: "Checked at", value: formatDateTime(proof.verificationTimestamp), mono: false },
-                      { label: "Check count", value: String(proof.verificationCount), mono: false },
+                      { label: t.proofResult.registeredHash, value: proof.registeredHash ?? t.common.notAvailable, mono: true },
+                      { label: t.proofResult.uploadedHash, value: proof.uploadedHash ?? t.common.noUploadedDocument, mono: true },
+                      { label: t.proofResult.hashComparison, value: proof.integrityMatched ? t.common.match : t.common.mismatch, mono: false },
+                      { label: t.proofResult.tamperDetected, value: proof.tamperDetected ? t.common.yes : t.common.no, mono: false },
+                      { label: t.proofResult.checkedAt, value: formatDateTime(proof.verificationTimestamp), mono: false },
+                      { label: t.proofResult.checkCount, value: String(proof.verificationCount), mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
@@ -152,19 +157,19 @@ export default async function ProofPage({ params }: ProofPageProps) {
 
             {/* Document metadata */}
             <div>
-              <p className="kicker mb-3">Document metadata</p>
+              <p className="kicker mb-3">{t.proofResult.documentMetadata}</p>
               <div className="work-surface overflow-hidden p-0">
                 <table className="w-full text-sm">
                   <tbody>
                     {[
-                      { label: "Verification code", value: proof.verificationCode ?? "Not available", mono: true },
-                      { label: "Document title", value: proof.title ?? "Not available", mono: false },
-                      { label: "Document type", value: proof.documentType ?? "Not available", mono: false },
-                      { label: "Reference number", value: proof.referenceNumber ?? "Not provided", mono: false },
-                      { label: "Document date", value: proof.documentDate ? formatDate(proof.documentDate) : "Not provided", mono: false },
-                      { label: "Proof timestamp", value: proof.proofTimestamp ? formatDateTime(proof.proofTimestamp) : "Not available", mono: false },
-                      { label: "Issued by", value: proof.issuedBy ?? "Not available", mono: false },
-                      { label: "Proof status", value: proof.revoked ? "Revoked" : "Active", mono: false },
+                      { label: t.proofResult.verificationCode, value: proof.verificationCode ?? t.common.notAvailable, mono: true },
+                      { label: t.uploadPanel.tableDocumentTitle, value: proof.title ?? t.common.notAvailable, mono: false },
+                      { label: t.uploadPanel.tableDocumentType, value: proof.documentType ?? t.common.notAvailable, mono: false },
+                      { label: t.proofResult.referenceNumber, value: proof.referenceNumber ?? t.common.notProvided, mono: false },
+                      { label: t.uploadPanel.tableDocumentDate, value: proof.documentDate ? formatDate(proof.documentDate) : t.common.notProvided, mono: false },
+                      { label: t.proofResult.proofTimestamp, value: proof.proofTimestamp ? formatDateTime(proof.proofTimestamp) : t.common.notAvailable, mono: false },
+                      { label: t.uploadPanel.tableIssuedBy, value: proof.issuedBy ?? t.common.notAvailable, mono: false },
+                      { label: t.proofResult.proofStatus, value: proof.revoked ? t.common.revoked : t.common.active, mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
                         <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
@@ -181,15 +186,15 @@ export default async function ProofPage({ params }: ProofPageProps) {
           <div className="space-y-4">
             <div className="work-surface overflow-hidden p-0">
               <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-                <p className="kicker mb-1">Issuing institution</p>
+                <p className="kicker mb-1">{t.verifyResult.issuingInstitution}</p>
                 <h2 className="section-title">{institutionLabel}</h2>
               </div>
               <div>
                 {[
-                  { label: "Hash match", value: proof.authentic ? "Yes" : "No" },
-                  { label: "Revoked", value: proof.revoked ? "Yes" : "No" },
-                  { label: "Checks", value: String(proof.verificationCount) },
-                  { label: "Domain", value: proof.issuer?.domain ?? "Not available" },
+                  { label: t.proofResult.hashMatch, value: proof.authentic ? t.common.yes : t.common.no },
+                  { label: t.common.revoked, value: proof.revoked ? t.common.yes : t.common.no },
+                  { label: t.proofResult.checks, value: String(proof.verificationCount) },
+                  { label: t.verifyResult.domain, value: proof.issuer?.domain ?? t.common.notAvailable },
                 ].map((row, i, arr) => (
                   <div
                     key={row.label}
@@ -211,7 +216,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
                   >
-                    Visit institution website
+                    {t.verifyResult.visitInstitutionWebsite}
                     <ArrowSquareOut size={11} aria-hidden />
                   </a>
                 </div>
@@ -219,9 +224,9 @@ export default async function ProofPage({ params }: ProofPageProps) {
             </div>
 
             <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-5 py-4">
-              <p className="kicker mb-1.5">About document proofs</p>
+              <p className="kicker mb-1.5">{t.proofResult.aboutDocumentProofs}</p>
               <p className="meta-text">
-                Results reflect hash comparison at the time of this check. Does not imply credential validity; only confirms SHA-256 integrity of the registered document.
+                {t.proofResult.aboutBody}
               </p>
             </div>
           </div>

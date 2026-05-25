@@ -4,6 +4,8 @@ import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 type AdminRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
 interface CreateAdminFormProps {
@@ -12,6 +14,7 @@ interface CreateAdminFormProps {
 
 export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,14 +39,14 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
       });
       const body = (await response.json()) as { message?: string };
       if (!response.ok) {
-        throw new Error(body.message ?? "Unable to create admin");
+        throw new Error(body.message ?? t.forms.createAdmin.unable);
       }
-      setSuccess("Admin account created.");
+      setSuccess(t.forms.createAdmin.success);
       startTransition(() => {
         router.refresh();
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create admin");
+      setError(err instanceof Error ? err.message : t.forms.createAdmin.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -53,7 +56,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
     <form action={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <label htmlFor="username" className="field-label">
-          Username
+          {t.forms.createAdmin.username}
         </label>
         <input
           id="username"
@@ -71,7 +74,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
 
       <div className="space-y-1.5">
         <label htmlFor="password" className="field-label">
-          Password
+          {t.forms.createAdmin.password}
         </label>
         <div className="relative">
           <input
@@ -87,7 +90,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
           <button
             type="button"
             onClick={() => setShowPassword((visible) => !visible)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t.forms.createAdmin.hidePassword : t.forms.createAdmin.showPassword}
             aria-pressed={showPassword}
             className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[hsl(var(--text-tertiary))] transition-colors duration-150 hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--border-strong))] cursor-pointer"
           >
@@ -102,7 +105,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
 
       <div className="space-y-1.5">
         <label htmlFor="role" className="field-label">
-          Role
+          {t.forms.createAdmin.role}
         </label>
         <select
           id="role"
@@ -111,13 +114,13 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
           className="field-shell w-full text-sm"
         >
           {actorRole === "OWNER" && (
-            <option value="OWNER">Owner</option>
+            <option value="OWNER">{t.roles.owner}</option>
           )}
           {(actorRole === "OWNER") && (
-            <option value="SUPER_ADMIN">Super admin</option>
+            <option value="SUPER_ADMIN">{t.roles.superAdmin}</option>
           )}
-          <option value="ADMIN">Admin / Operator</option>
-          <option value="AUDITOR">Auditor / Viewer</option>
+          <option value="ADMIN">{t.roles.adminOperator}</option>
+          <option value="AUDITOR">{t.roles.auditorViewer}</option>
         </select>
       </div>
 
@@ -137,7 +140,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
         disabled={isSubmitting}
         className="btn-primary inline-flex w-full items-center justify-center"
       >
-        {isSubmitting ? "Creating..." : "Create admin"}
+        {isSubmitting ? t.forms.createAdmin.creating : t.forms.createAdmin.submit}
       </button>
     </form>
   );

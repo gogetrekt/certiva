@@ -3,20 +3,14 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 type RevocationReason =
   | "DATA_CORRECTION"
   | "ISSUED_IN_ERROR"
   | "FRAUD_SUSPECTED"
   | "INSTITUTION_REQUEST"
   | "OTHER";
-
-const REVOCATION_REASON_LABELS: Record<RevocationReason, string> = {
-  DATA_CORRECTION: "Data correction",
-  ISSUED_IN_ERROR: "Issued in error",
-  FRAUD_SUSPECTED: "Fraud suspected",
-  INSTITUTION_REQUEST: "Institution request",
-  OTHER: "Other",
-};
 
 type CredentialSummary = {
   studentName: string;
@@ -35,6 +29,7 @@ export function RevokeCredentialButton({
   summary: CredentialSummary;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const titleId = useId();
   const descriptionId = useId();
   const reasonId = useId();
@@ -59,7 +54,7 @@ export function RevokeCredentialButton({
 
   async function handleRevoke() {
     if (!reason) {
-      setError("A revocation reason is required");
+      setError(t.forms.revokeCredential.reasonRequired);
       return;
     }
     setIsSubmitting(true);
@@ -72,14 +67,14 @@ export function RevokeCredentialButton({
       });
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to revoke credential");
+        throw new Error(body.message ?? t.forms.revokeCredential.unable);
       }
       setIsOpen(false);
       setReason("");
       setNotes("");
       startTransition(() => { router.refresh(); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to revoke credential");
+      setError(err instanceof Error ? err.message : t.forms.revokeCredential.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -87,7 +82,7 @@ export function RevokeCredentialButton({
 
   if (revoked) {
     return (
-      <span className="badge badge-warn">Revoked</span>
+      <span className="badge badge-warn">{t.common.revoked}</span>
     );
   }
 
@@ -98,7 +93,7 @@ export function RevokeCredentialButton({
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center rounded border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--status-warn-text))] transition-colors hover:opacity-80 cursor-pointer"
       >
-        Revoke
+        {t.forms.revokeCredential.revoke}
       </button>
 
       {isOpen ? (
@@ -116,21 +111,21 @@ export function RevokeCredentialButton({
             className="relative w-full max-w-md rounded-xl border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] shadow-2xl"
           >
             <div className="border-b border-[hsl(var(--border-default))] px-6 py-5">
-              <p id={titleId} className="text-sm font-semibold text-[hsl(var(--text-primary))]">Revoke credential</p>
+              <p id={titleId} className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t.forms.revokeCredential.title}</p>
               <p id={descriptionId} className="mt-0.5 text-xs text-[hsl(var(--text-tertiary))]">
-                This updates the public verification result and records the revocation reason. This action cannot be undone.
+                {t.forms.revokeCredential.description}
               </p>
             </div>
             <div className="space-y-4 px-6 py-5">
               <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 py-3">
-                <p className="kicker mb-1.5">Credential</p>
+                <p className="kicker mb-1.5">{t.forms.revokeCredential.credential}</p>
                 <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{summary.degree}</p>
-                <p className="text-xs text-[hsl(var(--text-tertiary))]">{summary.studentName} · {summary.studentId}</p>
+                <p className="text-xs text-[hsl(var(--text-tertiary))]">{summary.studentName} / {summary.studentId}</p>
                 {summary.issuerName ? <p className="text-xs text-[hsl(var(--text-quaternary))]">{summary.issuerName}</p> : null}
               </div>
               <div className="space-y-1.5">
                 <label htmlFor={reasonId} className="field-label">
-                  Revocation reason <span className="text-[hsl(var(--status-error-text))]">*</span>
+                  {t.forms.revokeCredential.reasonLabel} <span className="text-[hsl(var(--status-error-text))]">*</span>
                 </label>
                 <select
                   id={reasonId}
@@ -139,15 +134,15 @@ export function RevokeCredentialButton({
                   className="field-shell w-full"
                   required
                 >
-                  <option value="">Select a reason…</option>
-                  {(Object.keys(REVOCATION_REASON_LABELS) as RevocationReason[]).map((key) => (
-                    <option key={key} value={key}>{REVOCATION_REASON_LABELS[key]}</option>
+                  <option value="">{t.forms.revokeCredential.selectReason}</option>
+                  {(Object.keys(t.forms.revokeCredential.reasons) as RevocationReason[]).map((key) => (
+                    <option key={key} value={key}>{t.forms.revokeCredential.reasons[key]}</option>
                   ))}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <label htmlFor={notesId} className="field-label">
-                  Notes <span className="text-[hsl(var(--text-quaternary))] font-normal">(optional)</span>
+                  {t.forms.revokeCredential.notes} <span className="text-[hsl(var(--text-quaternary))] font-normal">({t.common.optional})</span>
                 </label>
                 <textarea
                   id={notesId}
@@ -155,7 +150,7 @@ export function RevokeCredentialButton({
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
                   maxLength={500}
-                  placeholder="Additional context…"
+                  placeholder={t.forms.revokeCredential.notesPlaceholder}
                   className="field-shell w-full resize-none"
                 />
               </div>
@@ -171,7 +166,7 @@ export function RevokeCredentialButton({
                 onClick={() => setIsOpen(false)}
                 className="btn-ghost btn-sm"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -179,7 +174,7 @@ export function RevokeCredentialButton({
                 disabled={isSubmitting || !reason}
                 className="inline-flex items-center rounded border border-[hsl(var(--status-warn-border))] bg-[hsl(var(--status-warn-bg))] px-3 py-1.5 text-xs font-medium text-[hsl(var(--status-warn-text))] transition-colors hover:opacity-80 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Revoking…" : "Confirm revoke"}
+                {isSubmitting ? t.forms.revokeCredential.revoking : t.forms.revokeCredential.confirm}
               </button>
             </div>
           </div>

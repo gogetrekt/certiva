@@ -4,8 +4,11 @@ import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 export function LoginForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +31,7 @@ export function LoginForm() {
 
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to sign in");
+        throw new Error(body.message ?? t.loginForm.errorDefault);
       }
 
       startTransition(() => {
@@ -39,7 +42,7 @@ export function LoginForm() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : "Unable to sign in",
+          : t.loginForm.errorDefault,
       );
     } finally {
       setIsSubmitting(false);
@@ -50,13 +53,13 @@ export function LoginForm() {
     <form action={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="username" className="field-label">
-          Username
+          {t.loginForm.usernameLabel}
         </label>
         <input
           id="username"
           name="username"
           type="text"
-          placeholder="admin"
+          placeholder={t.loginForm.usernamePlaceholder}
           autoComplete="username"
           autoCapitalize="none"
           required
@@ -66,7 +69,7 @@ export function LoginForm() {
 
       <div>
         <label htmlFor="password" className="field-label">
-          Password
+          {t.loginForm.passwordLabel}
         </label>
         <div className="relative">
           <input
@@ -81,9 +84,9 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword((visible) => !visible)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t.loginForm.hidePassword : t.loginForm.showPassword}
             aria-pressed={showPassword}
-            className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[hsl(var(--text-tertiary))] transition-colors duration-150 hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--border-strong))] cursor-pointer"
+            className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[hsl(var(--text-tertiary))] transition-colors duration-150 hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--border-strong))] cursor-pointer"
           >
             {showPassword ? (
               <EyeSlash size={15} aria-hidden />
@@ -106,7 +109,7 @@ export function LoginForm() {
         className="btn-primary w-full mt-2"
         style={{ height: "2.375rem" }}
       >
-        {isSubmitting ? "Signing in..." : "Sign in to workspace"}
+        {isSubmitting ? t.loginForm.submitting : t.loginForm.submit}
       </button>
     </form>
   );

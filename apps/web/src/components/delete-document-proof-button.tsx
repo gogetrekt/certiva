@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 type DocumentProofSummary = {
   title: string;
   referenceNumber: string | null;
@@ -16,6 +18,7 @@ export function DeleteDocumentProofButton({
   summary: DocumentProofSummary;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const titleId = useId();
   const descriptionId = useId();
   const [isOpen, setIsOpen] = useState(false);
@@ -45,7 +48,7 @@ export function DeleteDocumentProofButton({
       });
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to delete proof record");
+        throw new Error(body.message ?? t.forms.deleteDocumentProof.unable);
       }
       setIsOpen(false);
       startTransition(() => {
@@ -53,7 +56,7 @@ export function DeleteDocumentProofButton({
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to delete proof record",
+        err instanceof Error ? err.message : t.forms.deleteDocumentProof.unable,
       );
     } finally {
       setIsSubmitting(false);
@@ -70,7 +73,7 @@ export function DeleteDocumentProofButton({
         }}
         className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 cursor-pointer"
       >
-        Delete
+        {t.forms.deleteDocumentProof.delete}
       </button>
 
       {isOpen ? (
@@ -92,28 +95,28 @@ export function DeleteDocumentProofButton({
                 id={titleId}
                 className="text-sm font-semibold text-[hsl(var(--text-primary))]"
               >
-                Delete proof record?
+                {t.forms.deleteDocumentProof.title}
               </p>
             </div>
             <div id={descriptionId} className="space-y-4 px-6 py-5">
               <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 py-3">
-                <p className="kicker mb-1.5">Title</p>
+                <p className="kicker mb-1.5">{t.common.title}</p>
                 <p className="text-sm font-medium text-[hsl(var(--text-primary))]">
                   {summary.title}
                 </p>
-                <p className="kicker mt-3 mb-1.5">Reference</p>
+                <p className="kicker mt-3 mb-1.5">{t.common.reference}</p>
                 <p className="text-xs text-[hsl(var(--text-tertiary))]">
-                  {summary.referenceNumber ?? "Not provided"}
+                  {summary.referenceNumber ?? t.common.notProvided}
                 </p>
               </div>
               <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs leading-5 text-[hsl(var(--status-error-text))]">
                 <p>
-                  Only proof metadata and SHA256 hash records will be removed.
+                  {t.forms.deleteDocumentProof.metadataRemoved}
                 </p>
                 <p className="mt-2">
-                  No source PDF files are stored in the system.
+                  {t.common.noSourcePdfStored}
                 </p>
-                <p className="mt-2">This action cannot be undone.</p>
+                <p className="mt-2">{t.common.cannotBeUndone}</p>
               </div>
               {error ? (
                 <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs text-[hsl(var(--status-error-text))]">
@@ -127,7 +130,7 @@ export function DeleteDocumentProofButton({
                 onClick={() => setIsOpen(false)}
                 className="btn-ghost btn-sm"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -135,7 +138,7 @@ export function DeleteDocumentProofButton({
                 disabled={isSubmitting}
                 className="inline-flex items-center rounded border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-3 py-1.5 text-xs font-medium text-[hsl(var(--status-error-text))] transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
               >
-                {isSubmitting ? "Deleting..." : "Delete"}
+                {isSubmitting ? t.forms.deleteDocumentProof.deleting : t.forms.deleteDocumentProof.delete}
               </button>
             </div>
           </div>

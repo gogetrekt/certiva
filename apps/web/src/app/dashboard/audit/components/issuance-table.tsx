@@ -4,32 +4,35 @@ import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr";
 import type { LatestIssuanceRecord, LatestRevocationRecord } from "../../../../lib/api";
 import { StatusBadge } from "../../../../components/status-badge";
 import { formatDate } from "../../../../lib/date-format";
+import { getServerDictionary } from "../../../../lib/i18n-server";
 
 // ─── Latest issuances ─────────────────────────────────────────────────────────
 
-export function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
+export async function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
+  const t = await getServerDictionary();
+
   return (
     <div className="work-surface overflow-hidden p-0">
       <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-        <p className="kicker mb-1">Recent</p>
-        <h2 className="section-title">Latest Issuances</h2>
+        <p className="kicker mb-1">{t.auditComponents.issuanceTable.recent}</p>
+        <h2 className="section-title">{t.auditComponents.issuanceTable.latestIssuances}</h2>
       </div>
 
       {items.length === 0 ? (
         <div className="px-5 py-6 text-center">
-          <p className="body-text">No credentials issued yet.</p>
+          <p className="body-text">{t.auditComponents.issuanceTable.emptyIssuances}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
-                <th className="th-cell">Credential ID</th>
-                <th className="th-cell">Institution</th>
-                <th className="th-cell">Degree</th>
-                <th className="th-cell">Issued</th>
-                <th className="th-cell">Chain</th>
-                <th className="th-cell">Tx Hash</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.credentialId}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.institution}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.degree}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.issued}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.chain}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.txHash}</th>
               </tr>
             </thead>
             <tbody>
@@ -78,7 +81,7 @@ export function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
                         className="inline-flex items-center gap-1 hash-text text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors truncate"
                         title={item.txHash}
                       >
-                        {item.txHash.slice(0, 8)}…{item.txHash.slice(-6)}
+                        {item.txHash.slice(0, 8)}...{item.txHash.slice(-6)}
                         <ArrowSquareOut size={10} aria-hidden />
                       </a>
                     ) : (
@@ -97,29 +100,31 @@ export function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }) {
 
 // ─── Latest revocations ───────────────────────────────────────────────────────
 
-export function RevocationTable({ items }: { items: LatestRevocationRecord[] }) {
+export async function RevocationTable({ items }: { items: LatestRevocationRecord[] }) {
+  const t = await getServerDictionary();
+
   return (
     <div className="work-surface overflow-hidden p-0">
       <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
-        <p className="kicker mb-1">Recent</p>
-        <h2 className="section-title">Latest Revocations</h2>
+        <p className="kicker mb-1">{t.auditComponents.issuanceTable.recent}</p>
+        <h2 className="section-title">{t.auditComponents.issuanceTable.latestRevocations}</h2>
       </div>
 
       {items.length === 0 ? (
         <div className="px-5 py-6 text-center">
-          <p className="body-text text-[hsl(var(--text-tertiary))]">No revocations recorded.</p>
+          <p className="body-text text-[hsl(var(--text-tertiary))]">{t.auditComponents.issuanceTable.emptyRevocations}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
-                <th className="th-cell">Credential ID</th>
-                <th className="th-cell">Institution</th>
-                <th className="th-cell">Degree</th>
-                <th className="th-cell">Revoked</th>
-                <th className="th-cell">Reason</th>
-                <th className="th-cell">Revocation Tx</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.credentialId}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.institution}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.degree}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.revoked}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.reason}</th>
+                <th className="th-cell">{t.auditComponents.issuanceTable.revocationTx}</th>
               </tr>
             </thead>
             <tbody>
@@ -165,7 +170,7 @@ export function RevocationTable({ items }: { items: LatestRevocationRecord[] }) 
                         className="inline-flex items-center gap-1 hash-text text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors truncate"
                         title={item.revocationTxHash}
                       >
-                        {item.revocationTxHash.slice(0, 8)}…{item.revocationTxHash.slice(-6)}
+                        {item.revocationTxHash.slice(0, 8)}...{item.revocationTxHash.slice(-6)}
                         <ArrowSquareOut size={10} aria-hidden />
                       </a>
                     ) : (

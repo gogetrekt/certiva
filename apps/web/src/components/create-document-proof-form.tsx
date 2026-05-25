@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { FileArrowUp, ArrowRight } from "@phosphor-icons/react";
 
 import type { DocumentProofRecord } from "../lib/api";
+import { useLanguage } from "../lib/i18n";
 
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 
 export function CreateDocumentProofForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [title, setTitle] = useState("");
   const [documentType, setDocumentType] = useState("");
@@ -27,15 +29,15 @@ export function CreateDocumentProofForm() {
 
     const file = fileInputRef.current?.files?.[0];
     if (!title.trim() || !documentType.trim()) {
-      setError("Title and document type are required.");
+      setError(t.forms.createDocumentProof.titleRequired);
       return;
     }
     if (!file) {
-      setError("Choose a PDF document to register.");
+      setError(t.forms.createDocumentProof.choosePdfRequired);
       return;
     }
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      setError("PDF uploads must be 10MB or smaller.");
+      setError(t.forms.createDocumentProof.tooLarge);
       return;
     }
 
@@ -51,12 +53,12 @@ export function CreateDocumentProofForm() {
       const response = await fetch("/api/document-proofs", { method: "POST", body: formData });
       const payload = (await response.json()) as DocumentProofRecord | { message?: string };
       if (!response.ok) {
-        throw new Error("message" in payload ? payload.message : "Unable to register document proof.");
+        throw new Error("message" in payload ? payload.message : t.forms.createDocumentProof.unable);
       }
       startTransition(() => { setCreated(payload as DocumentProofRecord); });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to register document proof.");
+      setError(err instanceof Error ? err.message : t.forms.createDocumentProof.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -66,27 +68,27 @@ export function CreateDocumentProofForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label htmlFor="proof-title" className="field-label">Document title</label>
+          <label htmlFor="proof-title" className="field-label">{t.forms.createDocumentProof.documentTitle}</label>
           <input
             id="proof-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Official transcript 2026"
+            placeholder={t.forms.createDocumentProof.placeholderTitle}
             className="field-shell w-full"
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="document-type" className="field-label">Document type</label>
+          <label htmlFor="document-type" className="field-label">{t.forms.createDocumentProof.documentType}</label>
           <input
             id="document-type"
             value={documentType}
             onChange={(e) => setDocumentType(e.target.value)}
-            placeholder="Transcript, MoU, legal"
+            placeholder={t.forms.createDocumentProof.placeholderType}
             className="field-shell w-full"
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="reference-number" className="field-label">Reference number</label>
+          <label htmlFor="reference-number" className="field-label">{t.forms.createDocumentProof.referenceNumber}</label>
           <input
             id="reference-number"
             value={referenceNumber}
@@ -96,7 +98,7 @@ export function CreateDocumentProofForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="document-date" className="field-label">Document date</label>
+          <label htmlFor="document-date" className="field-label">{t.forms.createDocumentProof.documentDate}</label>
           <input
             id="document-date"
             type="date"
@@ -126,8 +128,8 @@ export function CreateDocumentProofForm() {
           <FileArrowUp size={16} />
         </div>
         <div>
-          <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{fileName ?? "Choose a PDF"}</p>
-          <p className="text-xs text-[hsl(var(--text-quaternary))]">{fileName ? "Click to change" : "Max 10MB · SHA-256 hashed on upload"}</p>
+          <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{fileName ?? t.forms.createDocumentProof.choosePdf}</p>
+          <p className="text-xs text-[hsl(var(--text-quaternary))]">{fileName ? t.uploadPanel.clickToChange : t.forms.createDocumentProof.maxNote}</p>
         </div>
       </div>
 
@@ -140,19 +142,19 @@ export function CreateDocumentProofForm() {
         disabled={isSubmitting}
         className="btn-primary inline-flex w-full items-center justify-center gap-2"
       >
-        {isSubmitting ? "Registering…" : "Register document proof"}
+        {isSubmitting ? t.forms.createDocumentProof.registering : t.forms.createDocumentProof.submit}
         {!isSubmitting && <ArrowRight size={14} weight="bold" />}
       </button>
 
       {created ? (
         <div className="rounded-lg border border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] px-4 py-4 space-y-2">
-          <p className="text-xs font-semibold text-[hsl(var(--status-valid-text))]">Document proof registered.</p>
+          <p className="text-xs font-semibold text-[hsl(var(--status-valid-text))]">{t.forms.createDocumentProof.registered}</p>
           <div className="space-y-1">
-            <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">Verification code</p>
+            <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">{t.forms.createDocumentProof.verificationCode}</p>
             <p className="hash-text">{created.verificationCode}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">SHA-256</p>
+            <p className="text-[0.6875rem] text-[hsl(var(--text-quaternary))]">{t.forms.createDocumentProof.sha256}</p>
             <p className="hash-text wrap-break-word leading-5">{created.sourceHash}</p>
           </div>
         </div>

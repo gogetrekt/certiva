@@ -9,10 +9,12 @@ import {
   getSessionToken,
   isInstitutionSetupRequired,
 } from "../../../lib/api";
+import { getServerDictionary } from "../../../lib/i18n-server";
 
 export default async function SettingsPage() {
   const token = await getSessionToken();
   if (!token) return null;
+  const t = await getServerDictionary();
 
   const admin = await getCurrentAdmin(token);
   if (admin.role !== "OWNER" && admin.role !== "SUPER_ADMIN") redirect("/dashboard");
@@ -31,11 +33,10 @@ export default async function SettingsPage() {
     <div className="space-y-6">
       {/* ── Page header ──────────────────────────────── */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
-        <p className="kicker mb-1.5">Settings</p>
-        <h1 className="page-title">Settings</h1>
+        <p className="kicker mb-1.5">{t.dashboard.settings.title}</p>
+        <h1 className="page-title">{t.dashboard.settings.title}</h1>
         <p className="body-text mt-1.5">
-          Manage the institutional identity used across credential issuance,
-          verification, and branding.
+          {t.dashboard.settings.description}
         </p>
       </div>
 
@@ -47,13 +48,9 @@ export default async function SettingsPage() {
         {/* Side notes */}
         <div className="space-y-5">
           <div>
-            <p className="kicker mb-3">Scope</p>
+            <p className="kicker mb-3">{t.dashboard.settings.scope}</p>
             <div className="space-y-3">
-              {[
-                "Branding shown on verification pages and certificates.",
-                "Institution domain and verification presentation settings.",
-                "Issuer wallet address used for blockchain proof anchoring and revocation.",
-              ].map((text) => (
+              {t.dashboard.settings.scopeNotes.map((text) => (
                 <p
                   key={text}
                   className="text-xs leading-5 text-[hsl(var(--text-tertiary))]"
@@ -65,9 +62,9 @@ export default async function SettingsPage() {
           </div>
 
           <div className="border-t border-[hsl(var(--border-subtle))] pt-4">
-            <p className="kicker mb-2">Access</p>
+            <p className="kicker mb-2">{t.dashboard.settings.access}</p>
             <p className="text-xs leading-5 text-[hsl(var(--text-tertiary))]">
-              Super admin only. Changes take effect immediately on save.
+              {t.dashboard.settings.accessNote}
             </p>
           </div>
         </div>

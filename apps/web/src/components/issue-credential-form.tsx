@@ -3,12 +3,15 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
+import { useLanguage } from "../lib/i18n";
+
 interface IssueCredentialFormProps {
   institutionName?: string;
 }
 
 export function IssueCredentialForm({ institutionName }: IssueCredentialFormProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,16 +34,16 @@ export function IssueCredentialForm({ institutionName }: IssueCredentialFormProp
         body: JSON.stringify(payload),
       });
       const body = (await response.json()) as { verificationId?: string; message?: string };
-      if (!response.ok) throw new Error(body.message ?? "Unable to issue credential");
+      if (!response.ok) throw new Error(body.message ?? t.forms.issueCredential.unable);
 
       setSuccess(
         body.verificationId
-          ? `Issued. Verification ID: ${body.verificationId}`
-          : "Credential issued.",
+          ? `${t.forms.issueCredential.successPrefix} ${body.verificationId}`
+          : t.forms.issueCredential.successDefault,
       );
       startTransition(() => { router.refresh(); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to issue credential");
+      setError(err instanceof Error ? err.message : t.forms.issueCredential.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -50,31 +53,31 @@ export function IssueCredentialForm({ institutionName }: IssueCredentialFormProp
     <form action={handleSubmit} className="space-y-4">
       {institutionName ? (
         <div className="space-y-1.5">
-          <label className="field-label">Institution</label>
+          <label className="field-label">{t.forms.issueCredential.institution}</label>
           <input value={institutionName} readOnly disabled className="field-shell w-full opacity-60" />
         </div>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label htmlFor="studentName" className="field-label">Student name</label>
+          <label htmlFor="studentName" className="field-label">{t.forms.issueCredential.studentName}</label>
           <input id="studentName" name="studentName" placeholder="Rafi Pratama" required className="field-shell w-full" />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="studentId" className="field-label">Student ID</label>
+          <label htmlFor="studentId" className="field-label">{t.forms.issueCredential.studentId}</label>
           <input id="studentId" name="studentId" placeholder="STU-2026-001" required className="field-shell w-full font-mono" />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="degree" className="field-label">Credential title</label>
-        <input id="degree" name="degree" placeholder="Bachelor of Computer Science" required className="field-shell w-full" />
+        <label htmlFor="degree" className="field-label">{t.forms.issueCredential.credentialTitle}</label>
+        <input id="degree" name="degree" placeholder={t.forms.issueCredential.placeholderDegree} required className="field-shell w-full" />
       </div>
 
       <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 py-3">
-        <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">Core registry issuance</p>
+        <p className="text-xs font-medium text-[hsl(var(--text-secondary))]">{t.forms.issueCredential.infoTitle}</p>
         <p className="mt-1 text-xs leading-5 text-[hsl(var(--text-tertiary))]">
-          Creates the registry record, verification references, QR asset, metadata, and blockchain issuance job. Register a final PDF from the credential detail page after the document is complete.
+          {t.forms.issueCredential.infoBody}
         </p>
       </div>
 
@@ -95,7 +98,7 @@ export function IssueCredentialForm({ institutionName }: IssueCredentialFormProp
         disabled={isSubmitting}
         className="btn-primary mt-1 inline-flex w-full items-center justify-center"
       >
-        {isSubmitting ? "Issuing…" : "Issue credential"}
+        {isSubmitting ? t.forms.issueCredential.submitting : t.forms.issueCredential.submit}
       </button>
     </form>
   );

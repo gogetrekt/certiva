@@ -14,8 +14,10 @@ import {
 } from "@phosphor-icons/react";
 
 import { AppLogo } from "./app-logo";
+import { LanguageToggle } from "./language-toggle";
 import { LogoutButton } from "./logout-button";
 import { ThemeToggle } from "./theme-toggle";
+import { useLanguage } from "../lib/i18n";
 
 type DashboardRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
@@ -33,93 +35,93 @@ interface DashboardShellProps {
   children: React.ReactNode;
 }
 
-const ROLE_LABELS: Record<DashboardRole, string> = {
-  OWNER: "Owner",
-  SUPER_ADMIN: "Super admin",
-  ADMIN: "Admin",
-  AUDITOR: "Auditor",
-};
-
 const navigationGroups = [
   {
-    title: "Overview",
+    titleKey: "overview",
     items: [
       {
         href: "/dashboard",
-        label: "Dashboard",
+        labelKey: "dashboard",
         icon: House,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
     ],
   },
   {
-    title: "Credentials",
+    titleKey: "credentials",
     items: [
       {
         href: "/dashboard/credentials",
-        label: "Registry",
+        labelKey: "registry",
         icon: IdentificationCard,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
       {
         href: "/dashboard/issue",
-        label: "Issue",
+        labelKey: "issue",
         icon: IdentificationCard,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN"] as DashboardRole[],
       },
     ],
   },
   {
-    title: "Documents",
+    titleKey: "documents",
     items: [
       {
         href: "/dashboard/document-proofs",
-        label: "Secure Documents",
+        labelKey: "secureDocuments",
         icon: ShieldCheck,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
     ],
   },
   {
-    title: "Activity",
+    titleKey: "activity",
     items: [
       {
         href: "/dashboard/logs",
-        label: "Verification Logs",
+        labelKey: "verificationLogs",
         icon: Stack,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
       {
         href: "/dashboard/blockchain",
-        label: "Audit Trail",
+        labelKey: "auditTrail",
         icon: LockKey,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
     ],
   },
   {
-    title: "Administration",
+    titleKey: "administration",
     items: [
       {
         href: "/dashboard/team",
-        label: "Administrators",
+        labelKey: "administrators",
         icon: UsersThree,
         roles: ["OWNER", "SUPER_ADMIN"] as DashboardRole[],
       },
       {
         href: "/dashboard/settings",
-        label: "Settings",
+        labelKey: "settings",
         icon: Gear,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
     ],
   },
-];
+] as const;
 
 export function DashboardShell({ admin, children }: DashboardShellProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+  const roleLabels: Record<DashboardRole, string> = {
+    OWNER: t.roles.owner,
+    SUPER_ADMIN: t.roles.superAdmin,
+    ADMIN: t.roles.admin,
+    AUDITOR: t.roles.auditor,
+  };
   const institutionLabel =
-    admin.issuer?.displayName ?? admin.issuer?.name ?? "Institution";
+    admin.issuer?.displayName ?? admin.issuer?.name ?? t.dashboardShell.fallbackInstitution;
   const operatorLabel = `@${admin.username ?? admin.email.split("@")[0]}`;
 
   const visibleGroups = navigationGroups
@@ -160,9 +162,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                 {operatorLabel}
               </p>
               <div className="mt-2">
-                <span className="role-chip">
-                  {ROLE_LABELS[admin.role] ?? admin.role}
-                </span>
+                <span className="role-chip">{roleLabels[admin.role] ?? admin.role}</span>
               </div>
             </div>
 
@@ -170,10 +170,12 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
             <div className="mb-4 border-t border-[hsl(var(--border-default))]" />
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-4" aria-label="Dashboard navigation">
+            <nav className="flex-1 space-y-4" aria-label={t.dashboardShell.navAria}>
               {visibleGroups.map((group) => (
-                <div key={group.title}>
-                  <p className="kicker px-2 mb-1">{group.title}</p>
+                <div key={group.titleKey}>
+                  <p className="kicker px-2 mb-1">
+                    {t.dashboardShell.groups[group.titleKey]}
+                  </p>
                   <div className="space-y-px">
                     {group.items.map((item) => {
                       const isActive =
@@ -194,7 +196,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                             className="shrink-0 opacity-70"
                             aria-hidden
                           />
-                          <span>{item.label}</span>
+                          <span>{t.dashboardShell.items[item.labelKey]}</span>
                         </Link>
                       );
                     })}
@@ -205,7 +207,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
 
             {/* Footer links */}
             <div className="mt-4 pt-4 border-t border-[hsl(var(--border-default))]">
-              <p className="kicker px-2 mb-1">Public</p>
+              <p className="kicker px-2 mb-1">{t.common.public}</p>
               <div className="space-y-px">
                 <Link href="/verify" target="_blank" className="nav-item">
                   <ArrowSquareOut
@@ -213,7 +215,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                     className="shrink-0 opacity-50"
                     aria-hidden
                   />
-                  <span>Credential Check</span>
+                  <span>{t.nav.credentialCheck}</span>
                 </Link>
                 <Link
                   href="/verify/document"
@@ -225,7 +227,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                     className="shrink-0 opacity-50"
                     aria-hidden
                   />
-                  <span>Document Check</span>
+                  <span>{t.nav.documentCheck}</span>
                 </Link>
               </div>
             </div>
@@ -250,7 +252,9 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                     /
                   </span>
                   <span className="text-[hsl(var(--text-secondary))] font-medium truncate">
-                    {currentItem?.label ?? "Dashboard"}
+                    {currentItem
+                      ? t.dashboardShell.items[currentItem.labelKey]
+                      : t.dashboardShell.items.dashboard}
                   </span>
                 </div>
               </div>
@@ -263,8 +267,9 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
                   className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-[hsl(var(--border-default))] bg-transparent text-[0.75rem] font-medium text-[hsl(var(--text-tertiary))] transition-colors hover:bg-[hsl(var(--bg-muted))] hover:text-[hsl(var(--text-primary))] hover:border-[hsl(var(--border-strong))]"
                 >
                   <ArrowSquareOut size={12} aria-hidden />
-                  Verify
+                  {t.common.verify}
                 </Link>
+                <LanguageToggle />
                 <ThemeToggle />
                 <LogoutButton />
               </div>

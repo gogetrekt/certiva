@@ -35,12 +35,14 @@ import {
 import { ExportButton } from "./audit/components/export-button";
 import { InstitutionSetupState } from "../../components/institution-setup-state";
 import { isInstitutionSetupRequired, getCurrentAdmin } from "../../lib/api";
+import { getServerDictionary } from "../../lib/i18n-server";
 
 export default async function DashboardOverviewPage() {
   const token = await getSessionToken();
   if (!token) return null;
 
   const admin = await getCurrentAdmin(token);
+  const t = await getServerDictionary();
 
   let metrics, activity, analytics, issuances, revocations, queue;
 
@@ -64,7 +66,7 @@ export default async function DashboardOverviewPage() {
   }
 
   const institutionLabel =
-    admin.issuer?.displayName ?? admin.issuer?.name ?? "Institution";
+    admin.issuer?.displayName ?? admin.issuer?.name ?? t.dashboardShell.fallbackInstitution;
 
   return (
     <div className="space-y-7">
@@ -72,14 +74,14 @@ export default async function DashboardOverviewPage() {
       <div className="flex items-start justify-between gap-4 pb-6 border-b border-[hsl(var(--border-default))]">
         <div>
           <p className="kicker mb-2">{institutionLabel}</p>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title">{t.dashboard.overview.title}</h1>
           <p className="body-text mt-1">
-            Academic Verification Operations Center
+            {t.dashboard.overview.subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2 pt-1 shrink-0">
           <Link href="/dashboard/issue" className="btn-primary btn-sm">
-            Issue credential
+            {t.dashboard.overview.issueCredential}
           </Link>
           <Suspense fallback={null}>
             <ExportButton token={token} />
@@ -88,7 +90,7 @@ export default async function DashboardOverviewPage() {
       </div>
 
       {/* â”€â”€ Metric cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section aria-label="Key metrics">
+      <section aria-label={t.dashboard.overview.keyMetricsAria}>
         <Suspense fallback={<MetricCardsSkeleton />}>
           <MetricCards metrics={metrics} />
         </Suspense>
@@ -96,13 +98,13 @@ export default async function DashboardOverviewPage() {
 
       {/* â”€â”€ Chart + queue monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid gap-6 xl:grid-cols-[1fr_300px]">
-        <section aria-label="Verification analytics">
+        <section aria-label={t.dashboard.overview.verificationAnalyticsAria}>
           <Suspense fallback={<VerificationChartSkeleton />}>
             <VerificationChart initialData={analytics} />
           </Suspense>
         </section>
 
-        <section aria-label="Queue health">
+        <section aria-label={t.dashboard.overview.queueHealthAria}>
           <Suspense fallback={<QueueMonitorSkeleton />}>
             <QueueMonitor initialData={queue} />
           </Suspense>
@@ -110,7 +112,7 @@ export default async function DashboardOverviewPage() {
       </div>
 
       {/* â”€â”€ Activity feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section aria-label="Recent activity">
+      <section aria-label={t.dashboard.overview.recentActivityAria}>
         <Suspense fallback={<ActivityFeedSkeleton />}>
           <ActivityFeed
             initialItems={activity.items}
@@ -122,13 +124,13 @@ export default async function DashboardOverviewPage() {
 
       {/* â”€â”€ Latest issuances + revocations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <section aria-label="Latest issuances">
+        <section aria-label={t.dashboard.overview.latestIssuancesAria}>
           <Suspense fallback={<TableSkeleton />}>
             <IssuanceTable items={issuances} />
           </Suspense>
         </section>
 
-        <section aria-label="Latest revocations">
+        <section aria-label={t.dashboard.overview.latestRevocationsAria}>
           <Suspense fallback={<TableSkeleton />}>
             <RevocationTable items={revocations} />
           </Suspense>

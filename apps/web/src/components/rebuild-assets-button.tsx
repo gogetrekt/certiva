@@ -3,8 +3,11 @@
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useLanguage } from "../lib/i18n";
+
 export function RebuildAssetsButton({ credentialId }: { credentialId: string }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -19,12 +22,12 @@ export function RebuildAssetsButton({ credentialId }: { credentialId: string }) 
       });
       if (!response.ok) {
         const body = (await response.json()) as { message?: string };
-        throw new Error(body.message ?? "Unable to rebuild assets");
+        throw new Error(body.message ?? t.forms.rebuildAssets.unable);
       }
       setDone(true);
       startTransition(() => { router.refresh(); });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to rebuild assets");
+      setError(err instanceof Error ? err.message : t.forms.rebuildAssets.unable);
     } finally {
       setIsSubmitting(false);
     }
@@ -38,7 +41,11 @@ export function RebuildAssetsButton({ credentialId }: { credentialId: string }) 
         disabled={isSubmitting}
         className="btn-ghost btn-sm"
       >
-        {isSubmitting ? "Rebuilding…" : done ? "Rebuilt ✓" : "Rebuild QR & assets"}
+        {isSubmitting
+          ? t.forms.rebuildAssets.rebuilding
+          : done
+            ? t.forms.rebuildAssets.rebuilt
+            : t.forms.rebuildAssets.submit}
       </button>
       {error ? (
         <p className="text-xs text-[hsl(var(--status-error-text))]">{error}</p>

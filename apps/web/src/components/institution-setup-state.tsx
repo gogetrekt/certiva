@@ -1,20 +1,24 @@
+"use client";
+
 import Link from "next/link";
 
 import { EmptyState } from "./empty-state";
+import { useLanguage } from "../lib/i18n";
 
 export function InstitutionSetupState({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+  const { t } = useLanguage();
   const description = isSuperAdmin
-    ? "This workspace needs an active institution profile before credentials, logs, and issuance can load. Configure institution settings to continue."
-    : "This workspace needs an active institution profile before credentials, logs, and issuance can load. Ask a super admin to complete setup.";
+    ? t.forms.institutionSetup.superAdminDescription
+    : t.forms.institutionSetup.adminDescription;
 
   return (
     <EmptyState
-      title="Institution setup required"
+      title={t.forms.institutionSetup.title}
       description={description}
       action={
         isSuperAdmin ? (
           <Link href="/dashboard/settings" className="btn-primary btn-sm">
-            Open institution settings
+            {t.forms.institutionSetup.action}
           </Link>
         ) : null
       }
