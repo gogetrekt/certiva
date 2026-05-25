@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   ArrowSquareOut,
   BookOpen,
   Gear,
   House,
   IdentificationCard,
+  List,
   LockKey,
   ShieldCheck,
   Stack,
   UsersThree,
+  X,
 } from "@phosphor-icons/react";
 
 import { AppLogo } from "./app-logo";
@@ -122,9 +125,120 @@ const navigationGroups = [
   },
 ] as const;
 
+function SidebarContent({
+  pathname,
+  t,
+  institutionLabel,
+  operatorLabel,
+  roleLabel,
+  visibleGroups,
+  onNavClick,
+}: {
+  pathname: string;
+  t: ReturnType<typeof useLanguage>["t"];
+  institutionLabel: string;
+  operatorLabel: string;
+  roleLabel: string;
+  visibleGroups: typeof navigationGroups[number][];
+  onNavClick?: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col px-4 py-5">
+      {/* Logo */}
+      <div className="px-2 mb-6">
+        <AppLogo />
+      </div>
+
+      {/* Workspace identity */}
+      <div className="mb-4 px-2">
+        <p className="kicker mb-1.5">{institutionLabel}</p>
+        <p
+          className="text-xs text-[hsl(var(--text-tertiary))] truncate"
+          title={operatorLabel}
+        >
+          {operatorLabel}
+        </p>
+        <div className="mt-2">
+          <span className="role-chip">{roleLabel}</span>
+        </div>
+      </div>
+
+      {/* Separator */}
+      <div className="mb-4 border-t border-[hsl(var(--border-default))]" />
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-4" aria-label={t.dashboardShell.navAria}>
+        {visibleGroups.map((group) => (
+          <div key={group.titleKey}>
+            <p className="kicker px-2 mb-1">
+              {t.dashboardShell.groups[group.titleKey]}
+            </p>
+            <div className="space-y-px">
+              {group.items.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/dashboard" &&
+                    pathname.startsWith(item.href));
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={onNavClick}
+                    className={`nav-item ${isActive ? "nav-item-active" : ""}`}
+                  >
+                    <item.icon
+                      size={14}
+                      weight={isActive ? "fill" : "regular"}
+                      className="shrink-0 opacity-70"
+                      aria-hidden
+                    />
+                    <span>{t.dashboardShell.items[item.labelKey]}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer links */}
+      <div className="mt-4 pt-4 border-t border-[hsl(var(--border-default))]">
+        <p className="kicker px-2 mb-1">{t.common.public}</p>
+        <div className="space-y-px">
+          <Link href="/verify" target="_blank" className="nav-item" onClick={onNavClick}>
+            <ArrowSquareOut
+              size={13}
+              className="shrink-0 opacity-50"
+              aria-hidden
+            />
+            <span>{t.nav.credentialCheck}</span>
+          </Link>
+          <Link
+            href="/verify/document"
+            target="_blank"
+            className="nav-item"
+            onClick={onNavClick}
+          >
+            <ArrowSquareOut
+              size={13}
+              className="shrink-0 opacity-50"
+              aria-hidden
+            />
+            <span>{t.nav.documentCheck}</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardShell({ admin, children }: DashboardShellProps) {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const roleLabels: Record<DashboardRole, string> = {
     OWNER: t.roles.superAdmin,
     SUPER_ADMIN: t.roles.superAdmin,
@@ -134,6 +248,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
   const institutionLabel =
     admin.issuer?.displayName ?? admin.issuer?.name ?? t.dashboardShell.fallbackInstitution;
   const operatorLabel = `@${admin.username ?? admin.email.split("@")[0]}`;
+  const roleLabel = roleLabels[admin.role] ?? admin.role;
 
   const visibleGroups = navigationGroups
     .map((group) => ({
@@ -152,109 +267,87 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
       ) ??
     flatItems[0];
 
+  // Close drawer on route change
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
+  const sidebarProps = {
+    pathname,
+    t,
+    institutionLabel,
+    operatorLabel,
+    roleLabel,
+    visibleGroups,
+  };
+
   return (
     <div className="app-shell">
       <div className="mx-auto grid min-h-dvh w-full grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
-        {/* ── Sidebar ─────────────────────────────────── */}
+
+        {/* ── Desktop Sidebar ─────────────────────────────── */}
         <aside className="sidebar-surface hidden lg:flex flex-col">
-          <div className="flex h-full flex-col px-4 py-5">
-            {/* Logo */}
-            <div className="px-2 mb-6">
-              <AppLogo />
-            </div>
-
-            {/* Workspace identity */}
-            <div className="mb-4 px-2">
-              <p className="kicker mb-1.5">{institutionLabel}</p>
-              <p
-                className="text-xs text-[hsl(var(--text-tertiary))] truncate"
-                title={operatorLabel}
-              >
-                {operatorLabel}
-              </p>
-              <div className="mt-2">
-                <span className="role-chip">{roleLabels[admin.role] ?? admin.role}</span>
-              </div>
-            </div>
-
-            {/* Separator */}
-            <div className="mb-4 border-t border-[hsl(var(--border-default))]" />
-
-            {/* Navigation */}
-            <nav className="flex-1 space-y-4" aria-label={t.dashboardShell.navAria}>
-              {visibleGroups.map((group) => (
-                <div key={group.titleKey}>
-                  <p className="kicker px-2 mb-1">
-                    {t.dashboardShell.groups[group.titleKey]}
-                  </p>
-                  <div className="space-y-px">
-                    {group.items.map((item) => {
-                      const isActive =
-                        pathname === item.href ||
-                        (item.href !== "/dashboard" &&
-                          pathname.startsWith(item.href));
-
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          aria-current={isActive ? "page" : undefined}
-                          className={`nav-item ${isActive ? "nav-item-active" : ""}`}
-                        >
-                          <item.icon
-                            size={14}
-                            weight={isActive ? "fill" : "regular"}
-                            className="shrink-0 opacity-70"
-                            aria-hidden
-                          />
-                          <span>{t.dashboardShell.items[item.labelKey]}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
-
-            {/* Footer links */}
-            <div className="mt-4 pt-4 border-t border-[hsl(var(--border-default))]">
-              <p className="kicker px-2 mb-1">{t.common.public}</p>
-              <div className="space-y-px">
-                <Link href="/verify" target="_blank" className="nav-item">
-                  <ArrowSquareOut
-                    size={13}
-                    className="shrink-0 opacity-50"
-                    aria-hidden
-                  />
-                  <span>{t.nav.credentialCheck}</span>
-                </Link>
-                <Link
-                  href="/verify/document"
-                  target="_blank"
-                  className="nav-item"
-                >
-                  <ArrowSquareOut
-                    size={13}
-                    className="shrink-0 opacity-50"
-                    aria-hidden
-                  />
-                  <span>{t.nav.documentCheck}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
+          <SidebarContent {...sidebarProps} />
         </aside>
 
-        {/* ── Main ────────────────────────────────────── */}
+        {/* ── Mobile Drawer ────────────────────────────────── */}
+        {drawerOpen && (
+          <>
+            <div
+              className="mobile-drawer-overlay lg:hidden"
+              aria-hidden
+              onClick={() => setDrawerOpen(false)}
+            />
+            <div
+              className="mobile-drawer sidebar-surface lg:hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t.dashboardShell.navAria}
+            >
+              <SidebarContent
+                {...sidebarProps}
+                onNavClick={() => setDrawerOpen(false)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* ── Main ────────────────────────────────────────── */}
         <div className="flex min-w-0 flex-col">
           {/* Topbar */}
-          <header className="topbar-surface sticky top-0 z-10 px-6 py-0 h-12 flex items-center">
-            <div className="flex w-full items-center justify-between gap-4">
-              {/* Left: mobile logo / breadcrumb */}
-              <div className="flex items-center gap-3 min-w-0">
+          <header className="topbar-surface sticky top-0 z-10 px-4 sm:px-6 py-0 h-12 flex items-center">
+            <div className="flex w-full items-center justify-between gap-3">
+              {/* Left: hamburger (mobile) + logo/breadcrumb */}
+              <div className="flex items-center gap-2 min-w-0">
+                {/* Mobile hamburger */}
+                <button
+                  type="button"
+                  aria-label="Open navigation menu"
+                  aria-expanded={drawerOpen}
+                  onClick={() => setDrawerOpen(true)}
+                  className="theme-toggle lg:hidden shrink-0"
+                >
+                  <List size={18} aria-hidden />
+                </button>
+
+                {/* Mobile logo when drawer closed */}
                 <div className="lg:hidden">
                   <AppLogo />
                 </div>
+
+                {/* Desktop breadcrumb */}
                 <div className="hidden lg:flex items-center gap-2 min-w-0 text-xs">
                   <span className="text-[hsl(var(--text-tertiary))] truncate max-w-35">
                     {institutionLabel}
@@ -271,7 +364,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
               </div>
 
               {/* Right: actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Link
                   href="/verify"
                   target="_blank"
@@ -288,7 +381,7 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
           </header>
 
           {/* Page content */}
-          <main className="flex-1 px-6 py-7 md:px-8 md:py-8">{children}</main>
+          <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6 md:px-8 md:py-8">{children}</main>
         </div>
       </div>
     </div>

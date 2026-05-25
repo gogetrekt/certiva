@@ -43,7 +43,7 @@ export default async function VerificationLogsPage() {
     <div className="space-y-6">
       {/* Page header + metrics */}
       <div className="pb-6 border-b border-[hsl(var(--border-default))]">
-        <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-6">
           <div>
             <p className="kicker mb-2">{t.dashboard.logs.title}</p>
             <h1 className="page-title">{t.dashboard.logs.title}</h1>
@@ -51,7 +51,7 @@ export default async function VerificationLogsPage() {
           <Link
             href="/verify"
             target="_blank"
-            className="btn-ghost btn-sm mt-1"
+            className="btn-ghost btn-sm sm:mt-1 self-start"
           >
             {t.dashboard.logs.publicCheck}
             <ArrowSquareOut size={11} aria-hidden />
@@ -59,15 +59,15 @@ export default async function VerificationLogsPage() {
         </div>
 
         {/* Inline metric row */}
-        <div className="flex flex-wrap gap-8">
+        <div className="flex flex-wrap gap-6 sm:gap-8">
           <Stat
             label={t.dashboard.logs.recentEvents}
             value={visibleLogs.length}
             note={t.dashboard.logs.credentialLinked}
           />
-          <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
+          <div className="hidden sm:block w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat label={t.dashboard.logs.validResults} value={validCount} note={t.dashboard.logs.successful} />
-          <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
+          <div className="hidden sm:block w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
             label={t.dashboard.logs.exceptions}
             value={revokedCount + invalidCount}

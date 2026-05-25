@@ -43,7 +43,7 @@ export default async function DocumentProofPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
           <div>
             <p className="kicker mb-1.5">{t.dashboard.documentProofs.title}</p>
             <h1 className="page-title">{t.dashboard.documentProofs.title}</h1>
@@ -54,7 +54,7 @@ export default async function DocumentProofPage() {
           <Link
             href="/verify/document"
             target="_blank"
-            className="btn-ghost btn-sm mt-1 shrink-0"
+            className="btn-ghost btn-sm sm:mt-1 shrink-0 self-start"
           >
             {t.dashboard.documentProofs.publicCheck}
             <ArrowSquareOut size={11} aria-hidden />
@@ -102,7 +102,7 @@ export default async function DocumentProofPage() {
         {/* Right: proof records */}
         <div className={admin.role === "AUDITOR" ? "xl:col-span-2" : ""}>
           {/* Compact stats strip */}
-          <div className="flex items-center gap-6 mb-4">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-4">
             <div>
               <span className="text-xl font-semibold tracking-tight text-[hsl(var(--text-primary))]">
                 {proofs.total}
@@ -111,7 +111,7 @@ export default async function DocumentProofPage() {
                 {t.dashboard.documentProofs.proofRecords}
               </span>
             </div>
-            <div className="w-px h-4 bg-[hsl(var(--border-default))]" />
+            <div className="hidden sm:block w-px h-4 bg-[hsl(var(--border-default))]" />
             <div>
               <span className="text-xl font-semibold tracking-tight text-[hsl(var(--text-primary))]">
                 {hashOnlyCount}
@@ -120,7 +120,7 @@ export default async function DocumentProofPage() {
                 {t.dashboard.documentProofs.hashOnly}
               </span>
             </div>
-            <div className="w-px h-4 bg-[hsl(var(--border-default))]" />
+            <div className="hidden sm:block w-px h-4 bg-[hsl(var(--border-default))]" />
             <div>
               <span className="text-xl font-semibold tracking-tight text-[hsl(var(--text-primary))]">
                 {totalChecks}

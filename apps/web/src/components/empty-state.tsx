@@ -19,7 +19,7 @@ export function EmptyState({
         </svg>
       </div>
       <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{title}</p>
-      <p className="mx-auto mt-1.5 max-w-xs text-xs leading-5 text-[hsl(var(--text-tertiary))]">{description}</p>
+      <p className="mx-auto mt-1.5 max-w-xs text-sm leading-5 text-[hsl(var(--text-tertiary))]">{description}</p>
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </div>
   );

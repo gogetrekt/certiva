@@ -15,11 +15,11 @@ export function VerifyPageContent() {
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
       <SiteHeader />
 
-      <div className="mx-auto max-w-275 px-8">
+      <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8">
         {/* Page intent */}
-        <div className="pt-12 pb-10 border-b border-[hsl(var(--border-default))]">
+        <div className="pt-10 sm:pt-12 pb-8 sm:pb-10 border-b border-[hsl(var(--border-default))]">
           <p className="kicker mb-3">{t.verify.kicker}</p>
-          <h1 className="text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] text-[hsl(var(--text-primary))] md:text-[2.5rem]">
+          <h1 className="text-[1.625rem] sm:text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] text-[hsl(var(--text-primary))] md:text-[2.5rem]">
             {t.verify.heading}
           </h1>
           <p className="mt-3 max-w-120 text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
@@ -28,18 +28,18 @@ export function VerifyPageContent() {
         </div>
 
         {/* Primary method */}
-        <div className="py-10 border-b border-[hsl(var(--border-default))]">
-          <div className="grid gap-10 md:grid-cols-[1fr_400px]">
+        <div className="py-8 sm:py-10 border-b border-[hsl(var(--border-default))]">
+          <div className="grid gap-8 sm:gap-10 md:grid-cols-[1fr_400px]">
             <div>
               <p className="kicker mb-2">{t.verify.primaryMethodKicker}</p>
               <h2 className="text-[1.1875rem] font-semibold tracking-tight text-[hsl(var(--text-primary))] mb-2.5">
                 {t.verify.primaryMethodHeading}
               </h2>
-              <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))] max-w-[360px]">
+              <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))] max-w-90">
                 {t.verify.primaryMethodDescription}
               </p>
 
-              <div className="mt-6 space-y-2.5">
+              <div className="mt-5 sm:mt-6 space-y-2.5">
                 {t.verify.bullets.map((item) => (
                   <div key={item.label} className="flex items-start gap-3">
                     <span
@@ -57,21 +57,21 @@ export function VerifyPageContent() {
               </div>
             </div>
 
-            <div className="work-surface p-6 self-start">
+            <div className="work-surface p-5 sm:p-6 self-start">
               <VerifySearchForm />
             </div>
           </div>
         </div>
 
         {/* Secondary method */}
-        <div className="py-10 border-b border-[hsl(var(--border-default))]">
-          <div className="grid gap-10 md:grid-cols-[1fr_400px]">
+        <div className="py-8 sm:py-10 border-b border-[hsl(var(--border-default))]">
+          <div className="grid gap-8 sm:gap-10 md:grid-cols-[1fr_400px]">
             <div>
               <p className="kicker mb-2">{t.verify.secondaryMethodKicker}</p>
               <h2 className="text-[1.1875rem] font-semibold tracking-tight text-[hsl(var(--text-primary))] mb-2.5">
                 {t.verify.secondaryMethodHeading}
               </h2>
-              <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))] max-w-[360px]">
+              <p className="text-sm leading-[1.65] text-[hsl(var(--text-secondary))] max-w-90">
                 {t.verify.secondaryMethodDescription}
               </p>
               <p className="mt-4 text-xs leading-[1.6] text-[hsl(var(--text-quaternary))]">
@@ -86,13 +86,13 @@ export function VerifyPageContent() {
               </p>
             </div>
 
-            <div className="work-surface p-6 self-start">
+            <div className="work-surface p-5 sm:p-6 self-start">
               <VerifyPdfReferenceForm />
             </div>
           </div>
         </div>
 
-        <div className="py-10" />
+        <div className="py-8 sm:py-10" />
       </div>
 
       <SiteFooter />

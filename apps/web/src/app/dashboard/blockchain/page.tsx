@@ -55,19 +55,19 @@ export default async function BlockchainAuditPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-8">
+        <div className="flex flex-wrap gap-6 sm:gap-8">
           <Stat
             label={t.dashboard.blockchain.auditEvents}
             value={entries.length}
             note={t.dashboard.blockchain.lifecycleEntries}
           />
-          <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
+          <div className="hidden sm:block w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
             label={t.dashboard.blockchain.confirmedWrites}
             value={confirmedCount}
             note={t.dashboard.blockchain.anchoredOperations}
           />
-          <div className="w-px self-stretch bg-[hsl(var(--border-default))]" />
+          <div className="hidden sm:block w-px self-stretch bg-[hsl(var(--border-default))]" />
           <Stat
             label={t.dashboard.blockchain.issuances}
             value={issuanceCount}

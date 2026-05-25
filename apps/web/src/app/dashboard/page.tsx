@@ -70,17 +70,17 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="space-y-7">
-      {/* â”€â”€ Page header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex items-start justify-between gap-4 pb-6 border-b border-[hsl(var(--border-default))]">
+      {/* Page header */}
+      <div className=”flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 pb-6 border-b border-[hsl(var(--border-default))]”>
         <div>
-          <p className="kicker mb-2">{institutionLabel}</p>
-          <h1 className="page-title">{t.dashboard.overview.title}</h1>
-          <p className="body-text mt-1">
+          <p className=”kicker mb-2”>{institutionLabel}</p>
+          <h1 className=”page-title”>{t.dashboard.overview.title}</h1>
+          <p className=”body-text mt-1”>
             {t.dashboard.overview.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-2 pt-1 shrink-0">
-          <Link href="/dashboard/issue" className="btn-primary btn-sm">
+        <div className=”flex items-center gap-2 sm:pt-1 shrink-0 self-start”>
+          <Link href=”/dashboard/issue” className=”btn-primary btn-sm”>
             {t.dashboard.overview.issueCredential}
           </Link>
           <Suspense fallback={null}>

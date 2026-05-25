@@ -21,11 +21,11 @@ export default async function SecurityPage() {
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
       <SiteHeader />
 
-      <div className="mx-auto max-w-300 px-6 sm:px-8">
+      <div className="mx-auto max-w-300 px-4 sm:px-6 lg:px-8">
         {/* Page header */}
-        <div className="border-b border-[hsl(var(--border-default))] py-12 md:py-14">
+        <div className="border-b border-[hsl(var(--border-default))] py-10 sm:py-12 md:py-14">
           <p className="kicker mb-3">{t.security.kicker}</p>
-          <h1 className="text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] md:text-[2.5rem]">
+          <h1 className="text-[1.625rem] sm:text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] md:text-[2.5rem]">
             {t.security.title}
           </h1>
           <p className="mt-3 max-w-[52ch] text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">

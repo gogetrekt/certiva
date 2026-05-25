@@ -78,39 +78,39 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
 
       {/* ── Verdict banner ─────────────────────────────── */}
       <section className={`border-b border-[hsl(var(--border-default))] ${state.accentClass}`}>
-        <div className="mx-auto max-w-275 px-8 py-10 md:py-12">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1">
+        <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+          <div className="flex items-start justify-between gap-4 sm:gap-6">
+            <div className="flex-1 min-w-0">
               <span className={`${state.verdictClass} mb-4`}>
                 <StateIcon size={9} weight="fill" aria-hidden />
                 {state.verdict}
               </span>
-              <h1 className="text-[1.75rem] font-semibold tracking-[-0.03em] leading-[1.1] text-[hsl(var(--text-primary))] md:text-[2.25rem]">
+              <h1 className="text-[1.375rem] sm:text-[1.75rem] font-semibold tracking-[-0.03em] leading-[1.1] text-[hsl(var(--text-primary))] md:text-[2.25rem]">
                 {state.title}
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
                 {state.description}
               </p>
             </div>
-            <div className="hidden md:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]">
+            <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]">
               <StateIcon size={22} weight="duotone" aria-hidden />
             </div>
           </div>
 
           {/* Key stats */}
-          <div className="mt-8 grid gap-px bg-[hsl(var(--border-default))] rounded-xl overflow-hidden border border-[hsl(var(--border-default))] sm:grid-cols-3">
-            <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
+          <div className="mt-6 sm:mt-8 grid gap-px bg-[hsl(var(--border-default))] rounded-xl overflow-hidden border border-[hsl(var(--border-default))] sm:grid-cols-3">
+            <div className="bg-[hsl(var(--bg-base))] px-4 sm:px-6 py-4 sm:py-5">
               <p className="kicker mb-2">{t.verifyResult.registryVerdict}</p>
               <div className="flex flex-wrap items-start gap-2">
                 <StatusBadge status={verification.result} />
                 <StatusBadge status={verification.blockchainStatus} />
               </div>
             </div>
-            <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
+            <div className="bg-[hsl(var(--bg-base))] px-4 sm:px-6 py-4 sm:py-5">
               <p className="kicker mb-2">{t.verifyResult.credentialId}</p>
-              <p className="hash-text text-[hsl(var(--text-secondary))]">{verification.credentialExternalId ?? t.common.notAvailable}</p>
+              <p className="hash-text text-[hsl(var(--text-secondary))] break-all">{verification.credentialExternalId ?? t.common.notAvailable}</p>
             </div>
-            <div className="bg-[hsl(var(--bg-base))] px-6 py-5">
+            <div className="bg-[hsl(var(--bg-base))] px-4 sm:px-6 py-4 sm:py-5">
               <p className="kicker mb-2">{t.verifyResult.runAnotherLookup}</p>
               <VerifySearchForm initialValue={verificationId} compact />
             </div>
@@ -119,8 +119,8 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
       </section>
 
       {/* ── Main content ───────────────────────────────── */}
-      <div className="mx-auto max-w-275 px-8 py-10 md:py-12">
-        <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
+      <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_300px]">
 
           {/* Left column */}
           <div className="space-y-6">
@@ -147,10 +147,10 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                       { label: t.verifyResult.lastChecked, value: verification.verifiedAtTimestamp ? formatDateTime(verification.verifiedAtTimestamp) : t.common.notAvailable, mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                        <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
+                        <td className="w-28 sm:w-44 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
                           {row.label}
                         </td>
-                        <td className={`px-6 py-3 text-[hsl(var(--text-primary))] align-middle ${row.mono ? "font-mono text-xs break-all leading-5" : "text-sm"}`}>
+                        <td className={`px-4 sm:px-6 py-3 text-[hsl(var(--text-primary))] align-middle ${row.mono ? "font-mono text-xs break-all leading-5" : "text-sm"}`}>
                           {row.value}
                         </td>
                       </tr>
@@ -204,7 +204,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                       { label: t.verifyResult.blockchainTxHash, value: verification.txHash ?? t.common.notAvailable, mono: true },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                        <td className="w-44 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
+                        <td className="w-28 sm:w-44 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
                           {row.label}
                         </td>
                         <td className="px-6 py-3 align-middle">

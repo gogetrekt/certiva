@@ -57,7 +57,7 @@ export default async function CredentialsPage({
     <div className="space-y-6">
       {/* Page header with inline filter */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
-        <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-5">
           <div>
             <p className="kicker mb-2">{t.dashboard.registry.title}</p>
             <h1 className="page-title">{t.dashboard.registry.title}</h1>
@@ -70,15 +70,15 @@ export default async function CredentialsPage({
           </div>
           {/* Issue button hidden for AUDITOR */}
           {admin.role !== "AUDITOR" && (
-            <Link href="/dashboard/issue" className="btn-primary btn-sm mt-1">
+            <Link href="/dashboard/issue" className="btn-primary btn-sm sm:mt-1 self-start">
               {t.dashboard.registry.issueCredential}
             </Link>
           )}
         </div>
 
         {/* Filter */}
-        <form className="flex flex-wrap items-end gap-3">
-          <div className="min-w-40 flex-1">
+        <form className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3">
+          <div className="lg:min-w-40 lg:flex-1">
             <label htmlFor="studentName" className="field-label">
               {t.dashboard.registry.studentName}
             </label>
@@ -90,7 +90,7 @@ export default async function CredentialsPage({
               className="field-shell w-full"
             />
           </div>
-          <div className="min-w-35 flex-1">
+          <div className="lg:min-w-35 lg:flex-1">
             <label htmlFor="studentId" className="field-label">
               {t.dashboard.registry.studentId}
             </label>
@@ -102,7 +102,7 @@ export default async function CredentialsPage({
               className="field-shell w-full font-mono"
             />
           </div>
-          <div className="w-36">
+          <div className="lg:w-36">
             <label htmlFor="year" className="field-label">
               {t.dashboard.registry.graduationYear}
             </label>
@@ -128,7 +128,7 @@ export default async function CredentialsPage({
                 ))}
             </select>
           </div>
-          <div className="w-40">
+          <div className="lg:w-40">
             <label htmlFor="status" className="field-label">
               {t.common.status}
             </label>
@@ -143,17 +143,19 @@ export default async function CredentialsPage({
               <option value="revoked">{t.dashboard.registry.revokedOnly}</option>
             </select>
           </div>
-          <button type="submit" className="btn-ghost">
-            {t.dashboard.registry.applyFilters}
-          </button>
-          {(studentName || studentId || status !== "all" || year) && (
-            <Link
-              href="/dashboard/credentials"
-              className="btn-ghost text-[hsl(var(--text-tertiary))]"
-            >
-              {t.common.clear}
-            </Link>
-          )}
+          <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+            <button type="submit" className="btn-ghost flex-1 lg:flex-none">
+              {t.dashboard.registry.applyFilters}
+            </button>
+            {(studentName || studentId || status !== "all" || year) && (
+              <Link
+                href="/dashboard/credentials"
+                className="btn-ghost flex-1 lg:flex-none text-[hsl(var(--text-tertiary))]"
+              >
+                {t.common.clear}
+              </Link>
+            )}
+          </div>
         </form>
       </div>
 

@@ -82,11 +82,11 @@ export default async function GuidePage() {
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
       <SiteHeader />
 
-      <div className="mx-auto max-w-300 px-6 sm:px-8">
+      <div className="mx-auto max-w-300 px-4 sm:px-6 lg:px-8">
         {/* Page header */}
         <div className="border-b border-[hsl(var(--border-default))] py-12 md:py-14">
           <p className="kicker mb-3">{t.guide.kicker}</p>
-          <h1 className="text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] md:text-[2.5rem]">
+          <h1 className="text-[1.625rem] sm:text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] md:text-[2.5rem]">
             {t.guide.title}
           </h1>
           <p className="mt-3 max-w-[52ch] text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
@@ -257,12 +257,12 @@ export default async function GuidePage() {
         </div>
 
         {/* CTA row */}
-        <div className="flex flex-wrap items-center gap-3 py-10">
-          <Link href="/verify" className="btn-primary">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 py-10">
+          <Link href="/verify" className="btn-primary justify-center sm:w-auto">
             {t.nav.credentialCheck}
             <ArrowRightIcon size={13} weight="bold" aria-hidden />
           </Link>
-          <Link href="/verify/document" className="btn-ghost">
+          <Link href="/verify/document" className="btn-ghost justify-center sm:w-auto">
             {t.nav.documentCheck}
           </Link>
         </div>

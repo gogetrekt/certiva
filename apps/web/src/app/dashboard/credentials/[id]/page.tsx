@@ -146,10 +146,10 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                   { label: t.dashboard.credentialDetail.labels.lastVerified, value: credential.verifiedAt ? formatDateTime(credential.verifiedAt) : t.common.noPublicChecksYet, mono: false },
                 ].map((row, i) => (
                   <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                    <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
+                    <td className="w-28 sm:w-40 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
                       {row.label}
                     </td>
-                    <td className={`px-6 py-3 align-middle text-[hsl(var(--text-primary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>
+                    <td className={`px-4 sm:px-6 py-3 align-middle text-[hsl(var(--text-primary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>
                       {row.value}
                     </td>
                   </tr>
@@ -180,7 +180,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
 
           {/* Blockchain proof */}
           <div className="work-surface overflow-hidden p-0">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[hsl(var(--border-default))]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-5 border-b border-[hsl(var(--border-default))]">
               <div>
                 <p className="kicker mb-1">{t.dashboard.credentialDetail.blockchainProof}</p>
                 <h2 className="section-title">{t.dashboard.credentialDetail.secondaryTrustLayer}</h2>
@@ -200,10 +200,10 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                   { label: t.dashboard.credentialDetail.labels.issuerWallet, value: credential.issuer.wallet ?? t.common.notConfigured, mono: true },
                 ].map((row, i) => (
                   <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                    <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
+                    <td className="w-28 sm:w-40 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">
                       {row.label}
                     </td>
-                    <td className={`px-6 py-3 align-middle text-[hsl(var(--text-primary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>
+                    <td className={`px-4 sm:px-6 py-3 align-middle text-[hsl(var(--text-primary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>
                       {row.value}
                     </td>
                   </tr>
@@ -211,7 +211,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
               </tbody>
             </table>
             {(transactionUrl || issuerAddressUrl) ? (
-              <div className="flex flex-wrap gap-2 px-6 py-4 border-t border-[hsl(var(--border-default))]">
+              <div className="flex flex-wrap gap-2 px-4 sm:px-6 py-4 border-t border-[hsl(var(--border-default))]">
                 {transactionUrl && (
                   <a href={transactionUrl} target="_blank" rel="noreferrer" className="btn-ghost btn-sm">
                     {t.dashboard.credentialDetail.viewTransaction} <ArrowSquareOut size={11} aria-hidden />
@@ -224,7 +224,7 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                 )}
               </div>
             ) : (
-              <div className="px-6 py-4 border-t border-[hsl(var(--border-default))]">
+              <div className="px-4 sm:px-6 py-4 border-t border-[hsl(var(--border-default))]">
                 <p className="meta-text">{t.dashboard.credentialDetail.waitingForBlockchain}</p>
               </div>
             )}
@@ -249,8 +249,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                       { label: t.dashboard.credentialDetail.labels.fileSize, value: formatFileSize(credential.fileSize, t.common.notAvailable), mono: false },
                     ].map((row, i) => (
                       <tr key={row.label} className={i % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                        <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
-                        <td className={`px-6 py-3 align-middle text-[hsl(var(--text-secondary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>{row.value}</td>
+                        <td className="w-28 sm:w-40 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
+                        <td className={`px-4 sm:px-6 py-3 align-middle text-[hsl(var(--text-secondary))] ${row.mono ? "font-mono text-xs break-all" : "text-sm"}`}>{row.value}</td>
                       </tr>
                     ))}
                     {[
@@ -259,8 +259,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                       { label: t.dashboard.credentialDetail.labels.certificatePdf, value: credential.certificateUri ?? t.common.notAvailable, href: credential.certificateUri ?? undefined },
                     ].map((row, i) => (
                       <tr key={row.label} className={(i + 5) % 2 === 0 ? "bg-[hsl(var(--bg-subtle))]" : ""}>
-                        <td className="w-40 shrink-0 px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
-                        <td className="px-6 py-3 align-middle">
+                        <td className="w-28 sm:w-40 shrink-0 px-4 sm:px-6 py-3 text-xs font-medium text-[hsl(var(--text-tertiary))] align-middle">{row.label}</td>
+                        <td className="px-4 sm:px-6 py-3 align-middle">
                           {row.href ? (
                             <a href={row.href} target="_blank" rel="noreferrer"
                               className="inline-flex items-center gap-1 font-mono text-xs text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] underline underline-offset-2 break-all">

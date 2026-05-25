@@ -111,7 +111,7 @@ export function CredentialsTable({ credentials, role, yearFilter }: CredentialsT
     <>
       {/* Bulk action bar */}
       {superAdmin && selected.size > 0 && (
-        <div className="flex items-center justify-between gap-4 px-4 py-2.5 rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-2.5 rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-xs">
           <span className="font-medium text-[hsl(var(--text-primary))]">
             {selected.size} {t.forms.bulkActions.selectedCount}
           </span>

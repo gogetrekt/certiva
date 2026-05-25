@@ -15,11 +15,11 @@ export function DocumentPageContent() {
     <div className="min-h-dvh bg-[hsl(var(--bg-canvas))] text-[hsl(var(--text-primary))]">
       <SiteHeader />
 
-      <div className="mx-auto max-w-275 px-8">
+      <div className="mx-auto max-w-275 px-4 sm:px-6 lg:px-8">
         {/* Page intent */}
-        <div className="pt-12 pb-10 border-b border-[hsl(var(--border-default))]">
+        <div className="pt-10 sm:pt-12 pb-8 sm:pb-10 border-b border-[hsl(var(--border-default))]">
           <p className="kicker mb-3">{t.document.kicker}</p>
-          <h1 className="text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] text-[hsl(var(--text-primary))] md:text-[2.5rem]">
+          <h1 className="text-[1.625rem] sm:text-[2rem] font-semibold tracking-[-0.04em] leading-[1.08] text-[hsl(var(--text-primary))] md:text-[2.5rem]">
             {t.document.heading}
           </h1>
           <p className="mt-3 max-w-120 text-sm leading-[1.7] text-[hsl(var(--text-secondary))]">
@@ -28,8 +28,8 @@ export function DocumentPageContent() {
         </div>
 
         {/* Primary workflow: upload */}
-        <div className="py-10 border-b border-[hsl(var(--border-default))]">
-          <div className="grid gap-10 md:grid-cols-[1fr_340px]">
+        <div className="py-8 sm:py-10 border-b border-[hsl(var(--border-default))]">
+          <div className="grid gap-8 sm:gap-10 md:grid-cols-[1fr_340px]">
             {/* Upload area */}
             <div>
               <p className="kicker mb-2">{t.document.primaryMethodKicker}</p>
@@ -42,19 +42,19 @@ export function DocumentPageContent() {
             {/* Secondary + scope sidebar */}
             <div className="space-y-5 self-start">
               <div className="work-surface overflow-hidden p-0">
-                <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
+                <div className="px-4 sm:px-5 py-4 border-b border-[hsl(var(--border-default))]">
                   <p className="kicker mb-1">{t.document.metadataLookupKicker}</p>
                   <h3 className="section-title mb-1">
                     {t.document.metadataLookupHeading}
                   </h3>
                   <p className="meta-text">{t.document.metadataLookupDescription}</p>
                 </div>
-                <div className="px-5 py-5">
+                <div className="px-4 sm:px-5 py-5">
                   <DocumentProofCodeForm compact />
                 </div>
               </div>
 
-              <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-5 py-4">
+              <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-4 sm:px-5 py-4">
                 <p className="kicker mb-3">{t.document.whatThisChecksKicker}</p>
                 <div className="space-y-2.5">
                   {t.document.whatThisChecks.map((note) => (
@@ -86,7 +86,7 @@ export function DocumentPageContent() {
           </div>
         </div>
 
-        <div className="py-10" />
+        <div className="py-8 sm:py-10" />
       </div>
 
       <SiteFooter />
