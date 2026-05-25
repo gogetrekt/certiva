@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 
 import {
@@ -71,16 +71,16 @@ export default async function DashboardOverviewPage() {
   return (
     <div className="space-y-7">
       {/* Page header */}
-      <div className=”flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 pb-6 border-b border-[hsl(var(--border-default))]”>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 pb-6 border-b border-[hsl(var(--border-default))]">
         <div>
-          <p className=”kicker mb-2”>{institutionLabel}</p>
-          <h1 className=”page-title”>{t.dashboard.overview.title}</h1>
-          <p className=”body-text mt-1”>
+          <p className="kicker mb-2">{institutionLabel}</p>
+          <h1 className="page-title">{t.dashboard.overview.title}</h1>
+          <p className="body-text mt-1">
             {t.dashboard.overview.subtitle}
           </p>
         </div>
-        <div className=”flex items-center gap-2 sm:pt-1 shrink-0 self-start”>
-          <Link href=”/dashboard/issue” className=”btn-primary btn-sm”>
+        <div className="flex items-center gap-2 sm:pt-1 shrink-0 self-start">
+          <Link href="/dashboard/issue" className="btn-primary btn-sm">
             {t.dashboard.overview.issueCredential}
           </Link>
           <Suspense fallback={null}>
@@ -89,14 +89,14 @@ export default async function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* â”€â”€ Metric cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Metric cards */}
       <section aria-label={t.dashboard.overview.keyMetricsAria}>
         <Suspense fallback={<MetricCardsSkeleton />}>
           <MetricCards metrics={metrics} />
         </Suspense>
       </section>
 
-      {/* â”€â”€ Chart + queue monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Chart + queue monitor */}
       <div className="grid gap-6 xl:grid-cols-[1fr_300px]">
         <section aria-label={t.dashboard.overview.verificationAnalyticsAria}>
           <Suspense fallback={<VerificationChartSkeleton />}>
@@ -111,7 +111,7 @@ export default async function DashboardOverviewPage() {
         </section>
       </div>
 
-      {/* â”€â”€ Activity feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Activity feed */}
       <section aria-label={t.dashboard.overview.recentActivityAria}>
         <Suspense fallback={<ActivityFeedSkeleton />}>
           <ActivityFeed
@@ -122,7 +122,7 @@ export default async function DashboardOverviewPage() {
         </Suspense>
       </section>
 
-      {/* â”€â”€ Latest issuances + revocations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Latest issuances + revocations */}
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-label={t.dashboard.overview.latestIssuancesAria}>
           <Suspense fallback={<TableSkeleton />}>
@@ -139,4 +139,3 @@ export default async function DashboardOverviewPage() {
     </div>
   );
 }
-
