@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react";
-import { startTransition, useCallback, useRouter, useState } from "react";
+import { startTransition, useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { BulkDeleteDocumentProofsModal } from "../../../components/bulk-delete-document-proofs-modal";
 import { DeleteDocumentProofButton } from "../../../components/delete-document-proof-button";

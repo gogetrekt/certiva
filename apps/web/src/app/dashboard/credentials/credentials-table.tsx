@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useCallback, useRouter, useState } from "react";
+import { startTransition, useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { BulkDeleteCredentialsModal } from "../../../components/bulk-delete-credentials-modal";
 import { BulkRevokeCredentialsModal } from "../../../components/bulk-revoke-credentials-modal";
