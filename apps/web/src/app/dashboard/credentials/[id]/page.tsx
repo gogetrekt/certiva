@@ -43,6 +43,8 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
 
   const status = credential.revoked ? "REVOKED" : "VALID";
   const institutionLabel = credential.issuer.displayName ?? credential.issuer.name;
+  const canRevoke = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
+  const canDelete = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
   const transactionUrl = credential.txHash
     ? `${POLYGON_AMOY_EXPLORER_URL}/tx/${credential.txHash}`
     : null;
@@ -83,29 +85,31 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
                 <ArrowSquareOut size={11} aria-hidden />
               </a>
             ) : null}
-            {credential.revoked ? (
-              <DeleteCredentialButton
-                credentialId={credential.id}
-                redirectTo="/dashboard/credentials"
-                summary={{
-                  degree: credential.degree,
-                  studentName: credential.studentName,
-                  studentId: credential.studentId,
-                  issuerName: institutionLabel,
-                }}
-              />
-            ) : (
-              <RevokeCredentialButton
-                credentialId={credential.id}
-                revoked={credential.revoked}
-                summary={{
-                  degree: credential.degree,
-                  studentName: credential.studentName,
-                  studentId: credential.studentId,
-                  issuerName: institutionLabel,
-                }}
-              />
-            )}
+            {credential.revoked
+              ? canDelete && (
+                  <DeleteCredentialButton
+                    credentialId={credential.id}
+                    redirectTo="/dashboard/credentials"
+                    summary={{
+                      degree: credential.degree,
+                      studentName: credential.studentName,
+                      studentId: credential.studentId,
+                      issuerName: institutionLabel,
+                    }}
+                  />
+                )
+              : canRevoke && (
+                  <RevokeCredentialButton
+                    credentialId={credential.id}
+                    revoked={credential.revoked}
+                    summary={{
+                      degree: credential.degree,
+                      studentName: credential.studentName,
+                      studentId: credential.studentId,
+                      issuerName: institutionLabel,
+                    }}
+                  />
+                )}
           </div>
         </div>
       </div>

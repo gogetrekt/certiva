@@ -434,6 +434,105 @@ export class CredentialService {
     };
   }
 
+  async bulkRevoke(
+    admin: JwtPayload,
+    ids: string[],
+    reason: import('@prisma/client').RevocationReason,
+    notes?: string,
+  ) {
+    const issuerId = await this.institutionService.resolveInstitutionId(admin);
+    let revoked = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      try {
+        const existing = await this.prisma.credential.findUnique({ where: { id } });
+        if (!existing || existing.issuerId !== issuerId) { skipped++; continue; }
+        if (existing.revoked) { skipped++; continue; }
+
+        await this.prisma.credential.update({
+          where: { id },
+          data: {
+            revoked: true,
+            revokedAt: new Date(),
+            revokedBy: admin.email,
+            revokedByAdminId: admin.sub,
+            revocationReason: reason,
+            revocationNotes: notes?.trim() || null,
+          },
+        });
+
+        await this.auditLogService.log({
+          action: 'CREDENTIAL_REVOKED',
+          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+          targetType: 'Credential',
+          targetId: id,
+          metadata: {
+            reason,
+            notes: notes ?? null,
+            studentName: existing.studentName,
+            degree: existing.degree,
+            bulk: true,
+          },
+        });
+
+        try {
+          await this.blockchainQueueService.enqueueRevoke(id);
+        } catch {
+          // blockchain queue failure is non-fatal
+        }
+
+        revoked++;
+      } catch {
+        failed++;
+      }
+    }
+
+    return { revoked, skipped, failed };
+  }
+
+  async bulkDelete(admin: JwtPayload, ids: string[]) {
+    const issuerId = await this.institutionService.resolveInstitutionId(admin);
+    let deleted = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      try {
+        const existing = await this.prisma.credential.findUnique({ where: { id } });
+        if (!existing || existing.issuerId !== issuerId) { skipped++; continue; }
+        if (!existing.revoked) { skipped++; continue; }
+
+        await this.prisma.$transaction([
+          this.prisma.verificationLog.deleteMany({ where: { credentialId: id } }),
+          this.prisma.credentialDocumentProof.deleteMany({ where: { credentialId: id } }),
+          this.prisma.blockchainAnchorLog.deleteMany({ where: { credentialId: id } }),
+          this.prisma.credential.delete({ where: { id } }),
+        ]);
+        await this.assetsService.deleteAssets(id);
+
+        await this.auditLogService.log({
+          action: 'CREDENTIAL_DELETED',
+          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+          targetType: 'Credential',
+          targetId: id,
+          metadata: {
+            studentName: existing.studentName,
+            degree: existing.degree,
+            bulk: true,
+          },
+        });
+
+        deleted++;
+      } catch {
+        failed++;
+      }
+    }
+
+    return { deleted, skipped, failed };
+  }
+
   async registerSecurePdf(
     admin: JwtPayload,
     id: string,

@@ -7,6 +7,10 @@ import { useLanguage } from "../lib/i18n";
 
 type AdminRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
+function isElevated(r: AdminRole) {
+  return r === "SUPER_ADMIN" || r === "OWNER";
+}
+
 export function AdminStatusForm({
   adminId,
   username,
@@ -88,16 +92,16 @@ export function AdminStatusForm({
   return (
     <>
       <div className="flex flex-wrap gap-1.5">
-        {(role === "SUPER_ADMIN" || role === "ADMIN") && (
+        {(isElevated(role) || role === "ADMIN") && (
           <button
             type="button"
             disabled={disabled || isSubmitting}
             onClick={() =>
-              update({ role: role === "SUPER_ADMIN" ? "ADMIN" : "SUPER_ADMIN" })
+              update({ role: isElevated(role) ? "ADMIN" : "SUPER_ADMIN" })
             }
             className="btn-ghost btn-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {role === "SUPER_ADMIN" ? t.forms.adminStatus.setAsAdmin : t.forms.adminStatus.setAsSuperAdmin}
+            {isElevated(role) ? t.forms.adminStatus.setAsAdmin : t.forms.adminStatus.setAsSuperAdmin}
           </button>
         )}
         <button

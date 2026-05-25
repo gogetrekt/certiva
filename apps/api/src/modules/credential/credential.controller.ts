@@ -25,7 +25,9 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CredentialService } from './credential.service';
+import { BulkDeleteCredentialsDto } from './dto/bulk-delete-credentials.dto';
 import { BulkIssueCredentialsDto } from './dto/bulk-issue-credentials.dto';
+import { BulkRevokeCredentialsDto } from './dto/bulk-revoke-credentials.dto';
 import { CreateCredentialDto } from './dto/create-credential.dto';
 import { ListCredentialsDto } from './dto/list-credentials.dto';
 import { RevokeCredentialDto } from './dto/revoke-credential.dto';
@@ -50,6 +52,18 @@ export class CredentialController {
     @Body() dto: BulkIssueCredentialsDto,
   ) {
     return this.credentialService.bulkIssue(admin, dto);
+  }
+
+  @Post('bulk-revoke')
+  @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
+  bulkRevoke(@GetAdmin() admin: JwtPayload, @Body() dto: BulkRevokeCredentialsDto) {
+    return this.credentialService.bulkRevoke(admin, dto.ids, dto.reason, dto.notes);
+  }
+
+  @Post('bulk-delete')
+  @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
+  bulkDelete(@GetAdmin() admin: JwtPayload, @Body() dto: BulkDeleteCredentialsDto) {
+    return this.credentialService.bulkDelete(admin, dto.ids);
   }
 
   @Get()

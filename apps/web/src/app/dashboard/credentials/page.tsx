@@ -1,10 +1,6 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
-import { DeleteCredentialButton } from "../../../components/delete-credential-button";
-import { EmptyState } from "../../../components/empty-state";
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
-import { RevokeCredentialButton } from "../../../components/revoke-credential-button";
-import { StatusBadge } from "../../../components/status-badge";
 import type { CredentialsResponse } from "../../../lib/api";
 import {
   getCredentials,
@@ -12,8 +8,8 @@ import {
   getSessionToken,
   isInstitutionSetupRequired,
 } from "../../../lib/api";
-import { formatDate } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
+import { CredentialsTable } from "./credentials-table";
 
 interface CredentialsPageProps {
   searchParams: Promise<{
@@ -39,6 +35,7 @@ export default async function CredentialsPage({
     status === "active" ? false : status === "revoked" ? true : undefined;
 
   const admin = await getCurrentAdmin(token);
+  const isSuperAdmin = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
   let credentials: CredentialsResponse;
 
   try {
@@ -49,31 +46,35 @@ export default async function CredentialsPage({
     });
   } catch (error) {
     if (isInstitutionSetupRequired(error)) {
-      return (
-        <InstitutionSetupState isSuperAdmin={admin.role === "OWNER" || admin.role === "SUPER_ADMIN"} />
-      );
+      return <InstitutionSetupState isSuperAdmin={isSuperAdmin} />;
     }
     throw error;
   }
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ Page header with inline filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Page header with inline filter */}
       <div className="pb-5 border-b border-[hsl(var(--border-default))]">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <p className="kicker mb-2">{t.dashboard.registry.title}</p>
             <h1 className="page-title">{t.dashboard.registry.title}</h1>
             <p className="body-text mt-1">
-              {credentials.total} {credentials.total === 1 ? t.common.recordsSingular : t.common.recordsPlural}
+              {credentials.total}{" "}
+              {credentials.total === 1
+                ? t.common.recordsSingular
+                : t.common.recordsPlural}
             </p>
           </div>
-          <Link href="/dashboard/issue" className="btn-primary btn-sm mt-1">
-            {t.dashboard.registry.issueCredential}
-          </Link>
+          {/* Issue button hidden for AUDITOR */}
+          {admin.role !== "AUDITOR" && (
+            <Link href="/dashboard/issue" className="btn-primary btn-sm mt-1">
+              {t.dashboard.registry.issueCredential}
+            </Link>
+          )}
         </div>
 
-        {/* Filter â€” part of the header, not a floating card */}
+        {/* Filter */}
         <form className="flex flex-wrap items-end gap-3">
           <div className="min-w-40 flex-1">
             <label htmlFor="studentName" className="field-label">
@@ -128,122 +129,8 @@ export default async function CredentialsPage({
         </form>
       </div>
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="work-surface overflow-hidden p-0">
-        {credentials.items.length === 0 ? (
-          <div className="p-10">
-            <EmptyState
-              title={t.dashboard.registry.noMatchingTitle}
-              description={t.dashboard.registry.noMatchingDescription}
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th className="th-cell">{t.dashboard.registry.columns.credential}</th>
-                  <th className="th-cell">{t.dashboard.registry.columns.student}</th>
-                  <th className="th-cell">{t.dashboard.registry.columns.issued}</th>
-                  <th className="th-cell">{t.dashboard.registry.columns.checks}</th>
-                  <th className="th-cell">{t.dashboard.registry.columns.status}</th>
-                  <th className="th-cell">{t.dashboard.registry.columns.actions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {credentials.items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="td-cell-sm" style={{ maxWidth: "14rem" }}>
-                      <Link
-                        href={`/dashboard/credentials/${item.id}`}
-                        className="text-sm font-medium text-[hsl(var(--text-primary))] hover:text-[hsl(var(--text-secondary))] transition-colors block truncate"
-                      >
-                        {item.degree}
-                      </Link>
-                      <p className="meta-text font-mono truncate mt-0.5">
-                        {item.verificationId}
-                      </p>
-                    </td>
-                    <td className="td-cell-sm">
-                      <p className="text-sm text-[hsl(var(--text-primary))]">
-                        {item.studentName}
-                      </p>
-                      <p className="meta-text mt-0.5">{item.studentId}</p>
-                    </td>
-                    <td className="td-cell-sm whitespace-nowrap">
-                      <p className="text-sm text-[hsl(var(--text-secondary))]">
-                        {formatDate(item.issuedAt)}
-                      </p>
-                      <p className="meta-text mt-0.5">
-                        {item.issuer.displayName ?? item.issuer.name}
-                      </p>
-                    </td>
-                    <td className="td-cell-sm whitespace-nowrap">
-                      <p className="text-sm text-[hsl(var(--text-secondary))]">
-                        {item.verificationCount} {item.verificationCount === 1 ? t.common.checksSingular : t.common.checksPlural}
-                      </p>
-                      <p className="meta-text mt-0.5">
-                        {item.verifiedAt
-                          ? `${t.common.lastPrefix} ${formatDate(item.verifiedAt)}`
-                          : t.common.neverChecked}
-                      </p>
-                    </td>
-                    <td className="td-cell-sm">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <StatusBadge
-                          status={item.revoked ? "REVOKED" : "VALID"}
-                        />
-                        <StatusBadge
-                          status={
-                            item.anchorStatus === "ANCHORED"
-                              ? "ON_CHAIN_VERIFIED"
-                              : item.anchorStatus
-                          }
-                        />
-                      </div>
-                    </td>
-                    <td className="td-cell-sm">
-                      <div className="flex flex-wrap gap-1.5">
-                        <Link
-                          href={`/dashboard/credentials/${item.id}`}
-                          className="btn-ghost btn-sm"
-                        >
-                          {t.dashboard.registry.open}
-                        </Link>
-                        {item.revoked ? (
-                          <DeleteCredentialButton
-                            credentialId={item.id}
-                            summary={{
-                              degree: item.degree,
-                              studentName: item.studentName,
-                              studentId: item.studentId,
-                              issuerName:
-                                item.issuer.displayName ?? item.issuer.name,
-                            }}
-                          />
-                        ) : (
-                          <RevokeCredentialButton
-                            credentialId={item.id}
-                            revoked={item.revoked}
-                            summary={{
-                              degree: item.degree,
-                              studentName: item.studentName,
-                              studentId: item.studentId,
-                              issuerName:
-                                item.issuer.displayName ?? item.issuer.name,
-                            }}
-                          />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Table (client component — handles selection, bulk actions) */}
+      <CredentialsTable credentials={credentials} role={admin.role} />
     </div>
   );
 }
-

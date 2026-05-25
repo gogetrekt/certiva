@@ -228,6 +228,35 @@ export class DocumentProofService {
     };
   }
 
+  async bulkDelete(admin: JwtPayload, ids: string[]) {
+    const issuerId = await this.resolveIssuerScope(admin);
+    let deleted = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      try {
+        const proof = await this.prisma.secureDocumentProof.findUnique({
+          where: { id },
+          select: { id: true, issuerId: true },
+        });
+        if (!proof) { skipped++; continue; }
+        if (issuerId && proof.issuerId !== issuerId) { skipped++; continue; }
+
+        await this.prisma.$transaction([
+          this.prisma.secureDocumentProofVerificationLog.deleteMany({ where: { documentProofId: id } }),
+          this.prisma.secureDocumentProof.delete({ where: { id } }),
+        ]);
+
+        deleted++;
+      } catch {
+        failed++;
+      }
+    }
+
+    return { deleted, skipped, failed };
+  }
+
   async readMetadata(proofId: string) {
     try {
       return await this.assetsService.readMetadata(proofId);

@@ -28,6 +28,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtPayload } from '../auth/types/jwt-payload';
+import { BulkDeleteDocumentProofsDto } from './dto/bulk-delete-document-proofs.dto';
 import { CreateDocumentProofDto } from './dto/create-document-proof.dto';
 import { DocumentProofService } from './document-proof.service';
 
@@ -36,6 +37,12 @@ import { DocumentProofService } from './document-proof.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentProofController {
   constructor(private readonly documentProofService: DocumentProofService) {}
+
+  @Post('bulk-delete')
+  @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
+  bulkDelete(@GetAdmin() admin: JwtPayload, @Body() dto: BulkDeleteDocumentProofsDto) {
+    return this.documentProofService.bulkDelete(admin, dto.ids);
+  }
 
   @Get()
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE, AUDITOR_ROLE)

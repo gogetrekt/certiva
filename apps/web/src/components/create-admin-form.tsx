@@ -113,10 +113,7 @@ export function CreateAdminForm({ actorRole }: CreateAdminFormProps) {
           defaultValue="ADMIN"
           className="field-shell w-full text-sm"
         >
-          {actorRole === "OWNER" && (
-            <option value="OWNER">{t.roles.owner}</option>
-          )}
-          {(actorRole === "OWNER") && (
+          {(actorRole === "OWNER" || actorRole === "SUPER_ADMIN") && (
             <option value="SUPER_ADMIN">{t.roles.superAdmin}</option>
           )}
           <option value="ADMIN">{t.roles.adminOperator}</option>

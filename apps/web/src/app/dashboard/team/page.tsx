@@ -63,13 +63,11 @@ export default async function TeamPage() {
                     </td>
                     <td className="td-cell">
                       <span className="role-chip">
-                        {member.role === "OWNER"
-                          ? t.roles.owner
-                          : member.role === "SUPER_ADMIN"
-                            ? t.roles.superAdmin
-                            : member.role === "AUDITOR"
-                              ? t.roles.auditor
-                              : t.roles.admin}
+                        {member.role === "OWNER" || member.role === "SUPER_ADMIN"
+                          ? t.roles.superAdmin
+                          : member.role === "AUDITOR"
+                            ? t.roles.auditorViewer
+                            : t.roles.adminOperator}
                       </span>
                     </td>
                     <td className="td-cell">

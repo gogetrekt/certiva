@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowSquareOut,
+  BookOpen,
   Gear,
   House,
   IdentificationCard,
@@ -20,6 +21,10 @@ import { ThemeToggle } from "./theme-toggle";
 import { useLanguage } from "../lib/i18n";
 
 type DashboardRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
+
+function isSuperAdmin(role: DashboardRole): boolean {
+  return role === "SUPER_ADMIN" || role === "OWNER";
+}
 
 interface DashboardShellProps {
   admin: {
@@ -105,6 +110,12 @@ const navigationGroups = [
         href: "/dashboard/settings",
         labelKey: "settings",
         icon: Gear,
+        roles: ["OWNER", "SUPER_ADMIN"] as DashboardRole[],
+      },
+      {
+        href: "/dashboard/guide",
+        labelKey: "guide",
+        icon: BookOpen,
         roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] as DashboardRole[],
       },
     ],
@@ -115,10 +126,10 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
   const pathname = usePathname();
   const { t } = useLanguage();
   const roleLabels: Record<DashboardRole, string> = {
-    OWNER: t.roles.owner,
+    OWNER: t.roles.superAdmin,
     SUPER_ADMIN: t.roles.superAdmin,
-    ADMIN: t.roles.admin,
-    AUDITOR: t.roles.auditor,
+    ADMIN: t.roles.adminOperator,
+    AUDITOR: t.roles.auditorViewer,
   };
   const institutionLabel =
     admin.issuer?.displayName ?? admin.issuer?.name ?? t.dashboardShell.fallbackInstitution;
