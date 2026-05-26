@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import QRCode from "qrcode";
 
+import { StorageService } from "../../common/storage/storage.service";
 import { hashBuffer } from "../../common/utils/hash.util";
 import { AppConfigService } from "../../config/app-config.service";
 import { generateCredentialCertificatePdf } from "./credential-certificate";
@@ -88,7 +88,10 @@ type AssetKind = "metadata" | "qr" | "certificate";
 
 @Injectable()
 export class CredentialAssetsService {
-  constructor(private readonly configService: AppConfigService) {}
+  constructor(
+    private readonly configService: AppConfigService,
+    private readonly storage: StorageService,
+  ) {}
 
   async generateAndPersist(record: CredentialAssetRecord): Promise<CredentialAssetBundle> {
     const previewBundle = this.buildBundle(record);
@@ -119,15 +122,13 @@ export class CredentialAssetsService {
       fileSize: null,
     };
 
-    const directory = this.getCredentialDirectory(record.id);
-    await mkdir(directory, { recursive: true });
     const writes: Array<Promise<void>> = [
-      writeFile(
-        this.getAssetPath(record.id, "metadata"),
+      this.storage.put(
+        this.getAssetKey(record.id, "metadata"),
         JSON.stringify(bundle.metadata, null, 2),
-        "utf8",
+        "application/json",
       ),
-      writeFile(this.getAssetPath(record.id, "qr"), qrCodePng),
+      this.storage.put(this.getAssetKey(record.id, "qr"), qrCodePng, "image/png"),
     ];
 
     if (record.securePdfEnabled && !record.documentHash) {
@@ -147,7 +148,9 @@ export class CredentialAssetsService {
       const pdfBuffer = Buffer.from(pdfBytes);
       bundle.documentHash = hashBuffer(pdfBuffer);
       bundle.fileSize = pdfBuffer.byteLength;
-      writes.push(writeFile(this.getAssetPath(record.id, "certificate"), pdfBuffer));
+      writes.push(
+        this.storage.put(this.getAssetKey(record.id, "certificate"), pdfBuffer, "application/pdf"),
+      );
     }
 
     await Promise.all(writes);
@@ -157,42 +160,32 @@ export class CredentialAssetsService {
 
   async updateMetadata(record: CredentialAssetRecord) {
     const bundle = this.buildBundle(record);
-    const directory = this.getCredentialDirectory(record.id);
-    await mkdir(directory, { recursive: true });
-    await writeFile(
-      this.getAssetPath(record.id, "metadata"),
+    await this.storage.put(
+      this.getAssetKey(record.id, "metadata"),
       JSON.stringify(bundle.metadata, null, 2),
-      "utf8",
+      "application/json",
     );
-
     return bundle;
   }
 
   async readMetadata(credentialId: string) {
-    return readFile(this.getAssetPath(credentialId, "metadata"), "utf8");
+    return this.storage.getText(this.getAssetKey(credentialId, "metadata"));
   }
 
   async readQrCode(credentialId: string) {
-    return readFile(this.getAssetPath(credentialId, "qr"));
+    return this.storage.get(this.getAssetKey(credentialId, "qr"));
   }
 
   async readCertificate(credentialId: string) {
-    return readFile(this.getAssetPath(credentialId, "certificate"));
+    return this.storage.get(this.getAssetKey(credentialId, "certificate"));
   }
 
   async deleteAssets(credentialId: string) {
-    await rm(this.getCredentialDirectory(credentialId), {
-      recursive: true,
-      force: true,
-    });
+    await this.storage.deletePrefix(this.getCredentialPrefix(credentialId));
   }
 
   async deleteQrCode(credentialId: string) {
-    try {
-      await unlink(this.getAssetPath(credentialId, "qr"));
-    } catch {
-      // file already absent — nothing to do
-    }
+    await this.storage.delete(this.getAssetKey(credentialId, "qr"));
   }
 
   buildBundle(record: CredentialAssetRecord): CredentialAssetPreviewBundle {
@@ -313,26 +306,29 @@ export class CredentialAssetsService {
     return this.configService.webPublicBaseUrl.replace(/\/+$/, "");
   }
 
-  private getAssetRoot() {
+  /**
+   * Object storage key prefix for all assets belonging to one credential.
+   * For local storage this resolves to a subdirectory under assetStorageRoot.
+   * For R2 this is the S3 key prefix.
+   */
+  private getCredentialPrefix(credentialId: string) {
+    return `credentials/${credentialId}`;
+  }
+
+  private getAssetKey(credentialId: string, kind: AssetKind) {
+    const prefix = this.getCredentialPrefix(credentialId);
+    if (kind === "metadata") return `${prefix}/metadata.json`;
+    if (kind === "qr") return `${prefix}/verification-qr.png`;
+    return `${prefix}/certificate.pdf`;
+  }
+
+  // ── Legacy helpers kept for backward compatibility (local path resolution) ──
+
+  /** @internal Used only by migration tooling */
+  getLocalAssetPath(credentialId: string, kind: AssetKind): string {
     const configured = this.configService.assetStorageRoot;
-    return isAbsolute(configured) ? configured : resolve(process.cwd(), configured);
-  }
-
-  private getCredentialDirectory(credentialId: string) {
-    return join(this.getAssetRoot(), "credentials", credentialId);
-  }
-
-  private getAssetPath(credentialId: string, kind: AssetKind) {
-    const directory = this.getCredentialDirectory(credentialId);
-    if (kind === "metadata") {
-      return join(directory, "metadata.json");
-    }
-
-    if (kind === "qr") {
-      return join(directory, "verification-qr.png");
-    }
-
-    return join(directory, "certificate.pdf");
+    const root = isAbsolute(configured) ? configured : resolve(process.cwd(), configured);
+    return join(root, this.getAssetKey(credentialId, kind));
   }
 
   private normalizeNonEmpty(value?: string | null) {

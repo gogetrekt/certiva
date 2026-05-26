@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { AppConfigModule } from "../../config/app-config.module";
+import { StorageModule } from "../../common/storage/storage.module";
 import { BlockchainModule } from "../blockchain/blockchain.module";
 import { InstitutionModule } from "../institution/institution.module";
 import { CredentialAssetsController } from "./credential-assets.controller";
@@ -10,7 +11,7 @@ import { CredentialIntegrityService } from "./credential-integrity.service";
 import { CredentialService } from "./credential.service";
 
 @Module({
-  imports: [AppConfigModule, BlockchainModule, InstitutionModule],
+  imports: [AppConfigModule, StorageModule, BlockchainModule, InstitutionModule],
   controllers: [CredentialController, BatchController, CredentialAssetsController],
   providers: [CredentialService, CredentialAssetsService, CredentialIntegrityService],
   exports: [CredentialService, CredentialAssetsService],

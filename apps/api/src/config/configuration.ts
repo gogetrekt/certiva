@@ -12,6 +12,16 @@ export const configuration = () => ({
     webPublicBaseUrl:
       process.env.WEB_PUBLIC_BASE_URL ?? 'http://127.0.0.1:3000',
     assetStorageRoot: process.env.ASSET_STORAGE_ROOT ?? 'storage',
+    storageDriver: (process.env.STORAGE_DRIVER ?? 'local') as 'local' | 'r2',
+  },
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID ?? '',
+    bucket: process.env.R2_BUCKET ?? '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    endpoint: process.env.R2_ENDPOINT ?? '',
+    publicBaseUrl: process.env.R2_PUBLIC_BASE_URL ?? '',
+    forcePathStyle: process.env.R2_FORCE_PATH_STYLE === 'true',
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET,
