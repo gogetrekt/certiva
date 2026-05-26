@@ -428,6 +428,17 @@ export class CredentialService {
     ]);
     await this.assetsService.deleteAssets(id);
 
+    await this.auditLogService.log({
+      action: 'CREDENTIAL_DELETED',
+      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      targetType: 'Credential',
+      targetId: id,
+      metadata: {
+        studentName: existing.studentName,
+        degree: existing.degree,
+      },
+    });
+
     return {
       id,
       deleted: true,
