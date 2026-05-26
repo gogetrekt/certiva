@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getApiBaseUrl } from "../../../../lib/api";
+import { bffProxy, getApiBaseUrl } from "../../../../lib/api";
 
 export async function DELETE(
   _request: Request,
@@ -18,19 +18,12 @@ export async function DELETE(
   }
 
   const { id } = await context.params;
-  const response = await fetch(`${getApiBaseUrl()}/credentials/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  let payload: unknown = null;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
-
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/credentials/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+  );
 }

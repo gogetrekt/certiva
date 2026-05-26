@@ -682,3 +682,38 @@ export async function getQueueHealth(token: string) {
 export function getDashboardExportUrl() {
   return `${getApiBaseUrl()}/audit/dashboard/export`;
 }
+
+// ---------------------------------------------------------------------------
+// BFF proxy helper
+// Wraps a backend fetch so that:
+//  - network errors (DNS, ECONNREFUSED) return 503 instead of throwing
+//  - non-JSON backend responses return 502 instead of throwing
+//  - 5xx backend responses surface only a generic message, not internal details
+// The returned NextResponse is ready to return from a route handler.
+// ---------------------------------------------------------------------------
+export async function bffProxy(
+  backendRequest: () => Promise<Response>,
+  options: { sanitize5xx?: boolean } = { sanitize5xx: true },
+): Promise<import("next/server").NextResponse> {
+  const { NextResponse } = await import("next/server");
+
+  let response: Response;
+  try {
+    response = await backendRequest();
+  } catch {
+    return NextResponse.json({ message: "Service unavailable" }, { status: 503 });
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid response from service" }, { status: 502 });
+  }
+
+  if (options.sanitize5xx && response.status >= 500) {
+    return NextResponse.json({ message: "An error occurred. Please try again." }, { status: response.status });
+  }
+
+  return NextResponse.json(payload, { status: response.status });
+}

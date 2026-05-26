@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getApiBaseUrl } from "../../../../lib/api";
 
-const cookieSecure =
-  process.env.COOKIE_SECURE === "true" ||
-  process.env.NODE_ENV === "production";
+const cookieSecure = process.env.COOKIE_SECURE === "true";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
@@ -13,24 +11,47 @@ export async function POST(request: Request) {
     password?: string;
   };
 
-  const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username: body.username?.trim() || body.email,
-      password: body.password,
-    }),
-  });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    return NextResponse.json(payload, { status: response.status });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: body.username?.trim() || body.email,
+        password: body.password,
+      }),
+    });
+  } catch {
+    return NextResponse.json({ message: "Service unavailable" }, { status: 503 });
   }
 
-  const nextResponse = NextResponse.json(payload);
-  nextResponse.cookies.set("certiva_access_token", payload.accessToken, {
+  let payload: Record<string, unknown>;
+  try {
+    payload = (await response.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ message: "Invalid response from service" }, { status: 502 });
+  }
+
+  if (!response.ok) {
+    const safeError = {
+      message: typeof payload.message === "string" ? payload.message : "Login failed",
+      ...(typeof payload.code === "string" ? { code: payload.code } : {}),
+    };
+    return NextResponse.json(safeError, { status: response.status });
+  }
+
+  if (typeof payload.accessToken !== "string" || !payload.accessToken) {
+    return NextResponse.json({ message: "Authentication error" }, { status: 502 });
+  }
+
+  // Strip the access token from the browser-visible response body.
+  // It lives only in the httpOnly cookie.
+  const { accessToken: _token, ...publicPayload } = payload;
+
+  const nextResponse = NextResponse.json(publicPayload);
+  nextResponse.cookies.set("certiva_access_token", _token, {
     httpOnly: true,
     sameSite: "strict",
     secure: cookieSecure,

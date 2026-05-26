@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getApiBaseUrl } from "../../../../../lib/api";
+import { bffProxy, getApiBaseUrl } from "../../../../../lib/api";
 
 export async function POST(
   _request: Request,
@@ -14,12 +14,10 @@ export async function POST(
   }
 
   const { id } = await context.params;
-
-  const response = await fetch(`${getApiBaseUrl()}/credentials/${id}/rebuild-assets`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/credentials/${id}/rebuild-assets`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  );
 }

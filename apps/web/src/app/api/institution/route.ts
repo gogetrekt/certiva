@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getApiBaseUrl } from "../../../lib/api";
+import { bffProxy, getApiBaseUrl } from "../../../lib/api";
 
 async function getToken() {
   const cookieStore = await cookies();
@@ -14,15 +14,12 @@ export async function GET() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/institution`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/institution`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }),
+  );
 }
 
 export async function PATCH(request: Request) {
@@ -32,15 +29,14 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const response = await fetch(`${getApiBaseUrl()}/institution`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/institution`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    }),
+  );
 }

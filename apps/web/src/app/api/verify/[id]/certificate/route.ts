@@ -7,9 +7,15 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const response = await fetch(`${getApiBaseUrl()}/verify/${encodeURIComponent(id)}/certificate`, {
-    cache: "no-store",
-  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/verify/${encodeURIComponent(id)}/certificate`, {
+      cache: "no-store",
+    });
+  } catch {
+    return new NextResponse(null, { status: 503 });
+  }
 
   if (!response.ok) {
     return new NextResponse(null, { status: response.status });

@@ -13,12 +13,27 @@ export async function POST(request: Request) {
   const outboundFormData = new FormData();
   outboundFormData.set("file", file, file.name);
 
-  const response = await fetch(`${getApiBaseUrl()}/verify/credential/pdf`, {
-    method: "POST",
-    body: outboundFormData,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/verify/credential/pdf`, {
+      method: "POST",
+      body: outboundFormData,
+      cache: "no-store",
+    });
+  } catch {
+    return NextResponse.json({ message: "Service unavailable" }, { status: 503 });
+  }
 
-  const payload = await response.json();
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid response from service" }, { status: 502 });
+  }
+
+  if (response.status >= 500) {
+    return NextResponse.json({ message: "An error occurred. Please try again." }, { status: response.status });
+  }
+
   return NextResponse.json(payload, { status: response.status });
 }
