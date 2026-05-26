@@ -8,8 +8,12 @@ import {
 import { Prisma } from "@prisma/client";
 import type { Request, Response } from "express";
 
+import type { AppConfigService } from "../../config/app-config.service";
+
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
+  constructor(private readonly configService: AppConfigService) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -47,17 +51,17 @@ export class AppExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const statusCode = exception.getStatus();
-      const response = exception.getResponse();
+      const exceptionResponse = exception.getResponse();
 
-      if (typeof response === "string") {
+      if (typeof exceptionResponse === "string") {
         return {
           statusCode,
           error: exception.name,
-          message: response,
+          message: exceptionResponse,
         };
       }
 
-      const body = response as {
+      const body = exceptionResponse as {
         error?: string;
         message?: string | string[];
       };
@@ -65,14 +69,29 @@ export class AppExceptionFilter implements ExceptionFilter {
       return {
         statusCode,
         error: body.error ?? exception.name,
-        message: Array.isArray(body.message) ? body.message.join(", ") : (body.message ?? exception.message),
+        message: Array.isArray(body.message)
+          ? body.message.join(", ")
+          : (body.message ?? exception.message),
       };
     }
 
+    // Unexpected 500: suppress details outside development
+    if (this.configService.isExposedEnv) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: "Internal Server Error",
+        message: "An unexpected error occurred.",
+      };
+    }
+
+    // Development: include class name to aid debugging, but never the full stack
+    const name = exception instanceof Error ? exception.constructor.name : "UnknownError";
+    const message = exception instanceof Error ? exception.message : "An unexpected error occurred.";
+
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      error: "Internal Server Error",
-      message: "An unexpected error occurred.",
+      error: name,
+      message,
     };
   }
 }
