@@ -58,8 +58,8 @@ export default async function DashboardOverviewPage() {
         getDashboardMetrics(token),
         getActivityFeed(token, { limit: 25 }),
         getVerificationAnalytics(token, 7),
-        getLatestIssuances(token, 10),
-        getLatestRevocations(token, 10),
+        getLatestIssuances(token, 5),
+        getLatestRevocations(token, 5),
         getQueueHealth(token),
       ]);
   } catch (error) {
