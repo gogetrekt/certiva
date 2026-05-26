@@ -8,9 +8,28 @@ import { processRetry } from "./jobs/retry";
 import { prisma } from "./lib/prisma";
 import { QUEUE_NAMES } from "./queues";
 
+function safeLog(
+  level: "info" | "warn" | "error",
+  message: string,
+  meta: Record<string, unknown> = {},
+) {
+  const entry = JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level,
+    context: "Worker",
+    message,
+    ...meta,
+  });
+  if (level === "error") {
+    process.stderr.write(entry + "\n");
+  } else {
+    process.stdout.write(entry + "\n");
+  }
+}
+
 const redisUrl = process.env.REDIS_URL;
 if (!redisUrl) {
-  console.error("REDIS_URL is required for worker startup. Set it in the worker service environment.");
+  safeLog("error", "REDIS_URL is required for worker startup");
   process.exit(1);
 }
 
@@ -39,11 +58,34 @@ const credentialAnchorWorker = new Worker(
   },
 );
 
+// Safe worker error listeners — log message only, never private keys or config
+function attachErrorListener(worker: Worker, queueName: string) {
+  worker.on("error", (error) => {
+    safeLog("error", "Worker error", {
+      queue: queueName,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+  });
+
+  worker.on("failed", (job, error) => {
+    safeLog("error", "Job failed", {
+      queue: queueName,
+      jobId: job?.id,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+  });
+}
+
+attachErrorListener(issuanceWorker, QUEUE_NAMES.issuance);
+attachErrorListener(retryWorker, QUEUE_NAMES.retry);
+attachErrorListener(credentialAnchorWorker, QUEUE_NAMES.credentialAnchor);
+
 const issuanceEvents = new QueueEvents(QUEUE_NAMES.issuance, { connection });
 const retryEvents = new QueueEvents(QUEUE_NAMES.retry, { connection });
 const credentialAnchorEvents = new QueueEvents(QUEUE_NAMES.credentialAnchor, { connection });
 
 const shutdown = async () => {
+  safeLog("info", "Worker shutting down");
   await Promise.all([
     issuanceWorker.close(),
     retryWorker.close(),
@@ -64,4 +106,6 @@ const shutdown = async () => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-console.log("Worker online. Listening for queue jobs.");
+safeLog("info", "Worker online", {
+  queues: [QUEUE_NAMES.issuance, QUEUE_NAMES.retry, QUEUE_NAMES.credentialAnchor],
+});

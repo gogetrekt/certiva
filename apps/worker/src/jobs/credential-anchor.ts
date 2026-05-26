@@ -19,12 +19,41 @@ const BLOCKCHAIN_OPERATION = {
   revoke: "REVOCATION",
 } as const;
 
+function safeLog(
+  level: "info" | "warn" | "error",
+  message: string,
+  meta: Record<string, unknown> = {},
+) {
+  const entry = JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level,
+    context: "CredentialAnchorWorker",
+    message,
+    ...meta,
+  });
+  if (level === "error") {
+    process.stderr.write(entry + "\n");
+  } else {
+    process.stdout.write(entry + "\n");
+  }
+}
+
 export async function processCredentialAnchor(
   job: Job<CredentialAnchorJobPayload>,
 ) {
+  const { credentialId, operation } = job.data;
+
+  safeLog("info", "Job started", {
+    jobId: job.id,
+    queue: job.queueName,
+    credentialId,
+    operation,
+    attempt: job.attemptsMade + 1,
+  });
+
   const credential = await prisma.credential.findUnique({
     where: {
-      id: job.data.credentialId,
+      id: credentialId,
     },
     include: {
       issuer: true,
@@ -32,7 +61,8 @@ export async function processCredentialAnchor(
   });
 
   if (!credential) {
-    throw new Error(`Credential ${job.data.credentialId} not found.`);
+    safeLog("error", "Credential not found", { jobId: job.id, credentialId });
+    throw new Error(`Credential ${credentialId} not found.`);
   }
 
   const attemptNumber = job.attemptsMade + 1;
@@ -71,6 +101,15 @@ export async function processCredentialAnchor(
         });
       });
 
+      safeLog("info", "Job completed", {
+        jobId: job.id,
+        queue: job.queueName,
+        credentialId: credential.id,
+        operation: BLOCKCHAIN_OPERATION.anchor,
+        status: ANCHOR_STATUS.anchored,
+        attempt: attemptNumber,
+      });
+
       return {
         status: ANCHOR_STATUS.anchored,
         credentialId: credential.id,
@@ -103,6 +142,15 @@ export async function processCredentialAnchor(
       });
     });
 
+    safeLog("info", "Job completed", {
+      jobId: job.id,
+      queue: job.queueName,
+      credentialId: credential.id,
+      operation: BLOCKCHAIN_OPERATION.revoke,
+      status: "REVOKED",
+      attempt: attemptNumber,
+    });
+
     return {
       status: "REVOKED",
       credentialId: credential.id,
@@ -112,6 +160,16 @@ export async function processCredentialAnchor(
     const message =
       error instanceof Error ? error.message : "Unknown blockchain worker failure.";
     const finalAttempt = attemptNumber >= maxAttempts;
+
+    safeLog("error", "Job failed", {
+      jobId: job.id,
+      queue: job.queueName,
+      credentialId: credential.id,
+      operation: job.data.operation,
+      attempt: attemptNumber,
+      finalAttempt,
+      errorMessage: message,
+    });
 
     await prisma.$transaction(async (tx) => {
       if (job.data.operation === BLOCKCHAIN_OPERATION.anchor && finalAttempt) {

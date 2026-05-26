@@ -16,6 +16,7 @@ import { PdfReferenceService } from '../../common/services/pdf-reference.service
 import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth/types/jwt-payload';
+import { AuditLogService } from '../audit/audit-log.service';
 import { InstitutionService } from '../institution/institution.service';
 import { DocumentProofAssetsService } from './document-proof-assets.service';
 import { CreateDocumentProofDto } from './dto/create-document-proof.dto';
@@ -57,6 +58,7 @@ export class DocumentProofService {
     private readonly assetsService: DocumentProofAssetsService,
     private readonly configService: AppConfigService,
     private readonly pdfReferenceService: PdfReferenceService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   async create(
@@ -144,6 +146,18 @@ export class DocumentProofService {
       },
     });
 
+    await this.auditLogService.log({
+      action: 'DOCUMENT_PROOF_CREATED',
+      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      targetType: 'SecureDocumentProof',
+      targetId: proofId,
+      metadata: {
+        title: dto.title.trim(),
+        documentType: dto.documentType.trim(),
+        verificationId,
+      },
+    });
+
     return this.toResponse(created);
   }
 
@@ -199,6 +213,9 @@ export class DocumentProofService {
       select: {
         id: true,
         issuerId: true,
+        title: true,
+        documentType: true,
+        verificationId: true,
       },
     });
 
@@ -221,6 +238,18 @@ export class DocumentProofService {
         where: { id },
       }),
     ]);
+
+    await this.auditLogService.log({
+      action: 'DOCUMENT_PROOF_DELETED',
+      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      targetType: 'SecureDocumentProof',
+      targetId: id,
+      metadata: {
+        title: proof.title,
+        documentType: proof.documentType,
+        verificationId: proof.verificationId,
+      },
+    });
 
     return {
       id,
@@ -247,6 +276,14 @@ export class DocumentProofService {
           this.prisma.secureDocumentProofVerificationLog.deleteMany({ where: { documentProofId: id } }),
           this.prisma.secureDocumentProof.delete({ where: { id } }),
         ]);
+
+        await this.auditLogService.log({
+          action: 'DOCUMENT_PROOF_DELETED',
+          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+          targetType: 'SecureDocumentProof',
+          targetId: id,
+          metadata: { bulk: true },
+        });
 
         deleted++;
       } catch {
