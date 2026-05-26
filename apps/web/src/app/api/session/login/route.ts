@@ -35,9 +35,9 @@ export async function POST(request: Request) {
   }
 
   if (!response.ok) {
+    // Deliberately allowlist fields — never forward path, timestamp, or stack details
     const safeError = {
       message: typeof payload.message === "string" ? payload.message : "Login failed",
-      ...(typeof payload.code === "string" ? { code: payload.code } : {}),
     };
     return NextResponse.json(safeError, { status: response.status });
   }

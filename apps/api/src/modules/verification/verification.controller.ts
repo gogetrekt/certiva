@@ -72,6 +72,7 @@ export class VerificationController {
   }
 
   @Get('verify/:verificationId')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   verifyByVerificationId(
     @Param('verificationId') verificationId: string,
     @Req() req: Request,
@@ -95,6 +96,7 @@ export class VerificationController {
   }
 
   @Get('verify/:verificationId/certificate')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'application/pdf')
   async certificate(@Param('verificationId') verificationId: string) {
     const credential =
