@@ -13,6 +13,7 @@
     "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
+    "migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "start": "nest start",
     "start:dev": "pnpm run prisma:deploy && nest start --watch",
@@ -26,6 +27,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1053.0",
     "@certiva/contracts": "workspace:*",
     "@napi-rs/canvas": "^1.0.0",
     "@nestjs/common": "^11.0.1",

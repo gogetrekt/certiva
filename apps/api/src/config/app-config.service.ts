@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { R2StorageConfig } from '../common/storage/r2-storage.provider';
 import type { RateLimitConfig } from '../common/rate-limit/rate-limit.types';
 
 @Injectable()
@@ -98,6 +99,25 @@ export class AppConfigService {
 
   get assetStorageRoot() {
     return this.configService.get<string>('app.assetStorageRoot', 'storage');
+  }
+
+  get storageDriver(): 'local' | 'r2' {
+    return this.configService.get<'local' | 'r2'>('app.storageDriver', 'local');
+  }
+
+  get r2Config(): R2StorageConfig {
+    return {
+      accountId: this.configService.get<string>('r2.accountId', ''),
+      bucket: this.configService.get<string>('r2.bucket', ''),
+      accessKeyId: this.configService.get<string>('r2.accessKeyId', ''),
+      secretAccessKey: this.configService.get<string>('r2.secretAccessKey', ''),
+      endpoint: this.configService.get<string>('r2.endpoint', ''),
+      forcePathStyle: this.configService.get<boolean>('r2.forcePathStyle', true),
+    };
+  }
+
+  get r2PublicBaseUrl(): string {
+    return this.configService.get<string>('r2.publicBaseUrl', '');
   }
 
   get blockchainRpcUrl() {

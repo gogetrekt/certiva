@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { isAbsolute, join, resolve } from "node:path";
 import QRCode from "qrcode";
 
+import { StorageService } from "../../common/storage/storage.service";
 import { AppConfigService } from "../../config/app-config.service";
 
 interface DocumentProofIssuer {
@@ -55,7 +54,10 @@ export interface DocumentProofAssetBundle {
 
 @Injectable()
 export class DocumentProofAssetsService {
-  constructor(private readonly configService: AppConfigService) {}
+  constructor(
+    private readonly configService: AppConfigService,
+    private readonly storage: StorageService,
+  ) {}
 
   async generateAndPersist(
     record: DocumentProofAssetRecord,
@@ -72,26 +74,24 @@ export class DocumentProofAssetsService {
       },
     });
 
-    const directory = this.getProofDirectory(record.id);
-    await mkdir(directory, { recursive: true });
     await Promise.all([
-      writeFile(
-        this.getAssetPath(record.id, "metadata"),
+      this.storage.put(
+        this.getAssetKey(record.id, "metadata"),
         JSON.stringify(bundle.metadata, null, 2),
-        "utf8",
+        "application/json",
       ),
-      writeFile(this.getAssetPath(record.id, "qr"), qrCodePng),
+      this.storage.put(this.getAssetKey(record.id, "qr"), qrCodePng, "image/png"),
     ]);
 
     return bundle;
   }
 
   async readMetadata(proofId: string) {
-    return readFile(this.getAssetPath(proofId, "metadata"), "utf8");
+    return this.storage.getText(this.getAssetKey(proofId, "metadata"));
   }
 
   async readQrCode(proofId: string) {
-    return readFile(this.getAssetPath(proofId, "qr"));
+    return this.storage.get(this.getAssetKey(proofId, "qr"));
   }
 
   buildBundle(record: DocumentProofAssetRecord): DocumentProofAssetBundle {
@@ -168,20 +168,12 @@ export class DocumentProofAssetsService {
     return this.configService.webPublicBaseUrl.replace(/\/+$/, "");
   }
 
-  private getAssetRoot() {
-    const configured = this.configService.assetStorageRoot;
-    return isAbsolute(configured) ? configured : resolve(process.cwd(), configured);
+  private getProofPrefix(proofId: string) {
+    return `document-proofs/${proofId}`;
   }
 
-  private getProofDirectory(proofId: string) {
-    return join(this.getAssetRoot(), "document-proofs", proofId);
-  }
-
-  private getAssetPath(proofId: string, kind: "metadata" | "qr") {
-    const directory = this.getProofDirectory(proofId);
-    return join(
-      directory,
-      kind === "metadata" ? "metadata.json" : "verification-qr.png",
-    );
+  private getAssetKey(proofId: string, kind: "metadata" | "qr") {
+    const prefix = this.getProofPrefix(proofId);
+    return kind === "metadata" ? `${prefix}/metadata.json` : `${prefix}/verification-qr.png`;
   }
 }

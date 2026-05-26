@@ -53,6 +53,21 @@ export const envSchema = z.object({
   WEB_PUBLIC_BASE_URL: z.string().url().optional(),
   ASSET_STORAGE_ROOT: z.string().optional(),
 
+  // Storage driver: "local" (default) or "r2"
+  STORAGE_DRIVER: z.enum(["local", "r2"]).optional(),
+
+  // Cloudflare R2 (required when STORAGE_DRIVER=r2)
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_ENDPOINT: z.string().url().optional(),
+  R2_PUBLIC_BASE_URL: z.string().url().optional(),
+  R2_FORCE_PATH_STYLE: z
+    .enum(["true", "false", ""])
+    .optional()
+    .transform((v) => v === "true"),
+
   COOKIE_SECURE: z
     .enum(['true', 'false', ''])
     .optional()
@@ -147,6 +162,20 @@ export function validateEnv(config: Record<string, unknown>) {
           'PRIVATE_KEY appears to be a development placeholder. Do not use test keys in production.',
         );
       }
+    }
+  }
+
+  if (data.STORAGE_DRIVER === "r2") {
+    const missingR2: string[] = [];
+    if (!data.R2_ACCOUNT_ID) missingR2.push("R2_ACCOUNT_ID");
+    if (!data.R2_BUCKET) missingR2.push("R2_BUCKET");
+    if (!data.R2_ACCESS_KEY_ID) missingR2.push("R2_ACCESS_KEY_ID");
+    if (!data.R2_SECRET_ACCESS_KEY) missingR2.push("R2_SECRET_ACCESS_KEY");
+    if (!data.R2_ENDPOINT) missingR2.push("R2_ENDPOINT");
+    if (missingR2.length > 0) {
+      throw new Error(
+        `STORAGE_DRIVER=r2 requires the following env vars: ${missingR2.join(", ")}`,
+      );
     }
   }
 
