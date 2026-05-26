@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getApiBaseUrl } from "../../../../lib/api";
+import { bffProxy, getApiBaseUrl } from "../../../../lib/api";
 
 export async function PATCH(
   request: Request,
@@ -20,17 +20,16 @@ export async function PATCH(
   const { id } = await context.params;
   const body = await request.json();
 
-  const response = await fetch(`${getApiBaseUrl()}/auth/admins/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/auth/admins/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    }),
+  );
 }
 
 export async function DELETE(
@@ -48,14 +47,10 @@ export async function DELETE(
   }
 
   const { id } = await context.params;
-
-  const response = await fetch(`${getApiBaseUrl()}/auth/admins/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/auth/admins/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  );
 }

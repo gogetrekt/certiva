@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getApiBaseUrl } from "../../../../lib/api";
+import { bffProxy, getApiBaseUrl } from "../../../../lib/api";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -11,15 +11,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const response = await fetch(`${getApiBaseUrl()}/credentials/bulk`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const payload = await response.json();
-  return NextResponse.json(payload, { status: response.status });
+  return bffProxy(() =>
+    fetch(`${getApiBaseUrl()}/credentials/bulk`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    }),
+  );
 }

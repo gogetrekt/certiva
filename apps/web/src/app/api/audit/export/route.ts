@@ -8,10 +8,15 @@ export async function GET() {
   const token = cookieStore.get("certiva_access_token")?.value;
   if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-  const response = await fetch(`${getApiBaseUrl()}/audit/dashboard/export`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/audit/dashboard/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    return NextResponse.json({ message: "Service unavailable" }, { status: 503 });
+  }
 
   if (!response.ok) {
     return NextResponse.json({ message: "Export failed" }, { status: response.status });

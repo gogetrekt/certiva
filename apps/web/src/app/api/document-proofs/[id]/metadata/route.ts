@@ -7,14 +7,26 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const response = await fetch(`${getApiBaseUrl()}/document-proofs/${encodeURIComponent(id)}/metadata`, {
-    cache: "no-store",
-  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/document-proofs/${encodeURIComponent(id)}/metadata`, {
+      cache: "no-store",
+    });
+  } catch {
+    return new NextResponse(null, { status: 503 });
+  }
 
   if (!response.ok) {
     return new NextResponse(null, { status: response.status });
   }
 
-  const payload = await response.json();
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return new NextResponse(null, { status: 502 });
+  }
+
   return NextResponse.json(payload, { status: 200 });
 }
