@@ -4,9 +4,12 @@ import {
   Header,
   NotFoundException,
   Param,
+  Res,
   StreamableFile,
 } from "@nestjs/common";
+import type { Response } from "express";
 
+import { AppConfigService } from "../../config/app-config.service";
 import { CredentialAssetsService } from "./credential-assets.service";
 import { CredentialService } from "./credential.service";
 
@@ -15,11 +18,13 @@ export class CredentialAssetsController {
   constructor(
     private readonly credentialService: CredentialService,
     private readonly assetsService: CredentialAssetsService,
+    private readonly configService: AppConfigService,
   ) {}
 
   @Get(":id/metadata")
   @Header("Content-Type", "application/json; charset=utf-8")
-  async metadata(@Param("id") id: string) {
+  async metadata(@Param("id") id: string, @Res({ passthrough: true }) res: Response) {
+    this.setAssetStorageHeader(res);
     const credential = await this.credentialService.findOneOrThrow(id);
 
     try {
@@ -36,7 +41,8 @@ export class CredentialAssetsController {
 
   @Get(":id/qr")
   @Header("Content-Type", "image/png")
-  async qrCode(@Param("id") id: string) {
+  async qrCode(@Param("id") id: string, @Res({ passthrough: true }) res: Response) {
+    this.setAssetStorageHeader(res);
     const credential = await this.credentialService.findOneOrThrow(id);
 
     // If the stored verificationUrl does not contain the correct crd_* identifier,
@@ -60,6 +66,12 @@ export class CredentialAssetsController {
       } catch {
         throw new NotFoundException("Credential QR code not found");
       }
+    }
+  }
+
+  private setAssetStorageHeader(res: Response) {
+    if (this.configService.appEnv === "staging") {
+      res.setHeader("X-Asset-Storage", "r2");
     }
   }
 }
