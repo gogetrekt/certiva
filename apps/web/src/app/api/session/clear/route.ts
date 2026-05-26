@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+const cookieSecure =
+  process.env.COOKIE_SECURE === "true" ||
+  process.env.NODE_ENV === "production";
+
 /**
  * GET /api/session/clear
  *
@@ -14,8 +18,8 @@ export async function GET(request: Request) {
 
   response.cookies.set("certiva_access_token", "", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    secure: cookieSecure,
     path: "/",
     expires: new Date(0),
     maxAge: 0,

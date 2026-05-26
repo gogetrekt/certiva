@@ -5,9 +5,21 @@ node_modules
 dist
 coverage
 *.log
+
+# ── Environment files (real secrets — never commit) ───────────────────────────
 .env
 .env.local
 .env.*.local
+apps/*/.env
+apps/*/.env.local
+apps/*/.env.*.local
+packages/*/.env
+packages/*/.env.local
+packages/*/.env.*.local
+
+# ── Example env files are safe and SHOULD be committed ────────────────────────
+# (no rule here — .env.example files are not excluded)
+
 .DS_Store
 Thumbs.db
 **/prisma/generated
