@@ -165,6 +165,13 @@ export function validateEnv(config: Record<string, unknown>) {
     }
   }
 
+  if (isExposed && data.STORAGE_DRIVER !== "r2") {
+    throw new Error(
+      "STORAGE_DRIVER must be set to \"r2\" in staging and production environments. " +
+      "Local filesystem storage is not permitted in exposed environments.",
+    );
+  }
+
   if (data.STORAGE_DRIVER === "r2") {
     const missingR2: string[] = [];
     if (!data.R2_ACCOUNT_ID) missingR2.push("R2_ACCOUNT_ID");

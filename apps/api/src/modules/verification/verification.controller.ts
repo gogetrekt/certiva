@@ -7,13 +7,15 @@ import {
   Param,
   Post,
   Req,
+  Res,
   StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
+import { AppConfigService } from '../../config/app-config.service';
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
 import { CredentialAssetsService } from '../credential/credential-assets.service';
 import { CredentialService } from '../credential/credential.service';
@@ -26,6 +28,7 @@ export class VerificationController {
     private readonly verificationService: VerificationService,
     private readonly assetsService: CredentialAssetsService,
     private readonly credentialService: CredentialService,
+    private readonly configService: AppConfigService,
   ) {}
 
   @Post('verifications')
@@ -98,7 +101,14 @@ export class VerificationController {
   @Get('verify/:verificationId/certificate')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'application/pdf')
-  async certificate(@Param('verificationId') verificationId: string) {
+  async certificate(
+    @Param('verificationId') verificationId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (this.configService.appEnv === 'staging') {
+      res.setHeader('X-Asset-Storage', 'r2');
+    }
+
     const credential =
       await this.verificationService.getCertificateByVerificationId(
         verificationId,

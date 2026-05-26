@@ -8,13 +8,14 @@ import {
   Param,
   Post,
   Req,
+  Res,
   StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 import {
   ADMIN_ROLE,
@@ -27,6 +28,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { AppConfigService } from '../../config/app-config.service';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import { BulkDeleteDocumentProofsDto } from './dto/bulk-delete-document-proofs.dto';
 import { CreateDocumentProofDto } from './dto/create-document-proof.dto';
@@ -82,7 +84,10 @@ export class DocumentProofController {
 
 @Controller()
 export class PublicDocumentProofController {
-  constructor(private readonly documentProofService: DocumentProofService) {}
+  constructor(
+    private readonly documentProofService: DocumentProofService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   @Post('verify/document/code')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
@@ -125,7 +130,10 @@ export class PublicDocumentProofController {
   @Get('document-proofs/:id/metadata')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'application/json; charset=utf-8')
-  async metadata(@Param('id') id: string) {
+  async metadata(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
+    if (this.configService.appEnv === 'staging') {
+      res.setHeader('X-Asset-Storage', 'r2');
+    }
     try {
       return await this.documentProofService.readMetadata(id);
     } catch {
@@ -136,7 +144,10 @@ export class PublicDocumentProofController {
   @Get('document-proofs/:id/qr')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'image/png')
-  async qr(@Param('id') id: string) {
+  async qr(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
+    if (this.configService.appEnv === 'staging') {
+      res.setHeader('X-Asset-Storage', 'r2');
+    }
     try {
       const file = await this.documentProofService.readQrCode(id);
       return new StreamableFile(file);
