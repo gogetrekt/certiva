@@ -1,7 +1,12 @@
 export const configuration = () => ({
   app: {
+    nodeEnv: process.env.NODE_ENV ?? 'development',
+    appEnv: process.env.APP_ENV ?? 'development',
     port: parseInt(process.env.PORT ?? '4000', 10),
-    corsOrigin: process.env.CORS_ORIGIN ?? '',
+    // CORS_ORIGINS (comma-separated) takes precedence over legacy CORS_ORIGIN
+    corsOrigins: process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN ?? '',
+    cookieSecure: process.env.COOKIE_SECURE === 'true',
+    trustProxy: process.env.TRUST_PROXY === 'true',
     apiPublicBaseUrl:
       process.env.API_PUBLIC_BASE_URL ?? 'http://127.0.0.1:4000/api',
     webPublicBaseUrl:

@@ -11,6 +11,22 @@ export class AppConfigService {
     return this.configService.get<number>('app.port', 4000);
   }
 
+  get nodeEnv() {
+    return this.configService.get<string>('app.nodeEnv', 'development');
+  }
+
+  get appEnv() {
+    return this.configService.get<string>('app.appEnv', 'development');
+  }
+
+  get isExposedEnv() {
+    return (
+      this.nodeEnv === 'production' ||
+      this.appEnv === 'staging' ||
+      this.appEnv === 'production'
+    );
+  }
+
   get databaseUrl() {
     return this.configService.getOrThrow<string>('database.url');
   }
@@ -31,16 +47,39 @@ export class AppConfigService {
     return this.configService.get<string>('auth.jwtExpiresIn', '12h');
   }
 
-  get corsOrigins() {
-    const rawOrigins = this.configService.get<string>('app.corsOrigin', '');
-    if (!rawOrigins) {
+  /**
+   * Returns the list of allowed CORS origins.
+   * In staging/production, never falls back to allow-all (true).
+   * In local development with no origins configured, returns allow-all as a convenience.
+   */
+  get corsOrigins(): string[] | true {
+    const raw = this.configService.get<string>('app.corsOrigins', '');
+    const origins = raw
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean);
+
+    if (origins.length === 0) {
+      if (this.isExposedEnv) {
+        // validateEnv already rejects this state, but guard here too
+        throw new Error(
+          'CORS_ORIGINS must not be empty in staging or production. ' +
+          'Set CORS_ORIGINS to a comma-separated list of allowed origins.',
+        );
+      }
+      // Local dev convenience: allow all (bracket widened only in dev)
       return true;
     }
 
-    return rawOrigins
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean);
+    return origins;
+  }
+
+  get cookieSecure() {
+    return this.configService.get<boolean>('app.cookieSecure', false);
+  }
+
+  get trustProxy() {
+    return this.configService.get<boolean>('app.trustProxy', false);
   }
 
   get apiPublicBaseUrl() {

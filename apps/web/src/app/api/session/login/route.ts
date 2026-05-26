@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 import { getApiBaseUrl } from "../../../../lib/api";
 
+const cookieSecure =
+  process.env.COOKIE_SECURE === "true" ||
+  process.env.NODE_ENV === "production";
+
 export async function POST(request: Request) {
   const body = (await request.json()) as {
     username?: string;
@@ -28,8 +32,8 @@ export async function POST(request: Request) {
   const nextResponse = NextResponse.json(payload);
   nextResponse.cookies.set("certiva_access_token", payload.accessToken, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    secure: cookieSecure,
     path: "/",
   });
 

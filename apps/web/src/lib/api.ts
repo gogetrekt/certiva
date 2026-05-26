@@ -387,7 +387,7 @@ export interface DocumentProofVerificationResponse {
 }
 
 export function getApiBaseUrl() {
-  return process.env.API_BASE_URL ?? "http://localhost:4000/api";
+  return process.env.INTERNAL_API_URL ?? process.env.API_BASE_URL ?? "http://localhost:4000/api";
 }
 
 export async function getSessionToken() {
