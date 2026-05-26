@@ -274,8 +274,6 @@ export class VerificationService {
         id: currentCredential.id,
         studentName: currentCredential.studentName,
         studentId: currentCredential.studentId,
-        hash: currentCredential.hash,
-        documentHash: currentCredential.documentHash,
       },
     };
   }
@@ -561,8 +559,10 @@ export class VerificationService {
         input.blockchainVerification.anchoredAt ??
         input.credential.anchoredAt ??
         null,
-      documentHash: input.registeredHash,
-      uploadedHash: input.uploadedHash,
+      // Only expose hashes when integrity matched — do not leak registered hash to
+      // help an attacker forge matching uploads.
+      documentHash: input.integrityMatched ? input.registeredHash : null,
+      uploadedHash: input.integrityMatched ? input.uploadedHash : null,
       integrityMatched: input.integrityMatched,
       trustChecks: this.buildTrustChecks(
         input.credential,

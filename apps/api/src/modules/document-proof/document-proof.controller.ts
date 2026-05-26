@@ -111,6 +111,7 @@ export class PublicDocumentProofController {
   }
 
   @Get('proof/:verificationId')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   verifyByPublicId(
     @Param('verificationId') verificationId: string,
     @Req() req: Request,
@@ -122,6 +123,7 @@ export class PublicDocumentProofController {
   }
 
   @Get('document-proofs/:id/metadata')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'application/json; charset=utf-8')
   async metadata(@Param('id') id: string) {
     try {
@@ -132,6 +134,7 @@ export class PublicDocumentProofController {
   }
 
   @Get('document-proofs/:id/qr')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'image/png')
   async qr(@Param('id') id: string) {
     try {

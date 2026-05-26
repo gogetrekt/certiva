@@ -35,5 +35,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "An error occurred. Please try again." }, { status: response.status });
   }
 
+  // Strip internal backend fields (path, timestamp) from error responses
+  if (!response.ok && payload !== null && typeof payload === "object") {
+    const { path: _p, timestamp: _t, ...safe } = payload as Record<string, unknown>;
+    return NextResponse.json(safe, { status: response.status });
+  }
+
   return NextResponse.json(payload, { status: response.status });
 }

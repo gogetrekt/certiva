@@ -124,7 +124,7 @@ export class DocumentProofService {
         documentType: dto.documentType.trim(),
         referenceNumber: dto.referenceNumber?.trim() || null,
         documentDate: dto.documentDate ? new Date(dto.documentDate) : null,
-        fileName: file.originalname?.trim() || 'document.pdf',
+        fileName: this.sanitizeFilename(file.originalname),
         mimeType: file.mimetype,
         fileSize: file.size,
         sourceHash,
@@ -600,6 +600,17 @@ export class DocumentProofService {
     ]);
 
     return updatedProof;
+  }
+
+  private sanitizeFilename(name?: string | null): string {
+    if (!name) return 'document.pdf';
+    // Strip path separators and null bytes, allow only safe filename characters
+    const stripped = name
+      .replace(/[/\\]/g, '')
+      .replace(/\0/g, '')
+      .trim();
+    const safe = stripped.replace(/[^a-zA-Z0-9._\- ]/g, '_');
+    return safe.slice(0, 200) || 'document.pdf';
   }
 
   private async resolveIssuerScope(admin: JwtPayload) {

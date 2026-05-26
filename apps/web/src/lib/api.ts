@@ -689,6 +689,7 @@ export function getDashboardExportUrl() {
 //  - network errors (DNS, ECONNREFUSED) return 503 instead of throwing
 //  - non-JSON backend responses return 502 instead of throwing
 //  - 5xx backend responses surface only a generic message, not internal details
+//  - error responses never forward internal backend fields (path, timestamp)
 // The returned NextResponse is ready to return from a route handler.
 // ---------------------------------------------------------------------------
 export async function bffProxy(
@@ -713,6 +714,12 @@ export async function bffProxy(
 
   if (options.sanitize5xx && response.status >= 500) {
     return NextResponse.json({ message: "An error occurred. Please try again." }, { status: response.status });
+  }
+
+  // Strip internal backend fields from error responses to avoid leaking API paths
+  if (!response.ok && payload !== null && typeof payload === "object") {
+    const { path: _path, timestamp: _ts, ...safe } = payload as Record<string, unknown>;
+    return NextResponse.json(safe, { status: response.status });
   }
 
   return NextResponse.json(payload, { status: response.status });
