@@ -1,4 +1,4 @@
-# Certiva -- Security Policy
+# Certiva - Security Policy
 
 This document describes the security model, reporting policy, and operational security baseline for Certiva.
 
@@ -14,7 +14,7 @@ This repository does not have a public release track. The `main` branch reflects
 
 If you discover a security vulnerability in this codebase, please report it responsibly.
 
-**Contact:** [owner -- replace this placeholder with a security contact email or GitHub security advisory URL]
+**Contact:** gogetrekt@archivecircle.xyz
 
 Do not open a public GitHub issue for security vulnerabilities. Report privately so the issue can be assessed and addressed before public disclosure.
 
@@ -82,7 +82,7 @@ Every Admin record carries a `tokenVersion` integer. The JWT strategy validates 
 
 ### COOKIE_SECURE
 
-- Set `COOKIE_SECURE=true` when serving over HTTPS -- required for staging and production.
+- Set `COOKIE_SECURE=true` when serving over HTTPS - required for staging and production.
 - In development over HTTP only, this can be `false`.
 
 ### TRUST_PROXY
@@ -109,7 +109,7 @@ Every Admin record carries a `tokenVersion` integer. The JWT strategy validates 
 - Never commit a real private key to source control.
 - Never print or log the private key.
 - Known development placeholder keys (all-zeros, all-`a`) are rejected at startup when `BLOCKCHAIN_ENABLED=true` and the environment is staging or production.
-- Use a dedicated issuer wallet with minimal on-chain balance -- only enough for gas.
+- Use a dedicated issuer wallet with minimal on-chain balance - only enough for gas.
 - Rotate the key if exposure is suspected.
 
 ---
