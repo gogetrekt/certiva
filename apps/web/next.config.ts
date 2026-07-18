@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Turbopack/React need eval() in dev for HMR + debugging; never in prod builds.
+const isDev = process.env.NODE_ENV !== "production";
+
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -31,7 +34,7 @@ const securityHeaders = [
       // chunks in development. In production builds unsafe-eval is not needed but
       // nonce-based CSP requires Next.js middleware integration; unsafe-inline is
       // still required for Next.js inline bootstrap script.
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
       // Styles: Tailwind v4 injects a runtime <style> tag, requiring unsafe-inline.
       "style-src 'self' 'unsafe-inline'",
       // Images: allow same-origin, data: URIs (QR code canvas exports), and blob:
