@@ -28,3 +28,12 @@ certiva.sql
 tasks.json
 apps/api/storage/
 CLAUDE.md
+
+# build artifacts (generated)
+dist-emit/
+apps/api/dist-emit/
+packages/contracts/artifacts/
+packages/contracts/cache/
+packages/contracts/build-info/
+
+/docs/plan.md

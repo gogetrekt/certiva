@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+**/dist-emit
+**/.next
+**/.turbo
+**/coverage
+packages/contracts/artifacts
+packages/contracts/cache
+packages/contracts/build-info
+pnpm-lock.yaml
+*.tsbuildinfo
+**/*.sol
