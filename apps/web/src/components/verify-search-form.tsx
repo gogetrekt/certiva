@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 
 import { useLanguage } from "../lib/i18n";
@@ -19,13 +19,19 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  // Sync input to a changed prop and reset the submit flag on navigation
+  // via adjust-state-on-change instead of effects.
+  const [prevInitial, setPrevInitial] = useState(initialValue);
+  if (initialValue !== prevInitial) {
+    setPrevInitial(initialValue);
     setVerificationId(initialValue);
-  }, [initialValue]);
+  }
 
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsSubmitting(false);
-  }, [pathname]);
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,7 +92,7 @@ export function VerifySearchForm({ initialValue = "", compact = false }: VerifyS
           required
           className="field-shell w-full font-mono"
         />
-        {error ? <p className="text-xs text-[hsl(var(--status-error-text))]">{error}</p> : null}
+        {error ? <p role="alert" aria-live="assertive" className="text-xs text-[hsl(var(--status-error-text))]">{error}</p> : null}
       </div>
       <button
         type="submit"

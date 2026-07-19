@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { createElement } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -189,7 +190,6 @@ function TopicDetail({
   labels: Dictionary["adminGuide"];
   role: AdminRole;
 }) {
-  const Icon = getTopicIcon(topic.id);
   const allowedActions = topic.actions.filter((action) =>
     isAllowed(role, action.roles),
   );
@@ -204,7 +204,10 @@ function TopicDetail({
       <div className="work-surface p-5">
         <div className="flex items-start gap-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))]">
-            <Icon size={18} aria-hidden />
+            {createElement(getTopicIcon(topic.id), {
+              size: 18,
+              "aria-hidden": true,
+            })}
           </span>
           <div className="min-w-0">
             <p className="kicker mb-2">{labels.detailLabel}</p>

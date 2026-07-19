@@ -216,34 +216,11 @@ async function persistLifecycleLog(
     errorMessage: input.errorMessage ?? null,
   };
 
-  const updated = await tx.blockchainAnchorLog.updateMany({
-    where: { credentialId },
-    data,
+  // Append-only: one immutable row per lifecycle event (2.1).
+  await tx.blockchainAnchorLog.create({
+    data: {
+      credentialId,
+      ...data,
+    },
   });
-
-  if (updated.count > 0) {
-    return;
-  }
-
-  try {
-    await tx.blockchainAnchorLog.create({
-      data: {
-        credentialId,
-        ...data,
-      },
-    });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      await tx.blockchainAnchorLog.updateMany({
-        where: { credentialId },
-        data,
-      });
-      return;
-    }
-
-    throw error;
-  }
 }

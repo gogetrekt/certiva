@@ -40,8 +40,8 @@
   /* Text -- near black, no tint */
   --text-primary:    0 0% 7%;     /* ≈ #111827 */
   --text-secondary:  0 0% 42%;    /* ≈ #6B7280 */
-  --text-tertiary:   0 0% 56%;
-  --text-quaternary: 0 0% 68%;
+  --text-tertiary:   0 0% 44%;    /* WCAG AA: 4.5:1 on bg-subtle */
+  --text-quaternary: 0 0% 44%;    /* WCAG AA: 4.5:1 on bg-subtle */
   --text-inverse:    0 0% 100%;
 
   /* Status -- desaturated institutional tones */
@@ -93,8 +93,8 @@
   /* Soft off-white text -- not stark white */
   --text-primary:    0 0% 90%;    /* ≈ #E5E5E5 */
   --text-secondary:  0 0% 60%;    /* ≈ #999999 */
-  --text-tertiary:   0 0% 42%;
-  --text-quaternary: 0 0% 30%;
+  --text-tertiary:   0 0% 53%;    /* WCAG AA: 4.5:1 on bg-subtle */
+  --text-quaternary: 0 0% 53%;    /* WCAG AA: 4.5:1 on bg-subtle */
   --text-inverse:    0 0% 7%;
 
   --status-valid-bg:       152 18% 10%;

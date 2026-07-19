@@ -82,13 +82,13 @@ export function IssueCredentialForm({ institutionName }: IssueCredentialFormProp
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs text-[hsl(var(--status-error-text))]">
+        <div role="alert" aria-live="assertive" className="rounded-lg border border-[hsl(var(--status-error-border))] bg-[hsl(var(--status-error-bg))] px-4 py-3 text-xs text-[hsl(var(--status-error-text))]">
           {error}
         </div>
       ) : null}
 
       {success ? (
-        <div className="rounded-lg border border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] px-4 py-3 text-xs text-[hsl(var(--status-valid-text))]">
+        <div role="status" aria-live="polite" className="rounded-lg border border-[hsl(var(--status-valid-border))] bg-[hsl(var(--status-valid-bg))] px-4 py-3 text-xs text-[hsl(var(--status-valid-text))]">
           {success}
         </div>
       ) : null}

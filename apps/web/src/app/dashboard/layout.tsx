@@ -13,9 +13,9 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  let admin: Awaited<ReturnType<typeof getCurrentAdmin>>;
   try {
-    const admin = await getCurrentAdmin(token);
-    return <DashboardShell admin={admin}>{children}</DashboardShell>;
+    admin = await getCurrentAdmin(token);
   } catch (error) {
     // 401/403 means the token is stale or the admin was deleted.
     // We must clear the cookie before redirecting -- otherwise the middleware
@@ -29,4 +29,6 @@ export default async function DashboardLayout({
     // cookie so the user can retry once the API recovers.
     redirect("/login");
   }
+
+  return <DashboardShell admin={admin}>{children}</DashboardShell>;
 }

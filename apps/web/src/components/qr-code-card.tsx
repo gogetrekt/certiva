@@ -75,7 +75,7 @@ export function QrCodeCard({
               {normalizedVerificationUrl}
             </p>
           </div>
-          {error ? <p className="text-xs text-[hsl(var(--status-error-text))]">{error}</p> : null}
+          {error ? <p role="alert" aria-live="assertive" className="text-xs text-[hsl(var(--status-error-text))]">{error}</p> : null}
           <div className="flex flex-wrap gap-2">
             <a
               href={normalizedVerificationUrl}
