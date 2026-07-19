@@ -19,10 +19,22 @@ Credential authenticity and document authenticity are separate concerns with sep
 - Secure document proof records with SHA-256 hash integrity verification
 - Institution-scoped role-based administration
 - Verification logs for relying-party activity
-- Append-only audit trail covering the full credential and admin lifecycle
+- Tamper-evident, hash-chained audit trail covering the full credential and admin lifecycle (any edit or deletion breaks the chain and is detectable)
+- Soft-delete with evidence retention — deleted credentials are withdrawn from active use but never physically destroyed
 - Batch credential issuance from CSV
 - Blockchain anchoring as an optional secondary audit and integrity layer (Polygon Amoy)
 - Object storage via Cloudflare R2 or local filesystem
+
+## Self-Hosting
+
+Certiva is designed to run on infrastructure the institution controls — no third-party dependency for verification, and no student personal data leaves the deployment. The full stack (web, api, worker, PostgreSQL, Redis) runs on a single host via Docker Compose.
+
+```bash
+cp .env.prod.example .env      # fill in the REQUIRED values
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+See **[docs/DEPLOY.md](docs/DEPLOY.md)** for the complete guide (configuration, first-admin setup, TLS, backups, upgrades). For the data-protection and PII-off-chain posture, see **[docs/COMPLIANCE.md](docs/COMPLIANCE.md)**.
 
 ## Architecture
 
@@ -78,7 +90,9 @@ Certiva is built with a security-first posture across all layers.
 
 **Rate limiting** - Configurable per-endpoint limits on auth login, public verification, verification with file upload, and admin API routes. Redis-backed in staging and production.
 
-**Audit logging** - Append-only audit log covering login, admin lifecycle, credential issuance and revocation, document proof creation, and settings changes. No sensitive values (passwords, tokens, private keys) are written to audit log metadata.
+**Audit logging** - Tamper-evident, hash-chained audit log covering login, admin lifecycle, credential issuance and revocation, document proof creation, and settings changes. Each entry is chained to the previous one (`prevHash → entryHash`), so editing, deleting, or reordering any row breaks the chain — verifiable via `GET /api/audit/action-logs/verify`. No sensitive values (passwords, tokens, private keys) are written to audit log metadata.
+
+**Evidence retention** - Credential deletion is a soft-delete: the row, its verification/proof/anchor logs, and stored assets are retained for forensics. Deleted credentials are excluded from verification and listings but never physically removed, so evidence of issuance or fraud cannot be silently destroyed.
 
 **Safe logging** - The API and worker use a structured logging approach that never writes JWTs, cookies, passwords, `DATABASE_URL`, `REDIS_URL`, `PRIVATE_KEY`, or raw uploaded document content to logs.
 
@@ -99,7 +113,10 @@ apps/api/scripts/               One-time migration and maintenance scripts
 apps/web/src/app/               Next.js App Router (dashboard and public verification surfaces)
 apps/worker/src/                BullMQ workers: issuance, credential-anchor, retry
 scripts/                        Operational scripts (backup)
-docker-compose.yml              Local PostgreSQL 16 and Redis 7 services
+docker-compose.yml              Local dev PostgreSQL 16 and Redis 7 services
+docker-compose.prod.yml         Full self-host stack (web, api, worker, db, redis, migrate)
+docs/DEPLOY.md                  Self-host deployment guide
+docs/COMPLIANCE.md              Data-protection posture (PII off-chain, retention, audit integrity)
 ```
 
 ## Scripts Reference
@@ -116,6 +133,6 @@ Per-app scripts are in each `apps/*/package.json`. The API `dev` script runs `pr
 
 ## Status
 
-Pre-production. Security hardening complete through Phase 6. Not deployed to final production.
+Pre-production / dev phase. Security fundamentals in place (guarded admin routes, rate-limited public verification, upload caps, PII kept off public responses and off-chain, tamper-evident audit, soft-delete evidence retention). Self-host deployment artifacts are provided (see [docs/DEPLOY.md](docs/DEPLOY.md)). Not yet deployed to a production institution.
 
 Environment configuration, infrastructure access, and production secrets are controlled by the project owner.
