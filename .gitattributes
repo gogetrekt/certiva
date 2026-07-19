@@ -1,0 +1,14 @@
+# Normalize line endings: LF is canonical in the repo.
+* text=auto eol=lf
+
+# Scripts must stay LF regardless of platform.
+*.sh text eol=lf
+
+# Binary / lockfiles: leave untouched.
+pnpm-lock.yaml -text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

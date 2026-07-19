@@ -12,10 +12,18 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**"],
+      "passThroughEnv": ["DATABASE_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"]
     }
   }
 }

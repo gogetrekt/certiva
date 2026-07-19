@@ -11,6 +11,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "postinstall": "prisma generate || true"
   },
   "prisma": {
