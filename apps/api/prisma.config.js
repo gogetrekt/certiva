@@ -32,7 +32,11 @@ function loadEnvFile(filePath) {
 loadEnvFile(resolve(__dirname, ".env"));
 loadEnvFile(resolve(__dirname, "../../.env"));
 
-if (!process.env.DATABASE_URL) {
+// `prisma generate` only reads the schema — it never connects — so it must work
+// without a DATABASE_URL (CI builds, fresh clones, Docker image builds). Only
+// commands that touch the database require it.
+const needsDatabase = !process.argv.includes("generate");
+if (needsDatabase && !process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be defined before running Prisma commands.");
 }
 
