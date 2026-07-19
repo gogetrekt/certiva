@@ -60,16 +60,16 @@ function StatCell({ label, value, icon: Icon, iconClass }: StatCellProps) {
 // --- Relative time label ------------------------------------------------------
 
 function useRelativeTime(date: Date | null): string {
-  const [, tick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   const { t } = useLanguage();
 
   useEffect(() => {
-    const id = setInterval(() => tick((n) => n + 1), 30_000);
+    const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
 
   if (!date) return "";
-  const diffMs = Date.now() - date.getTime();
+  const diffMs = now - date.getTime();
   const diffMin = Math.floor(diffMs / 60_000);
   if (diffMin < 1) return t.auditComponents.queue.lastUpdatedJustNow;
   return `${diffMin} ${t.auditComponents.queue.lastUpdatedMinutesAgo}`;

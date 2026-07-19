@@ -47,6 +47,9 @@ const en = {
     documentCheck: "Document Check",
     signIn: "Sign In",
     ariaLabel: "Public navigation",
+    openMenu: "Open navigation menu",
+    closeMenu: "Close navigation menu",
+    menuLabel: "Navigation menu",
   },
   footer: {
     tagline: "Academic credential verification infrastructure.",
@@ -1950,6 +1953,20 @@ const en = {
       ],
     },
   },
+  errorStates: {
+    verifyTitle: "Something went wrong.",
+    verifyDescription:
+      "We couldn't load this verification result. This may be a temporary issue with the registry. Try again in a moment.",
+    retry: "Try again",
+    backToVerify: "Back to verification",
+    notFoundTitle: "Page not found.",
+    notFoundDescription:
+      "The page you're looking for doesn't exist or may have been moved.",
+    goHome: "Return home",
+    globalTitle: "Something went wrong.",
+    globalDescription: "An unexpected error occurred. Please reload the page.",
+    globalRetry: "Reload",
+  },
 };
 
 const id: typeof en = {
@@ -1990,6 +2007,9 @@ const id: typeof en = {
     documentCheck: "Periksa Dokumen",
     signIn: "Masuk",
     ariaLabel: "Navigasi publik",
+    openMenu: "Buka menu navigasi",
+    closeMenu: "Tutup menu navigasi",
+    menuLabel: "Menu navigasi",
   },
   footer: {
     tagline: "Infrastruktur verifikasi kredensial akademik.",
@@ -3892,6 +3912,20 @@ const id: typeof en = {
         { heading: "Kontak", body: null },
       ],
     },
+  },
+  errorStates: {
+    verifyTitle: "Terjadi kesalahan.",
+    verifyDescription:
+      "Kami tidak dapat memuat hasil verifikasi ini. Ini mungkin masalah sementara pada registri. Coba lagi sebentar lagi.",
+    retry: "Coba lagi",
+    backToVerify: "Kembali ke verifikasi",
+    notFoundTitle: "Halaman tidak ditemukan.",
+    notFoundDescription:
+      "Halaman yang Anda cari tidak ada atau mungkin telah dipindahkan.",
+    goHome: "Kembali ke beranda",
+    globalTitle: "Terjadi kesalahan.",
+    globalDescription: "Terjadi kesalahan tak terduga. Silakan muat ulang halaman.",
+    globalRetry: "Muat ulang",
   },
 };
 

@@ -1,18 +1,15 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage, type Language } from "../lib/i18n";
+import { useHydrated } from "../lib/use-hydrated";
 
 export function LanguageToggle() {
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   if (!mounted) {
     return <div className="lang-toggle" aria-hidden="true" />;

@@ -26,7 +26,24 @@ interface VerifyResultPageProps {
 export async function generateMetadata({ params }: VerifyResultPageProps): Promise<Metadata> {
   const { verificationId } = await params;
   const t = await getServerDictionary();
-  return { title: `${t.metadata.verificationTitlePrefix} ${verificationId}` };
+  const title = `${t.metadata.verificationTitlePrefix} ${verificationId}`;
+  const description = t.metadata.defaultDescription;
+  const url = `/verify/${verificationId}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
 }
 
 function getStateConfig(result: VerificationResponse["result"], t: Dictionary) {

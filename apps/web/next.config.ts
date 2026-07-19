@@ -59,6 +59,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained server bundle (.next/standalone) for a lean Docker image.
+  output: "standalone",
   transpilePackages: ["@certiva/ui", "@certiva/types"],
 
   async headers() {

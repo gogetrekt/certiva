@@ -1,29 +1,34 @@
 "use client";
 
 import { Moon, Sun } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { useLanguage } from "../lib/i18n";
+import { useHydrated } from "../lib/use-hydrated";
+
+const THEME_EVENT = "certiva-theme-change";
+
+function subscribeTheme(cb: () => void) {
+  window.addEventListener(THEME_EVENT, cb);
+  return () => window.removeEventListener(THEME_EVENT, cb);
+}
+
+// Source of truth is the `dark` class the inline script in the root layout
+// sets before hydration, so no in-effect setState is needed to read it.
+function getThemeSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
 
 export function ThemeToggle() {
   const { t } = useLanguage();
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("certiva-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const dark = stored === "dark" || (!stored && prefersDark);
-    setIsDark(dark);
-    document.documentElement.classList.toggle("dark", dark);
-  }, []);
+  const mounted = useHydrated();
+  const isDark = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => false);
 
   function toggle() {
     const next = !isDark;
-    setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("certiva-theme", next ? "dark" : "light");
+    window.dispatchEvent(new Event(THEME_EVENT));
   }
 
   if (!mounted) {

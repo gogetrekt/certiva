@@ -5,6 +5,31 @@ import Link from "next/link";
 import { useLanguage } from "../lib/i18n";
 import { AppLogo } from "./app-logo";
 
+function FooterSection({
+  heading,
+  links,
+}: {
+  heading: string;
+  links: readonly { href: string; label: string }[];
+}) {
+  return (
+    <div>
+      <p className="mb-3.5 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[hsl(var(--text-primary))]">
+        {heading}
+      </p>
+      <ul className="flex flex-col gap-2.5">
+        {links.map(({ href, label }) => (
+          <li key={href}>
+            <Link href={href} className="site-footer-link">
+              {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function SiteFooter() {
   const { t } = useLanguage();
   const year = new Date().getFullYear();
@@ -25,31 +50,6 @@ export function SiteFooter() {
     { href: "/privacy", label: t.footer.privacyPolicy },
     { href: "/terms", label: t.footer.termsOfUse },
   ] as const;
-
-  function FooterSection({
-    heading,
-    links,
-  }: {
-    heading: string;
-    links: readonly { href: string; label: string }[];
-  }) {
-    return (
-      <div>
-        <p className="mb-3.5 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[hsl(var(--text-primary))]">
-          {heading}
-        </p>
-        <ul className="flex flex-col gap-2.5">
-          {links.map(({ href, label }) => (
-            <li key={href}>
-              <Link href={href} className="site-footer-link">
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
 
   return (
     <footer className="site-footer">

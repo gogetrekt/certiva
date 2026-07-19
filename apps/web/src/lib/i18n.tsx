@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 
 import {
   DEFAULT_LANGUAGE,
@@ -41,6 +46,17 @@ function writeLanguageCookie(lang: Language) {
   document.cookie = `${LANGUAGE_COOKIE_NAME}=${lang}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
+const LANGUAGE_EVENT = "certiva-language-change";
+
+function subscribeLanguage(cb: () => void) {
+  window.addEventListener(LANGUAGE_EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(LANGUAGE_EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+}
+
 export function LanguageProvider({
   children,
   initialLanguage = DEFAULT_LANGUAGE,
@@ -48,25 +64,28 @@ export function LanguageProvider({
   children: React.ReactNode;
   initialLanguage?: Language;
 }) {
-  const [language, setLanguageState] = useState<Language>(initialLanguage);
-
-  useEffect(() => {
-    const stored =
+  const language = useSyncExternalStore(
+    subscribeLanguage,
+    () =>
       normalizeLanguage(localStorage.getItem(STORAGE_KEY)) ??
       readLanguageCookie() ??
-      initialLanguage;
+      initialLanguage,
+    () => initialLanguage,
+  );
 
-    setLanguageState(stored);
-    localStorage.setItem(STORAGE_KEY, stored);
-    writeLanguageCookie(stored);
-    document.documentElement.lang = stored;
-  }, [initialLanguage]);
+  // Persist the resolved language + <html lang> to external systems. No
+  // setState here, so it stays clear of react-hooks/set-state-in-effect.
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, language);
+    writeLanguageCookie(language);
+    document.documentElement.lang = language;
+  }, [language]);
 
   function setLanguage(lang: Language) {
-    setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
     writeLanguageCookie(lang);
     document.documentElement.lang = lang;
+    window.dispatchEvent(new Event(LANGUAGE_EVENT));
   }
 
   return (

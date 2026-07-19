@@ -49,12 +49,13 @@ const retryWorker = new Worker(QUEUE_NAMES.retry, processRetry, {
   connection,
   concurrency: 5,
 });
+// ponytail: single signer + auto-nonce — concurrency 1 avoids nonce races. Add a nonce manager only if throughput demands it.
 const credentialAnchorWorker = new Worker(
   QUEUE_NAMES.credentialAnchor,
   processCredentialAnchor,
   {
   connection,
-  concurrency: 3,
+  concurrency: 1,
   },
 );
 

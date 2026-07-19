@@ -283,10 +283,12 @@ export function DashboardShell({ admin, children }: DashboardShellProps) {
       ) ??
     flatItems[0];
 
-  // Close drawer on route change
-  useEffect(() => {
+  // Close drawer on route change (adjust-state-on-change, not an effect)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setDrawerOpen(false);
-  }, [pathname]);
+  }
 
   // Lock body scroll when drawer is open
   useEffect(() => {

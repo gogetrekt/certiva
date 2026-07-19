@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { List, X } from "@phosphor-icons/react";
 
 import { useLanguage } from "../lib/i18n";
@@ -39,11 +39,57 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  // Close drawer on route change
-  useEffect(() => {
+  // Close drawer on route change (adjust-state-on-change, not an effect)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
+
+  // Move focus into the drawer, trap Tab, close on Escape, restore focus on close
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+
+    const previouslyFocused = triggerRef.current;
+    const getFocusable = () =>
+      Array.from(
+        sheet.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+
+    getFocusable()[0]?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [mobileOpen]);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -99,8 +145,9 @@ export function SiteHeader() {
               <LanguageToggle />
               <ThemeToggle />
               <button
+                ref={triggerRef}
                 type="button"
-                aria-label="Open navigation menu"
+                aria-label={t.nav.openMenu}
                 aria-expanded={mobileOpen}
                 onClick={() => setMobileOpen(true)}
                 className="theme-toggle"
@@ -124,16 +171,17 @@ export function SiteHeader() {
 
           {/* Sheet */}
           <div
+            ref={sheetRef}
             className="mobile-nav-sheet site-header"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation menu"
+            aria-label={t.nav.menuLabel}
           >
             <div className="flex items-center justify-between mb-4">
               <AppLogo />
               <button
                 type="button"
-                aria-label="Close navigation menu"
+                aria-label={t.nav.closeMenu}
                 onClick={() => setMobileOpen(false)}
                 className="theme-toggle"
               >
