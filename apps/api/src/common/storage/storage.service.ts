@@ -1,9 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
-import { AppConfigService } from "../../config/app-config.service";
-import { LocalStorageProvider } from "./local-storage.provider";
-import { R2StorageProvider } from "./r2-storage.provider";
-import type { StorageProvider } from "./storage.interface";
+import { AppConfigService } from '../../config/app-config.service';
+import { LocalStorageProvider } from './local-storage.provider';
+import { R2StorageProvider } from './r2-storage.provider';
+import type { StorageProvider } from './storage.interface';
 
 @Injectable()
 export class StorageService implements StorageProvider, OnModuleInit {
@@ -14,10 +14,10 @@ export class StorageService implements StorageProvider, OnModuleInit {
 
   onModuleInit() {
     const driver = this.configService.storageDriver;
-    if (driver === "r2") {
+    if (driver === 'r2') {
       const cfg = this.configService.r2Config;
       this.provider = new R2StorageProvider(cfg);
-      this.logger.log("Storage driver: r2");
+      this.logger.log('Storage driver: r2');
     } else {
       const root = this.configService.assetStorageRoot;
       this.provider = new LocalStorageProvider(root);

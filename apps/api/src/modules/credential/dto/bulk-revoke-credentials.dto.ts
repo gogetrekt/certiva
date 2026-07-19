@@ -1,5 +1,12 @@
-import { IsArray, IsEnum, IsOptional, IsString, MaxLength, ArrayNotEmpty } from "class-validator";
-import { RevocationReason } from "@prisma/client";
+import {
+  IsArray,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ArrayNotEmpty,
+} from 'class-validator';
+import { RevocationReason } from '@prisma/client';
 
 export class BulkRevokeCredentialsDto {
   @IsArray()
@@ -8,7 +15,7 @@ export class BulkRevokeCredentialsDto {
   ids!: string[];
 
   @IsEnum(RevocationReason, {
-    message: `reason must be one of: ${Object.values(RevocationReason).join(", ")}`,
+    message: `reason must be one of: ${Object.values(RevocationReason).join(', ')}`,
   })
   reason!: RevocationReason;
 

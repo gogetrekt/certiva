@@ -1,21 +1,21 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes } from 'node:crypto';
 
-import { hashString, hmacSha256 } from "../../common/utils/hash.util";
+import { hashString, hmacSha256 } from '../../common/utils/hash.util';
 
 function normalizeValue(value: string) {
-  return value.trim().replace(/\s+/g, " ");
+  return value.trim().replace(/\s+/g, ' ');
 }
 
 export function generateDocumentProofId() {
-  return `prf_${randomBytes(9).toString("hex")}`;
+  return `prf_${randomBytes(9).toString('hex')}`;
 }
 
 export function generateDocumentVerificationId() {
-  return `dpf_${randomBytes(9).toString("hex")}`;
+  return `dpf_${randomBytes(9).toString('hex')}`;
 }
 
 export function generateDocumentVerificationCode() {
-  return `DP-${randomBytes(6).toString("hex").toUpperCase()}`;
+  return `DP-${randomBytes(6).toString('hex').toUpperCase()}`;
 }
 
 export function buildDocumentSignedToken(input: {
@@ -33,7 +33,7 @@ export function buildDocumentSignedToken(input: {
       `verificationCode:${input.verificationCode}`,
       `issuerId:${input.issuerId}`,
       `createdAt:${input.createdAt.toISOString()}`,
-    ].join("\n"),
+    ].join('\n'),
     input.secret,
   );
 }
@@ -58,6 +58,6 @@ export function buildDocumentProofHash(input: {
       `documentType:${normalizeValue(input.documentType)}`,
       `sourceHash:${input.sourceHash}`,
       `createdAt:${input.createdAt.toISOString()}`,
-    ].join("\n"),
+    ].join('\n'),
   );
 }

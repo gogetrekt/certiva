@@ -68,6 +68,7 @@ export class VerificationService {
     const createdAt = new Date();
     const credential = await this.prisma.credential.findFirst({
       where: {
+        deletedAt: null,
         id: dto.credentialId ?? undefined,
         OR: dto.hash
           ? [{ hash: dto.hash }, { documentHash: dto.hash }]
@@ -109,13 +110,14 @@ export class VerificationService {
       trustChecks: this.buildTrustChecks(credential, verification ?? null),
       credential: credential
         ? {
+            // Public/anonymous verify response: verificationCode is a secret and
+            // studentId is PII — neither is exposed here. See admin endpoints for
+            // the full record.
             id: credential.id,
             verificationId: credential.verificationId,
-            verificationCode: credential.verificationCode,
             verificationMode: credential.verificationMode,
             securePdfEnabled: credential.securePdfEnabled,
             studentName: credential.studentName,
-            studentId: credential.studentId,
             degree: credential.degree,
             issuerId: credential.issuerId,
             revoked: credential.revoked,
@@ -148,6 +150,7 @@ export class VerificationService {
     const createdAt = new Date();
     const credential = await this.prisma.credential.findFirst({
       where: {
+        deletedAt: null,
         OR: [
           { credentialExternalId: verificationId },
           { verificationId },
@@ -237,7 +240,9 @@ export class VerificationService {
     return {
       credentialExternalId: currentCredential.credentialExternalId,
       verificationId: currentCredential.verificationId,
-      verificationCode: currentCredential.verificationCode,
+      // Public/anonymous verify response: verificationCode is a secret and
+      // studentId is PII — neither is exposed here. See admin endpoints for
+      // the full record.
       verificationMode: currentCredential.verificationMode,
       securePdfEnabled: currentCredential.securePdfEnabled,
       valid: status === 'VALID',
@@ -273,7 +278,6 @@ export class VerificationService {
       credential: {
         id: currentCredential.id,
         studentName: currentCredential.studentName,
-        studentId: currentCredential.studentId,
       },
     };
   }
@@ -299,7 +303,7 @@ export class VerificationService {
       });
 
       return {
-        ...(await this.buildNotFoundResponse('', createdAt)),
+        ...this.buildNotFoundResponse('', createdAt),
         resolvedReference: null,
         referenceSource: 'QR' as const,
       };
@@ -331,6 +335,7 @@ export class VerificationService {
     const credential = reference
       ? await this.prisma.credential.findFirst({
           where: {
+            deletedAt: null,
             OR: [
               { verificationId: reference },
               { verificationCode: reference },
@@ -474,8 +479,8 @@ export class VerificationService {
   }
 
   async getCertificateByVerificationId(verificationId: string) {
-    const credential = await this.prisma.credential.findUnique({
-      where: { verificationId },
+    const credential = await this.prisma.credential.findFirst({
+      where: { verificationId, deletedAt: null },
       select: { id: true },
     });
 
@@ -486,7 +491,7 @@ export class VerificationService {
     return credential;
   }
 
-  private async buildNotFoundResponse(reference: string, createdAt: Date) {
+  private buildNotFoundResponse(reference: string, createdAt: Date) {
     return {
       credentialExternalId: null,
       verificationId: reference,
@@ -538,7 +543,8 @@ export class VerificationService {
       status: input.status,
       credentialId: input.credential.id,
       verificationId: input.credential.verificationId,
-      verificationCode: input.credential.verificationCode,
+      // Public/anonymous verify response: verificationCode is a secret and is
+      // not exposed here. See admin endpoints for the full record.
       resolvedReference: input.reference,
       referenceSource: 'QR' as const,
       studentName: input.credential.studentName,

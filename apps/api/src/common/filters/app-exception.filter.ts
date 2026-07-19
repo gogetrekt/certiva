@@ -5,11 +5,11 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import type { Request, Response } from "express";
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import type { Request, Response } from 'express';
 
-import type { AppConfigService } from "../../config/app-config.service";
+import type { AppConfigService } from '../../config/app-config.service';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -72,19 +72,19 @@ export class AppExceptionFilter implements ExceptionFilter {
 
   private normalizeException(exception: unknown) {
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      if (exception.code === "P2002") {
+      if (exception.code === 'P2002') {
         return {
           statusCode: HttpStatus.CONFLICT,
-          error: "Conflict",
-          message: "A unique constraint would be violated by this request.",
+          error: 'Conflict',
+          message: 'A unique constraint would be violated by this request.',
         };
       }
 
-      if (exception.code === "P2025") {
+      if (exception.code === 'P2025') {
         return {
           statusCode: HttpStatus.NOT_FOUND,
-          error: "Not Found",
-          message: "The requested record could not be found.",
+          error: 'Not Found',
+          message: 'The requested record could not be found.',
         };
       }
     }
@@ -93,7 +93,7 @@ export class AppExceptionFilter implements ExceptionFilter {
       const statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === "string") {
+      if (typeof exceptionResponse === 'string') {
         return {
           statusCode,
           error: exception.name,
@@ -110,7 +110,7 @@ export class AppExceptionFilter implements ExceptionFilter {
         statusCode,
         error: body.error ?? exception.name,
         message: Array.isArray(body.message)
-          ? body.message.join(", ")
+          ? body.message.join(', ')
           : (body.message ?? exception.message),
       };
     }
@@ -119,18 +119,18 @@ export class AppExceptionFilter implements ExceptionFilter {
     if (this.configService.isExposedEnv) {
       return {
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: "Internal Server Error",
-        message: "An unexpected error occurred.",
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred.',
       };
     }
 
     // Development: include class name to aid debugging, but never the full stack
     const name =
-      exception instanceof Error ? exception.constructor.name : "UnknownError";
+      exception instanceof Error ? exception.constructor.name : 'UnknownError';
     const message =
       exception instanceof Error
         ? exception.message
-        : "An unexpected error occurred.";
+        : 'An unexpected error occurred.';
 
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

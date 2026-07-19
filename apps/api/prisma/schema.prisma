@@ -149,6 +149,9 @@ model Credential {
   revokedByAdminId          String?
   revocationReason          RevocationReason?
   revocationNotes           String?
+  deletedAt                 DateTime?
+  deletedBy                 String?
+  deletedByAdminId          String?
   verificationCount         Int                       @default(0)
   verifiedAt                DateTime?
   issuedAt                  DateTime                  @default(now())
@@ -174,6 +177,7 @@ model Credential {
   @@index([anchorStatus])
   @@index([chainStatus])
   @@index([anchorVersion])
+  @@index([deletedAt])
 }
 
 model IssuanceBatch {
@@ -314,9 +318,12 @@ model VerificationLog {
   @@index([credentialId, createdAt])
 }
 
+// Append-only: one row per lifecycle event. Never updated or deleted; the
+// credential's current anchor state lives on the Credential row, this table is
+// the immutable history. (2.1)
 model BlockchainAnchorLog {
   id           String     @id @default(cuid())
-  credentialId String     @unique
+  credentialId String
   operation    String
   status       String
   txHash       String?
@@ -329,13 +336,18 @@ model BlockchainAnchorLog {
   credential   Credential @relation(fields: [credentialId], references: [id])
 
   @@index([credentialId])
+  @@index([credentialId, createdAt])
   @@index([status])
   @@index([operation])
   @@index([createdAt])
 }
 
+// Tamper-evident: each new row is hash-chained to the previous one via
+// prevHash -> entryHash, so any edit or deletion breaks the chain and is
+// detectable by verifyChain(). Legacy rows (pre-chain) have null entryHash. (2.2)
 model AuditLog {
   id             String      @id @default(cuid())
+  seq            Int         @unique @default(autoincrement())
   action         AuditAction
   actorAdminId   String?
   actorUsername  String?
@@ -344,6 +356,8 @@ model AuditLog {
   metadata       Json?
   ipAddress      String?
   userAgent      String?
+  prevHash       String?
+  entryHash      String?     @unique
   createdAt      DateTime    @default(now())
 
   @@index([actorAdminId])

@@ -37,13 +37,23 @@ export class InstitutionController {
     @GetAdmin() admin: JwtPayload,
     @Body() dto: UpdateInstitutionDto,
   ) {
-    const result = await this.institutionService.updateInstitution(dto, admin.sub);
+    const result = await this.institutionService.updateInstitution(
+      dto,
+      admin.sub,
+    );
     await this.auditLogService.log({
       action: 'SETTINGS_UPDATED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'Institution',
       targetId: result.id,
-      metadata: { updatedFields: Object.keys(dto).filter((k) => dto[k as keyof typeof dto] !== undefined) },
+      metadata: {
+        updatedFields: Object.keys(dto).filter(
+          (k) => dto[k as keyof typeof dto] !== undefined,
+        ),
+      },
     });
     return result;
   }

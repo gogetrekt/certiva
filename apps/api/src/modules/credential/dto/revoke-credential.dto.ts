@@ -1,9 +1,9 @@
-import { IsEnum, IsOptional, IsString, MaxLength } from "class-validator";
-import { RevocationReason } from "@prisma/client";
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { RevocationReason } from '@prisma/client';
 
 export class RevokeCredentialDto {
   @IsEnum(RevocationReason, {
-    message: `reason must be one of: ${Object.values(RevocationReason).join(", ")}`,
+    message: `reason must be one of: ${Object.values(RevocationReason).join(', ')}`,
   })
   reason!: RevocationReason;
 

@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
-import { IsBoolean, IsOptional, IsString, MinLength } from "class-validator";
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class BulkIssueCredentialsDto {
   @IsString()
@@ -7,12 +7,12 @@ export class BulkIssueCredentialsDto {
   csv!: string;
 
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === "true") {
+  @Transform(({ value }: { value: unknown }) => {
+    if (value === 'true') {
       return true;
     }
 
-    if (value === "false") {
+    if (value === 'false') {
       return false;
     }
 

@@ -1,14 +1,18 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { IssuerStatus, type Issuer } from "@prisma/client";
-import { getAddress } from "viem";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { IssuerStatus, type Issuer } from '@prisma/client';
+import { getAddress } from 'viem';
 
-import { PrismaService } from "../../prisma/prisma.service";
-import { UpdateInstitutionDto } from "./dto/update-institution.dto";
-import type { JwtPayload } from "../auth/types/jwt-payload";
+import { PrismaService } from '../../prisma/prisma.service';
+import { UpdateInstitutionDto } from './dto/update-institution.dto';
+import type { JwtPayload } from '../auth/types/jwt-payload';
 
-const SETUP_REQUIRED_CODE = "INSTITUTION_SETUP_REQUIRED";
-const DEFAULT_ISSUER_NAME = "Example University";
-const DEFAULT_ISSUER_DOMAIN = "example.edu";
+const SETUP_REQUIRED_CODE = 'INSTITUTION_SETUP_REQUIRED';
+const DEFAULT_ISSUER_NAME = 'Example University';
+const DEFAULT_ISSUER_DOMAIN = 'example.edu';
 
 @Injectable()
 export class InstitutionService {
@@ -24,7 +28,7 @@ export class InstitutionService {
       }
 
       throw new NotFoundException({
-        message: "Institution configuration not found",
+        message: 'Institution configuration not found',
         code: SETUP_REQUIRED_CODE,
       });
     }
@@ -78,7 +82,7 @@ export class InstitutionService {
 
     if (!institution) {
       throw new BadRequestException({
-        message: "Institution configuration is required for this request",
+        message: 'Institution configuration is required for this request',
         code: SETUP_REQUIRED_CODE,
       });
     }
@@ -100,13 +104,13 @@ export class InstitutionService {
       where: {
         status: IssuerStatus.ACTIVE,
         domain: {
-          not: "",
+          not: '',
         },
         wallet: {
           not: null,
         },
       },
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "asc" }],
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'asc' }],
     });
 
     if (withWallet?.wallet?.trim()) {
@@ -117,10 +121,10 @@ export class InstitutionService {
       where: {
         status: IssuerStatus.ACTIVE,
         domain: {
-          not: "",
+          not: '',
         },
       },
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "asc" }],
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'asc' }],
     });
   }
 
@@ -147,7 +151,7 @@ export class InstitutionService {
   }
 
   private isDevelopment() {
-    return (process.env.NODE_ENV ?? "development") === "development";
+    return (process.env.NODE_ENV ?? 'development') === 'development';
   }
 
   private normalizeWallet(input?: string | null) {

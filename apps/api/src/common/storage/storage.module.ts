@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
 
-import { AppConfigModule } from "../../config/app-config.module";
-import { StorageService } from "./storage.service";
+import { AppConfigModule } from '../../config/app-config.module';
+import { StorageService } from './storage.service';
 
 @Module({
   imports: [AppConfigModule],

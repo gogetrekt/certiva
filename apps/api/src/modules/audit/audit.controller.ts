@@ -76,7 +76,10 @@ export class AuditController {
     @GetAdmin() admin: JwtPayload,
     @Query('limit') limit?: string,
   ) {
-    return this.auditService.getLatestIssuances(admin, limit ? Number(limit) : undefined);
+    return this.auditService.getLatestIssuances(
+      admin,
+      limit ? Number(limit) : undefined,
+    );
   }
 
   @Get('dashboard/revocations')
@@ -85,7 +88,10 @@ export class AuditController {
     @GetAdmin() admin: JwtPayload,
     @Query('limit') limit?: string,
   ) {
-    return this.auditService.getLatestRevocations(admin, limit ? Number(limit) : undefined);
+    return this.auditService.getLatestRevocations(
+      admin,
+      limit ? Number(limit) : undefined,
+    );
   }
 
   @Get('dashboard/queue')

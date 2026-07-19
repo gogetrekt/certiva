@@ -1,11 +1,12 @@
-import { ValidationPipe } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
-import type { NestExpressApplication } from "@nestjs/platform-express";
-import helmet from "helmet";
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 
-import { AppModule } from "./app.module";
-import { AppExceptionFilter } from "./common/filters/app-exception.filter";
-import { AppConfigService } from "./config/app-config.service";
+import { AppModule } from './app.module';
+import { AppExceptionFilter } from './common/filters/app-exception.filter';
+import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -20,9 +21,15 @@ async function bootstrap() {
     app.set('trust proxy', 1);
   }
 
+  // Swagger docs are enabled only outside production (dev/staging), never in prod.
+  const enableDocs =
+    configService.nodeEnv !== 'production' &&
+    configService.appEnv !== 'production';
+
   // Helmet: sets secure HTTP response headers.
-  // No Swagger is present so no CSP relaxation is needed.
-  app.use(helmet());
+  // Disable CSP only when Swagger UI is mounted, since its inline assets are
+  // otherwise blocked. Production keeps the strict default CSP.
+  app.use(helmet(enableDocs ? { contentSecurityPolicy: false } : undefined));
 
   // Body size limits: 1mb for JSON and URL-encoded payloads.
   // File upload endpoints (FileInterceptor/multer) are not affected by these limits;
@@ -35,11 +42,12 @@ async function bootstrap() {
   // Hard guard: never allow wildcard CORS in staging/production
   if (
     configService.isExposedEnv &&
-    (corsOrigins === true || (Array.isArray(corsOrigins) && corsOrigins.includes('*')))
+    (corsOrigins === true ||
+      (Array.isArray(corsOrigins) && corsOrigins.includes('*')))
   ) {
     throw new Error(
       'CORS is configured to allow all origins (*) but the environment is staging/production. ' +
-      'Set CORS_ORIGINS to an explicit comma-separated list of allowed origins.',
+        'Set CORS_ORIGINS to an explicit comma-separated list of allowed origins.',
     );
   }
 
@@ -48,7 +56,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix('api');
   app.useGlobalFilters(new AppExceptionFilter(configService));
 
   app.useGlobalPipes(
@@ -62,9 +70,21 @@ async function bootstrap() {
     }),
   );
 
+  if (enableDocs) {
+    const docsConfig = new DocumentBuilder()
+      .setTitle('Certiva API')
+      .setDescription('Certiva credential issuance & verification API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, docsConfig);
+    // Mounted at /api/docs (setGlobalPrefix does not cover Swagger's own route).
+    SwaggerModule.setup('api/docs', app, document);
+  }
+
   app.enableShutdownHooks();
 
   const port = configService.port;
   await app.listen(port);
 }
-bootstrap();
+void bootstrap();

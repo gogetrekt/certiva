@@ -6,14 +6,15 @@ import {
   Param,
   Res,
   StreamableFile,
-} from "@nestjs/common";
-import type { Response } from "express";
+} from '@nestjs/common';
+import type { Response } from 'express';
 
-import { AppConfigService } from "../../config/app-config.service";
-import { CredentialAssetsService } from "./credential-assets.service";
-import { CredentialService } from "./credential.service";
+import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
+import { AppConfigService } from '../../config/app-config.service';
+import { CredentialAssetsService } from './credential-assets.service';
+import { CredentialService } from './credential.service';
 
-@Controller("credentials")
+@Controller('credentials')
 export class CredentialAssetsController {
   constructor(
     private readonly credentialService: CredentialService,
@@ -21,27 +22,38 @@ export class CredentialAssetsController {
     private readonly configService: AppConfigService,
   ) {}
 
-  @Get(":id/metadata")
-  @Header("Content-Type", "application/json; charset=utf-8")
-  async metadata(@Param("id") id: string, @Res({ passthrough: true }) res: Response) {
+  @Get(':id/metadata')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
+  @Header('Content-Type', 'application/json; charset=utf-8')
+  async metadata(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     this.setAssetStorageHeader(res);
     const credential = await this.credentialService.findOneOrThrow(id);
 
+    let raw: string;
     try {
-      return await this.assetsService.readMetadata(id);
+      raw = await this.assetsService.readMetadata(id);
     } catch {
       await this.credentialService.ensureAssets(credential.id);
       try {
-        return await this.assetsService.readMetadata(id);
+        raw = await this.assetsService.readMetadata(id);
       } catch {
-        throw new NotFoundException("Credential metadata not found");
+        throw new NotFoundException('Credential metadata not found');
       }
     }
+
+    return this.stripPublicMetadata(raw);
   }
 
-  @Get(":id/qr")
-  @Header("Content-Type", "image/png")
-  async qrCode(@Param("id") id: string, @Res({ passthrough: true }) res: Response) {
+  @Get(':id/qr')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
+  @Header('Content-Type', 'image/png')
+  async qrCode(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     this.setAssetStorageHeader(res);
     const credential = await this.credentialService.findOneOrThrow(id);
 
@@ -50,7 +62,9 @@ export class CredentialAssetsController {
     // ensureAssets regenerates it with the current correct URL.
     if (
       credential.verificationUrl &&
-      !credential.verificationUrl.includes(`/verify/${credential.credentialExternalId}`)
+      !credential.verificationUrl.includes(
+        `/verify/${credential.credentialExternalId}`,
+      )
     ) {
       await this.assetsService.deleteQrCode(id);
     }
@@ -64,14 +78,28 @@ export class CredentialAssetsController {
         const file = await this.assetsService.readQrCode(id);
         return new StreamableFile(file);
       } catch {
-        throw new NotFoundException("Credential QR code not found");
+        throw new NotFoundException('Credential QR code not found');
       }
     }
   }
 
+  // Strip PII (studentId) and secrets (verificationCode, signedVerificationToken)
+  // from the public metadata JSON before returning it.
+  private stripPublicMetadata(raw: string) {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      delete parsed.studentId;
+      delete parsed.verificationCode;
+      delete parsed.signedVerificationToken;
+      return parsed;
+    } catch {
+      return raw;
+    }
+  }
+
   private setAssetStorageHeader(res: Response) {
-    if (this.configService.appEnv === "staging") {
-      res.setHeader("X-Asset-Storage", "r2");
+    if (this.configService.appEnv === 'staging') {
+      res.setHeader('X-Asset-Storage', 'r2');
     }
   }
 }

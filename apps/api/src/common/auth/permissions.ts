@@ -1,4 +1,4 @@
-import type { AdminRole } from "@prisma/client";
+import type { AdminRole } from '@prisma/client';
 import {
   ADMIN_ROLE,
   ADMIN_MANAGER_ROLES,
@@ -8,23 +8,23 @@ import {
   CREDENTIAL_REVOKER_ROLES,
   OWNER_ROLE,
   SUPER_ADMIN_ROLE,
-} from "./admin-role.constants";
+} from './admin-role.constants';
 
 export const PERMISSION = {
-  ADMIN_MANAGE: "ADMIN_MANAGE",
-  ADMIN_READ: "ADMIN_READ",
-  CREDENTIAL_CREATE: "CREDENTIAL_CREATE",
-  CREDENTIAL_READ: "CREDENTIAL_READ",
-  CREDENTIAL_UPDATE: "CREDENTIAL_UPDATE",
-  CREDENTIAL_REVOKE: "CREDENTIAL_REVOKE",
-  CREDENTIAL_DELETE: "CREDENTIAL_DELETE",
-  DOCUMENT_PROOF_READ: "DOCUMENT_PROOF_READ",
-  DOCUMENT_PROOF_CREATE: "DOCUMENT_PROOF_CREATE",
-  DOCUMENT_PROOF_DELETE: "DOCUMENT_PROOF_DELETE",
-  VERIFICATION_LOG_READ: "VERIFICATION_LOG_READ",
-  AUDIT_LOG_READ: "AUDIT_LOG_READ",
-  SETTINGS_READ: "SETTINGS_READ",
-  SETTINGS_UPDATE: "SETTINGS_UPDATE",
+  ADMIN_MANAGE: 'ADMIN_MANAGE',
+  ADMIN_READ: 'ADMIN_READ',
+  CREDENTIAL_CREATE: 'CREDENTIAL_CREATE',
+  CREDENTIAL_READ: 'CREDENTIAL_READ',
+  CREDENTIAL_UPDATE: 'CREDENTIAL_UPDATE',
+  CREDENTIAL_REVOKE: 'CREDENTIAL_REVOKE',
+  CREDENTIAL_DELETE: 'CREDENTIAL_DELETE',
+  DOCUMENT_PROOF_READ: 'DOCUMENT_PROOF_READ',
+  DOCUMENT_PROOF_CREATE: 'DOCUMENT_PROOF_CREATE',
+  DOCUMENT_PROOF_DELETE: 'DOCUMENT_PROOF_DELETE',
+  VERIFICATION_LOG_READ: 'VERIFICATION_LOG_READ',
+  AUDIT_LOG_READ: 'AUDIT_LOG_READ',
+  SETTINGS_READ: 'SETTINGS_READ',
+  SETTINGS_UPDATE: 'SETTINGS_UPDATE',
 } as const;
 
 export type Permission = (typeof PERMISSION)[keyof typeof PERMISSION];
@@ -81,7 +81,10 @@ const ROLE_PERMISSIONS: Record<AdminRole, readonly Permission[]> = {
   ],
 } as const;
 
-export function hasPermission(role: AdminRole, permission: Permission): boolean {
+export function hasPermission(
+  role: AdminRole,
+  permission: Permission,
+): boolean {
   const perms = ROLE_PERMISSIONS[role];
   return perms ? (perms as readonly string[]).includes(permission) : false;
 }

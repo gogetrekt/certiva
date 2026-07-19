@@ -1,13 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { createCanvas } from "@napi-rs/canvas";
-import jsQR from "jsqr";
-import { PDFDocument } from "pdf-lib";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { createCanvas } from '@napi-rs/canvas';
+import jsQR from 'jsqr';
+import { PDFDocument } from 'pdf-lib';
 
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
-const PDF_MAGIC_HEADER = Buffer.from("%PDF-");
+const PDF_MAGIC_HEADER = Buffer.from('%PDF-');
 const ACCEPTED_PDF_MIME_TYPES = new Set([
-  "application/pdf",
-  "application/x-pdf",
+  'application/pdf',
+  'application/x-pdf',
 ]);
 
 interface UploadedPdfFile {
@@ -16,7 +16,7 @@ interface UploadedPdfFile {
   size: number;
 }
 
-type ReferenceKind = "credential" | "document";
+type ReferenceKind = 'credential' | 'document';
 
 @Injectable()
 export class PdfReferenceService {
@@ -65,26 +65,26 @@ export class PdfReferenceService {
 
   assertValidPdfUpload(file?: UploadedPdfFile) {
     if (!file) {
-      throw new BadRequestException("A PDF file is required.");
+      throw new BadRequestException('A PDF file is required.');
     }
 
     if (!Buffer.isBuffer(file.buffer) || file.buffer.byteLength === 0) {
-      throw new BadRequestException("Uploaded PDF content is empty.");
+      throw new BadRequestException('Uploaded PDF content is empty.');
     }
 
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      throw new BadRequestException("PDF uploads must be 10MB or smaller.");
+      throw new BadRequestException('PDF uploads must be 10MB or smaller.');
     }
 
     const normalizedMimeType = file.mimetype.trim().toLowerCase();
     if (!ACCEPTED_PDF_MIME_TYPES.has(normalizedMimeType)) {
-      throw new BadRequestException("Only PDF uploads are accepted.");
+      throw new BadRequestException('Only PDF uploads are accepted.');
     }
 
     if (
       !file.buffer.subarray(0, PDF_MAGIC_HEADER.length).equals(PDF_MAGIC_HEADER)
     ) {
-      throw new BadRequestException("Malformed PDF header.");
+      throw new BadRequestException('Malformed PDF header.');
     }
   }
 
@@ -92,7 +92,7 @@ export class PdfReferenceService {
     try {
       await PDFDocument.load(buffer);
     } catch {
-      throw new BadRequestException("Malformed PDF document.");
+      throw new BadRequestException('Malformed PDF document.');
     }
   }
 
@@ -101,7 +101,7 @@ export class PdfReferenceService {
     expectedKind?: ReferenceKind,
   ) {
     return this.extractReferenceFromString(
-      buffer.toString("latin1").replace(/\\([()\\])/g, "$1"),
+      buffer.toString('latin1').replace(/\\([()\\])/g, '$1'),
       expectedKind,
     );
   }
@@ -111,7 +111,7 @@ export class PdfReferenceService {
     expectedKind?: ReferenceKind,
   ) {
     try {
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer),
         useWorkerFetch: false,
@@ -124,9 +124,9 @@ export class PdfReferenceService {
         const page = await pdf.getPage(pageNumber);
         const text = await page.getTextContent();
         const content = text.items
-          .map((item) => ("str" in item ? item.str : ""))
+          .map((item) => ('str' in item ? item.str : ''))
           .filter(Boolean)
-          .join(" ");
+          .join(' ');
         const reference = this.extractReferenceFromString(
           content,
           expectedKind,
@@ -167,7 +167,7 @@ export class PdfReferenceService {
     expectedKind?: ReferenceKind,
   ) {
     try {
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
       const loadingTask = pdfjs.getDocument({
         data: new Uint8Array(buffer),
         useWorkerFetch: false,
@@ -190,8 +190,8 @@ export class PdfReferenceService {
             continue;
           }
 
-          const [imageId] = operatorList.argsArray[index] ?? [];
-          if (typeof imageId !== "string") {
+          const [imageId] = (operatorList.argsArray[index] ?? []) as unknown[];
+          if (typeof imageId !== 'string') {
             continue;
           }
 
@@ -201,19 +201,32 @@ export class PdfReferenceService {
             data: Uint8Array;
           } | null>((resolve) => {
             try {
-              page.objs.get(imageId, (value) => {
-                if (
-                  value &&
-                  typeof value.width === "number" &&
-                  typeof value.height === "number" &&
-                  value.data
-                ) {
-                  resolve(value as { width: number; height: number; data: Uint8Array });
-                  return;
-                }
+              page.objs.get(
+                imageId,
+                (value: {
+                  width?: unknown;
+                  height?: unknown;
+                  data?: unknown;
+                }) => {
+                  if (
+                    value &&
+                    typeof value.width === 'number' &&
+                    typeof value.height === 'number' &&
+                    value.data
+                  ) {
+                    resolve(
+                      value as {
+                        width: number;
+                        height: number;
+                        data: Uint8Array;
+                      },
+                    );
+                    return;
+                  }
 
-                resolve(null);
-              });
+                  resolve(null);
+                },
+              );
             } catch {
               resolve(null);
             }
@@ -252,7 +265,7 @@ export class PdfReferenceService {
     buffer: Buffer,
     expectedKind?: ReferenceKind,
   ) {
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const loadingTask = pdfjs.getDocument({
       data: new Uint8Array(buffer),
       useWorkerFetch: false,
@@ -269,7 +282,7 @@ export class PdfReferenceService {
           Math.max(1, Math.ceil(viewport.width)),
           Math.max(1, Math.ceil(viewport.height)),
         );
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext('2d');
         await page.render({
           canvas: canvas as never,
           canvasContext: context as never,
@@ -311,7 +324,7 @@ export class PdfReferenceService {
   ) {
     try {
       const result = jsQR(data, width, height, {
-        inversionAttempts: "attemptBoth",
+        inversionAttempts: 'attemptBoth',
       });
       return result?.data ?? null;
     } catch {
@@ -361,11 +374,14 @@ export class PdfReferenceService {
         url.pathname.match(/\/proof\/([A-Za-z0-9_-]+)/) ??
         url.pathname.match(/\/verify\/([A-Za-z0-9_-]+)/);
       const pathReference = pathMatch?.[1] ?? null;
-      if (pathReference && this.matchesExpectedKind(pathReference, expectedKind)) {
+      if (
+        pathReference &&
+        this.matchesExpectedKind(pathReference, expectedKind)
+      ) {
         return pathReference;
       }
 
-      const token = url.searchParams.get("token");
+      const token = url.searchParams.get('token');
       if (token && this.matchesExpectedKind(token, expectedKind)) {
         return token;
       }
@@ -387,25 +403,19 @@ export class PdfReferenceService {
     return null;
   }
 
-  private matchesExpectedKind(
-    reference: string,
-    expectedKind?: ReferenceKind,
-  ) {
+  private matchesExpectedKind(reference: string, expectedKind?: ReferenceKind) {
     if (!expectedKind) {
       return true;
     }
 
-    if (expectedKind === "document") {
+    if (expectedKind === 'document') {
       return (
-        reference.startsWith("dpf_") ||
-        reference.startsWith("DP-") ||
+        reference.startsWith('dpf_') ||
+        reference.startsWith('DP-') ||
         /^[a-f0-9]{64}$/i.test(reference)
       );
     }
 
-    return (
-      reference.startsWith("vrf_") ||
-      /^[a-f0-9]{64}$/i.test(reference)
-    );
+    return reference.startsWith('vrf_') || /^[a-f0-9]{64}$/i.test(reference);
   }
 }

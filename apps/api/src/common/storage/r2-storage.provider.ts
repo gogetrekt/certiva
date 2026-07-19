@@ -5,11 +5,11 @@ import {
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
-} from "@aws-sdk/client-s3";
-import { Logger } from "@nestjs/common";
-import { Readable } from "node:stream";
+} from '@aws-sdk/client-s3';
+import { Logger } from '@nestjs/common';
+import { Readable } from 'node:stream';
 
-import type { StorageProvider } from "./storage.interface";
+import type { StorageProvider } from './storage.interface';
 
 export interface R2StorageConfig {
   accountId: string;
@@ -28,7 +28,7 @@ export class R2StorageProvider implements StorageProvider {
   constructor(config: R2StorageConfig) {
     this.bucket = config.bucket;
     this.client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: config.endpoint,
       forcePathStyle: config.forcePathStyle ?? true,
       credentials: {
@@ -38,14 +38,18 @@ export class R2StorageProvider implements StorageProvider {
     });
   }
 
-  async put(key: string, data: Buffer | string, contentType?: string): Promise<void> {
-    const body = typeof data === "string" ? Buffer.from(data, "utf8") : data;
+  async put(
+    key: string,
+    data: Buffer | string,
+    contentType?: string,
+  ): Promise<void> {
+    const body = typeof data === 'string' ? Buffer.from(data, 'utf8') : data;
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
         Body: body,
-        ContentType: contentType ?? "application/octet-stream",
+        ContentType: contentType ?? 'application/octet-stream',
         ContentLength: body.byteLength,
       }),
     );
@@ -64,7 +68,7 @@ export class R2StorageProvider implements StorageProvider {
 
   async getText(key: string): Promise<string> {
     const buf = await this.get(key);
-    return buf.toString("utf8");
+    return buf.toString('utf8');
   }
 
   async exists(key: string): Promise<boolean> {
@@ -74,10 +78,13 @@ export class R2StorageProvider implements StorageProvider {
       );
       return true;
     } catch (err: unknown) {
-      const code = (err as { name?: string; $metadata?: { httpStatusCode?: number } });
+      const code = err as {
+        name?: string;
+        $metadata?: { httpStatusCode?: number };
+      };
       if (
-        code?.name === "NotFound" ||
-        code?.name === "NoSuchKey" ||
+        code?.name === 'NotFound' ||
+        code?.name === 'NoSuchKey' ||
         code?.$metadata?.httpStatusCode === 404
       ) {
         return false;
@@ -98,7 +105,7 @@ export class R2StorageProvider implements StorageProvider {
   }
 
   async deletePrefix(prefix: string): Promise<void> {
-    const normalizedPrefix = prefix.endsWith("/") ? prefix : `${prefix}/`;
+    const normalizedPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
     let continuationToken: string | undefined;
 
     do {
@@ -110,12 +117,16 @@ export class R2StorageProvider implements StorageProvider {
         }),
       );
 
-      const keys = (listResult.Contents ?? []).map((obj) => obj.Key).filter(Boolean) as string[];
+      const keys = (listResult.Contents ?? [])
+        .map((obj) => obj.Key)
+        .filter(Boolean) as string[];
       for (const key of keys) {
         await this.delete(key);
       }
 
-      continuationToken = listResult.IsTruncated ? listResult.NextContinuationToken : undefined;
+      continuationToken = listResult.IsTruncated
+        ? listResult.NextContinuationToken
+        : undefined;
     } while (continuationToken);
 
     this.logger.debug(`R2 deleted prefix: ${normalizedPrefix}`);
@@ -124,9 +135,9 @@ export class R2StorageProvider implements StorageProvider {
   private streamToBuffer(stream: Readable): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-      stream.on("end", () => resolve(Buffer.concat(chunks)));
-      stream.on("error", reject);
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on('error', reject);
     });
   }
 }

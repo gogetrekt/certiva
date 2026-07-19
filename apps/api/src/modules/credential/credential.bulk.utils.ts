@@ -20,7 +20,7 @@ export interface ParsedCsvResult {
 export function parseCredentialCsv(csvText: string): ParsedCsvResult {
   const rows: ParsedCredentialRow[] = [];
   const errors: CsvParseError[] = [];
-  const normalized = csvText.replace(/^\uFEFF/, "");
+  const normalized = csvText.replace(/^\uFEFF/, '');
   const lines = normalized.split(/\r?\n/);
 
   let hasHeader = false;
@@ -57,7 +57,7 @@ export function parseCredentialCsv(csvText: string): ParsedCsvResult {
       errors.push({
         rowNumber,
         message:
-          "Expected at least 3 columns (studentName, studentId, degree).",
+          'Expected at least 3 columns (studentName, studentId, degree).',
       });
       continue;
     }
@@ -68,7 +68,7 @@ export function parseCredentialCsv(csvText: string): ParsedCsvResult {
       errors.push({
         rowNumber,
         message:
-          "Too many columns. Expected studentName, studentId, degree, and optional documentHash.",
+          'Too many columns. Expected studentName, studentId, degree, and optional documentHash.',
       });
       continue;
     }
@@ -77,7 +77,7 @@ export function parseCredentialCsv(csvText: string): ParsedCsvResult {
     if (normalizedHash && !/^[a-f0-9]{64}$/.test(normalizedHash)) {
       errors.push({
         rowNumber,
-        message: "documentHash must be a 64-character SHA-256 hex value.",
+        message: 'documentHash must be a 64-character SHA-256 hex value.',
       });
       continue;
     }
@@ -94,11 +94,11 @@ export function parseCredentialCsv(csvText: string): ParsedCsvResult {
   return { rows, errors, hasHeader };
 }
 
-function parseCsvLine(line: string):
-  | { ok: true; fields: string[] }
-  | { ok: false; error: string } {
+function parseCsvLine(
+  line: string,
+): { ok: true; fields: string[] } | { ok: false; error: string } {
   const fields: string[] = [];
-  let current = "";
+  let current = '';
   let inQuotes = false;
 
   for (let index = 0; index < line.length; index += 1) {
@@ -115,9 +115,9 @@ function parseCsvLine(line: string):
       continue;
     }
 
-    if (char === "," && !inQuotes) {
+    if (char === ',' && !inQuotes) {
       fields.push(current);
-      current = "";
+      current = '';
       continue;
     }
 
@@ -125,7 +125,7 @@ function parseCsvLine(line: string):
   }
 
   if (inQuotes) {
-    return { ok: false, error: "Unclosed quote in CSV line." };
+    return { ok: false, error: 'Unclosed quote in CSV line.' };
   }
 
   fields.push(current);
@@ -138,12 +138,15 @@ function isHeaderRow(fields: string[]) {
   }
 
   const normalized = fields.slice(0, 4).map((value) =>
-    value.trim().toLowerCase().replace(/[\s_-]+/g, ""),
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_-]+/g, ''),
   );
 
   return (
-    normalized[0] === "studentname" &&
-    normalized[1] === "studentid" &&
-    normalized[2] === "degree"
+    normalized[0] === 'studentname' &&
+    normalized[1] === 'studentid' &&
+    normalized[2] === 'degree'
   );
 }

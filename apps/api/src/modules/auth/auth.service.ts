@@ -17,10 +17,7 @@ import {
 } from '../../common/auth/admin-role.constants';
 import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  AuditLogService,
-  type AuditContext,
-} from '../audit/audit-log.service';
+import { AuditLogService, type AuditContext } from '../audit/audit-log.service';
 import { InstitutionService } from '../institution/institution.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -108,7 +105,8 @@ export class AuthService {
 
     // Use constant-time comparison path regardless of whether admin exists
     // to avoid leaking username existence via timing
-    const dummyHash = '$2b$12$invalidhashforunknownuseraccount000000000000000000000000';
+    const dummyHash =
+      '$2b$12$invalidhashforunknownuseraccount000000000000000000000000';
     const passwordValid = await bcrypt.compare(
       dto.password,
       admin?.password ?? dummyHash,
@@ -232,7 +230,11 @@ export class AuthService {
   }
 
   async updateAdmin(actor: JwtPayload, adminId: string, dto: UpdateAdminDto) {
-    if (actor.sub === adminId && typeof dto.active === 'boolean' && !dto.active) {
+    if (
+      actor.sub === adminId &&
+      typeof dto.active === 'boolean' &&
+      !dto.active
+    ) {
       throw new ForbiddenException('Cannot disable your own admin account');
     }
 
@@ -245,19 +247,12 @@ export class AuthService {
     }
 
     // Non-OWNER actors cannot modify OWNER accounts
-    if (
-      existing.role === OWNER_ROLE &&
-      actor.role !== OWNER_ROLE
-    ) {
+    if (existing.role === OWNER_ROLE && actor.role !== OWNER_ROLE) {
       throw new ForbiddenException('Cannot modify an OWNER account');
     }
 
     // Prevent demotion of last OWNER
-    if (
-      existing.role === OWNER_ROLE &&
-      dto.role &&
-      dto.role !== OWNER_ROLE
-    ) {
+    if (existing.role === OWNER_ROLE && dto.role && dto.role !== OWNER_ROLE) {
       await this.assertNotLastOwner(adminId);
     }
 
@@ -304,7 +299,10 @@ export class AuthService {
 
     await this.auditLogService.log({
       action: auditAction,
-      context: { actorAdminId: actor.sub, actorUsername: actor.username ?? undefined },
+      context: {
+        actorAdminId: actor.sub,
+        actorUsername: actor.username ?? undefined,
+      },
       targetType: 'Admin',
       targetId: adminId,
       metadata: {
@@ -340,7 +338,11 @@ export class AuthService {
     }
   }
 
-  async deleteAdmin(actor: JwtPayload, adminId: string, context?: AuditContext) {
+  async deleteAdmin(
+    actor: JwtPayload,
+    adminId: string,
+    context?: AuditContext,
+  ) {
     if (actor.sub === adminId) {
       throw new ForbiddenException('Cannot delete your own admin account');
     }
@@ -443,7 +445,10 @@ export class AuthService {
   }
 
   private buildAuthResponse(
-    admin: Pick<Admin, 'id' | 'username' | 'email' | 'role' | 'issuerId' | 'tokenVersion'>,
+    admin: Pick<
+      Admin,
+      'id' | 'username' | 'email' | 'role' | 'issuerId' | 'tokenVersion'
+    >,
   ) {
     const payload: JwtPayload = {
       sub: admin.id,

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 
 import {
   ADMIN_ROLE,
@@ -33,6 +34,7 @@ import { ListCredentialsDto } from './dto/list-credentials.dto';
 import { RevokeCredentialDto } from './dto/revoke-credential.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 
+@ApiTags('credentials')
 @Controller('credentials')
 @RateLimit(RATE_LIMIT_RULE.ADMIN)
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -56,13 +58,24 @@ export class CredentialController {
 
   @Post('bulk-revoke')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
-  bulkRevoke(@GetAdmin() admin: JwtPayload, @Body() dto: BulkRevokeCredentialsDto) {
-    return this.credentialService.bulkRevoke(admin, dto.ids, dto.reason, dto.notes);
+  bulkRevoke(
+    @GetAdmin() admin: JwtPayload,
+    @Body() dto: BulkRevokeCredentialsDto,
+  ) {
+    return this.credentialService.bulkRevoke(
+      admin,
+      dto.ids,
+      dto.reason,
+      dto.notes,
+    );
   }
 
   @Post('bulk-delete')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
-  bulkDelete(@GetAdmin() admin: JwtPayload, @Body() dto: BulkDeleteCredentialsDto) {
+  bulkDelete(
+    @GetAdmin() admin: JwtPayload,
+    @Body() dto: BulkDeleteCredentialsDto,
+  ) {
     return this.credentialService.bulkDelete(admin, dto.ids);
   }
 
@@ -102,7 +115,9 @@ export class CredentialController {
 
   @Post(':id/secure-pdf')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   registerSecurePdf(
     @GetAdmin() admin: JwtPayload,
     @Param('id') id: string,
@@ -118,6 +133,7 @@ export class CredentialController {
   }
 }
 
+@ApiTags('credentials')
 @Controller('batches')
 @RateLimit(RATE_LIMIT_RULE.ADMIN)
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -126,7 +142,9 @@ export class BatchController {
 
   @Post(':id/secure-pdf')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   registerBatchSecurePdf(
     @GetAdmin() admin: JwtPayload,
     @Param('id') id: string,

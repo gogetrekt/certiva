@@ -23,6 +23,7 @@ export class RateLimitService {
   private readonly logger = new Logger(RateLimitService.name);
   private readonly config: RateLimitConfig;
   private readonly rules: Record<RateLimitRuleName, RateLimitRuleConfig>;
+  private readonly trustProxy: boolean;
   private redisFallbackUntil = 0;
 
   constructor(
@@ -31,6 +32,7 @@ export class RateLimitService {
     private readonly memoryStore: RateLimitMemoryStore,
   ) {
     this.config = configService.rateLimit;
+    this.trustProxy = configService.trustProxy;
     this.rules = {
       [RATE_LIMIT_RULE.AUTH_LOGIN]: {
         ...this.config.authLogin,
@@ -104,19 +106,19 @@ export class RateLimitService {
   }
 
   private resolveClientIp(request: Request) {
-    const forwardedFor = request.headers['x-forwarded-for'];
-    if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-      return forwardedFor.split(',')[0]?.trim() || 'unknown';
-    }
-
-    const realIp = request.headers['x-real-ip'];
-    if (typeof realIp === 'string' && realIp.trim()) {
-      return realIp.trim();
-    }
-
+    // Cloudflare sets cf-connecting-ip and clients cannot forge it through CF,
+    // so it is preferred. Raw x-forwarded-for is only honoured when a proxy is
+    // explicitly trusted; otherwise we fall back to the socket-derived req.ip.
     const cloudflareIp = request.headers['cf-connecting-ip'];
     if (typeof cloudflareIp === 'string' && cloudflareIp.trim()) {
       return cloudflareIp.trim();
+    }
+
+    if (this.trustProxy) {
+      const forwardedFor = request.headers['x-forwarded-for'];
+      if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+        return forwardedFor.split(',')[0]?.trim() || 'unknown';
+      }
     }
 
     return request.ip ?? request.socket.remoteAddress ?? 'unknown';
