@@ -1,4 +1,4 @@
-import { IsArray, IsString, ArrayNotEmpty } from "class-validator";
+import { IsArray, IsString, ArrayNotEmpty } from 'class-validator';
 
 export class BulkDeleteDocumentProofsDto {
   @IsArray()

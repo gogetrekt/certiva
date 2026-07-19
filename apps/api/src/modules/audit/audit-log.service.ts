@@ -1,7 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { AuditAction, Prisma } from "@prisma/client";
+import { createHash } from 'node:crypto';
 
-import { PrismaService } from "../../prisma/prisma.service";
+import { Injectable, Logger } from '@nestjs/common';
+import { AuditAction, Prisma } from '@prisma/client';
+
+import { PrismaService } from '../../prisma/prisma.service';
 
 export interface AuditContext {
   actorAdminId?: string;
@@ -18,6 +20,92 @@ export interface AuditEventInput {
   metadata?: Record<string, unknown>;
 }
 
+// Arbitrary constant key so all audit writers serialize on the same advisory
+// lock — guarantees a consistent prevHash even under concurrent writes.
+const AUDIT_CHAIN_LOCK = 728911;
+
+// Deterministic JSON so the hash is stable regardless of key insertion order
+// (Prisma may return JSON columns with different key ordering on read-back).
+function canonicalize(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalize).join(',')}]`;
+  const keys = Object.keys(value).sort();
+  return `{${keys
+    .map(
+      (k) =>
+        `${JSON.stringify(k)}:${canonicalize((value as Record<string, unknown>)[k])}`,
+    )
+    .join(',')}}`;
+}
+
+interface HashableEntry {
+  action: string;
+  actorAdminId: string | null;
+  actorUsername: string | null;
+  targetType: string | null;
+  targetId: string | null;
+  metadata: unknown;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: Date;
+  prevHash: string | null;
+}
+
+export interface ChainRow extends HashableEntry {
+  seq: number;
+  entryHash: string | null;
+}
+
+export interface ChainVerdict {
+  valid: boolean;
+  checked: number;
+  brokenAtSeq: number | null;
+  reason: string | null;
+}
+
+// Pure re-computation of the chain over ordered rows — no DB, so it is directly
+// unit-testable. Rows must be ordered by seq ascending.
+export function verifyAuditChainRows(rows: ChainRow[]): ChainVerdict {
+  let prevHash: string | null = null;
+  for (const row of rows) {
+    if (row.prevHash !== prevHash) {
+      return {
+        valid: false,
+        checked: rows.length,
+        brokenAtSeq: row.seq,
+        reason:
+          'prevHash does not match the previous entry (missing or reordered row)',
+      };
+    }
+    if (computeEntryHash(row) !== row.entryHash) {
+      return {
+        valid: false,
+        checked: rows.length,
+        brokenAtSeq: row.seq,
+        reason: 'entryHash mismatch (row content was altered)',
+      };
+    }
+    prevHash = row.entryHash;
+  }
+  return { valid: true, checked: rows.length, brokenAtSeq: null, reason: null };
+}
+
+export function computeEntryHash(entry: HashableEntry): string {
+  const payload = [
+    entry.prevHash ?? 'GENESIS',
+    entry.action,
+    entry.actorAdminId ?? '',
+    entry.actorUsername ?? '',
+    entry.targetType ?? '',
+    entry.targetId ?? '',
+    canonicalize(entry.metadata ?? null),
+    entry.ipAddress ?? '',
+    entry.userAgent ?? '',
+    entry.createdAt.toISOString(),
+  ].join('|');
+  return createHash('sha256').update(payload).digest('hex');
+}
+
 @Injectable()
 export class AuditLogService {
   private readonly logger = new Logger(AuditLogService.name);
@@ -26,19 +114,51 @@ export class AuditLogService {
 
   async log(input: AuditEventInput): Promise<void> {
     try {
-      await this.prisma.auditLog.create({
-        data: {
+      const createdAt = new Date();
+      const metadata =
+        input.metadata !== undefined
+          ? (input.metadata as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull;
+
+      await this.prisma.$transaction(async (tx) => {
+        // Serialize the chain head so concurrent writers can't fork prevHash.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(${AUDIT_CHAIN_LOCK})`;
+
+        const last = await tx.auditLog.findFirst({
+          where: { entryHash: { not: null } },
+          orderBy: { seq: 'desc' },
+          select: { entryHash: true },
+        });
+        const prevHash = last?.entryHash ?? null;
+
+        const entryHash = computeEntryHash({
           action: input.action,
           actorAdminId: input.context.actorAdminId ?? null,
           actorUsername: input.context.actorUsername ?? null,
           targetType: input.targetType ?? null,
           targetId: input.targetId ?? null,
-          metadata: input.metadata
-            ? (input.metadata as unknown as Prisma.InputJsonValue)
-            : Prisma.DbNull,
+          metadata: input.metadata ?? null,
           ipAddress: input.context.ipAddress ?? null,
           userAgent: input.context.userAgent ?? null,
-        },
+          createdAt,
+          prevHash,
+        });
+
+        await tx.auditLog.create({
+          data: {
+            action: input.action,
+            actorAdminId: input.context.actorAdminId ?? null,
+            actorUsername: input.context.actorUsername ?? null,
+            targetType: input.targetType ?? null,
+            targetId: input.targetId ?? null,
+            metadata,
+            ipAddress: input.context.ipAddress ?? null,
+            userAgent: input.context.userAgent ?? null,
+            prevHash,
+            entryHash,
+            createdAt,
+          },
+        });
       });
     } catch (error) {
       // Audit log failure must never break the primary operation
@@ -54,7 +174,7 @@ export class AuditLogService {
 
     const [items, total] = await Promise.all([
       this.prisma.auditLog.findMany({
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take,
         skip,
       }),
@@ -62,5 +182,18 @@ export class AuditLogService {
     ]);
 
     return { items, total };
+  }
+
+  /**
+   * Recompute the hash chain over all chained rows (entryHash not null) and
+   * report the first break, if any. A broken chain means a row was edited,
+   * deleted, or reordered after the fact. (2.2)
+   */
+  async verifyChain(): Promise<ChainVerdict> {
+    const rows = await this.prisma.auditLog.findMany({
+      where: { entryHash: { not: null } },
+      orderBy: { seq: 'asc' },
+    });
+    return verifyAuditChainRows(rows);
   }
 }

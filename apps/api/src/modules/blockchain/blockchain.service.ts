@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import type { Credential, Issuer } from "@prisma/client";
+import { Injectable } from '@nestjs/common';
+import type { Credential, Issuer } from '@prisma/client';
 import {
   type Address,
   type Hex,
@@ -8,26 +8,26 @@ import {
   getAddress,
   http,
   isAddressEqual,
-} from "viem";
-import { polygonAmoy } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
+} from 'viem';
+import { polygonAmoy } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
 
-import { AppConfigService } from "../../config/app-config.service";
+import { AppConfigService } from '../../config/app-config.service';
 import {
   ANCHOR_STATUS,
   BLOCKCHAIN_DEFAULT_CHAIN_ID,
   BLOCKCHAIN_PROOF_STATUS,
-} from "./blockchain.constants";
+} from './blockchain.constants';
 import {
   credentialRegistryAbi,
   POLYGON_AMOY_CHAIN_ID,
-} from "./credential-registry.contract";
+} from './credential-registry.contract';
 import type {
   BlockchainHealthCheck,
   BlockchainProofRecord,
   BlockchainVerificationResult,
   BlockchainWriteResult,
-} from "./blockchain.types";
+} from './blockchain.types';
 
 type CredentialWithIssuer = Credential & {
   issuer: Issuer;
@@ -64,11 +64,13 @@ export class BlockchainService {
 
     const proof = await this.readProof(credential.id);
     if (!proof?.exists) {
-      throw new Error("On-chain credential proof does not exist.");
+      throw new Error('On-chain credential proof does not exist.');
     }
 
-    if (proof.documentHash !== this.toBytes32ProofHash(credential.chainProofHash)) {
-      throw new Error("On-chain proof hash mismatch detected.");
+    if (
+      proof.documentHash !== this.toBytes32ProofHash(credential.chainProofHash)
+    ) {
+      throw new Error('On-chain proof hash mismatch detected.');
     }
 
     if (proof.revoked) {
@@ -89,7 +91,7 @@ export class BlockchainService {
     const { request } = await publicClient.simulateContract({
       address: contractAddress,
       abi: credentialRegistryAbi,
-      functionName: "revokeCredential",
+      functionName: 'revokeCredential',
       args: [credential.id],
       account,
       gas: 90_000n,
@@ -143,7 +145,7 @@ export class BlockchainService {
         };
       }
 
-      throw new Error("On-chain proof already exists with mismatched data.");
+      throw new Error('On-chain proof already exists with mismatched data.');
     }
 
     const publicClient = this.getPublicClient();
@@ -154,7 +156,7 @@ export class BlockchainService {
     const { request } = await publicClient.simulateContract({
       address: contractAddress,
       abi: credentialRegistryAbi,
-      functionName: "anchorCredential",
+      functionName: 'anchorCredential',
       args: [record.id, expectedDocumentHash],
       account,
       gas: 180_000n,
@@ -177,7 +179,9 @@ export class BlockchainService {
     };
   }
 
-  async verifyRecord(record: AnchorableRecord): Promise<BlockchainVerificationResult> {
+  async verifyRecord(
+    record: AnchorableRecord,
+  ): Promise<BlockchainVerificationResult> {
     if (!this.isConfigured()) {
       return {
         blockchainStatus:
@@ -196,7 +200,7 @@ export class BlockchainService {
     try {
       const proof = await this.readProof(record.id);
       if (!proof?.exists) {
-        if (record.anchorVersion === "V1" && record.txHash) {
+        if (record.anchorVersion === 'V1' && record.txHash) {
           return {
             blockchainStatus: BLOCKCHAIN_PROOF_STATUS.archivedV1,
             blockchainVerified: false,
@@ -234,7 +238,10 @@ export class BlockchainService {
         proof.documentHash === this.toBytes32ProofHash(record.chainProofHash);
 
       const blockchainVerified =
-        issuerMatches && hashMatches && proof.issuerAuthorized && !proof.revoked;
+        issuerMatches &&
+        hashMatches &&
+        proof.issuerAuthorized &&
+        !proof.revoked;
 
       return {
         blockchainStatus: blockchainVerified
@@ -271,7 +278,7 @@ export class BlockchainService {
         latestBlock: null,
         contractAddress: this.configService.blockchainContractAddress,
         signerAddress: null,
-        error: "Blockchain environment is not fully configured.",
+        error: 'Blockchain environment is not fully configured.',
       };
     }
 
@@ -298,7 +305,10 @@ export class BlockchainService {
         latestBlock: null,
         contractAddress: this.configService.blockchainContractAddress,
         signerAddress: this.getAccount().address,
-        error: error instanceof Error ? error.message : "Unable to reach Polygon Amoy RPC.",
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to reach Polygon Amoy RPC.',
       };
     }
   }
@@ -306,34 +316,45 @@ export class BlockchainService {
   toBytes32ProofHash(proofHash: string | null): Hex {
     const normalized = proofHash?.trim().toLowerCase();
     if (!normalized || !/^[a-f0-9]{64}$/.test(normalized)) {
-      throw new Error("Credential proof hash is not a valid bytes32 hex value.");
+      throw new Error(
+        'Credential proof hash is not a valid bytes32 hex value.',
+      );
     }
 
-    return `0x${normalized}` as Hex;
+    return `0x${normalized}`;
   }
 
   isConfigured() {
     return Boolean(
       this.configService.blockchainRpcUrl &&
-        this.configService.blockchainPrivateKey &&
-        this.configService.blockchainContractAddress,
+      this.configService.blockchainPrivateKey &&
+      this.configService.blockchainContractAddress,
     );
   }
 
   private assertBlockchainConfigured() {
     if (!this.isConfigured()) {
-      throw new Error("Blockchain anchoring is not configured.");
+      throw new Error('Blockchain anchoring is not configured.');
     }
   }
 
   private assertIssuerWallet(record: AnchorableRecord) {
     const issuerWallet = record.issuer.wallet?.trim();
     if (!issuerWallet) {
-      throw new Error("Issuer wallet is required before anchoring credentials.");
+      throw new Error(
+        'Issuer wallet is required before anchoring credentials.',
+      );
     }
 
-    if (!isAddressEqual(this.getAccount().address, this.normalizeAddress(issuerWallet))) {
-      throw new Error("Issuer wallet does not match the configured signing key.");
+    if (
+      !isAddressEqual(
+        this.getAccount().address,
+        this.normalizeAddress(issuerWallet),
+      )
+    ) {
+      throw new Error(
+        'Issuer wallet does not match the configured signing key.',
+      );
     }
   }
 
@@ -345,31 +366,31 @@ export class BlockchainService {
         publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "credentialExists",
+          functionName: 'credentialExists',
           args: [credentialId],
         }),
         publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "getCredentialHash",
+          functionName: 'getCredentialHash',
           args: [credentialId],
         }),
         publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "getCredentialIssuer",
+          functionName: 'getCredentialIssuer',
           args: [credentialId],
         }),
         publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "getCredentialTimestamp",
+          functionName: 'getCredentialTimestamp',
           args: [credentialId],
         }),
         publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "getCredentialRevocation",
+          functionName: 'getCredentialRevocation',
           args: [credentialId],
         }),
       ]);
@@ -378,7 +399,7 @@ export class BlockchainService {
       ? await publicClient.readContract({
           address: contractAddress,
           abi: credentialRegistryAbi,
-          functionName: "isAuthorizedIssuer",
+          functionName: 'isAuthorizedIssuer',
           args: [issuer],
         })
       : false;
@@ -418,16 +439,13 @@ export class BlockchainService {
       issuer: input.issuer,
       issuerAuthorized: input.issuerAuthorized,
       issuedAt:
-        input.issuedAt > 0n
-          ? new Date(Number(input.issuedAt) * 1000)
-          : null,
+        input.issuedAt > 0n ? new Date(Number(input.issuedAt) * 1000) : null,
       revoked: input.revoked,
       revokedAt:
-        input.revokedAt > 0n
-          ? new Date(Number(input.revokedAt) * 1000)
-          : null,
+        input.revokedAt > 0n ? new Date(Number(input.revokedAt) * 1000) : null,
       revokedBy:
-        input.revokedBy && input.revokedBy !== "0x0000000000000000000000000000000000000000"
+        input.revokedBy &&
+        input.revokedBy !== '0x0000000000000000000000000000000000000000'
           ? input.revokedBy
           : null,
       exists: input.exists,
@@ -437,7 +455,7 @@ export class BlockchainService {
   private getPublicClient() {
     const url = this.configService.blockchainRpcUrl;
     if (!url) {
-      throw new Error("POLYGON_AMOY_RPC_URL is not configured.");
+      throw new Error('POLYGON_AMOY_RPC_URL is not configured.');
     }
 
     return createPublicClient({
@@ -451,7 +469,7 @@ export class BlockchainService {
   private getWalletClient() {
     const url = this.configService.blockchainRpcUrl;
     if (!url) {
-      throw new Error("POLYGON_AMOY_RPC_URL is not configured.");
+      throw new Error('POLYGON_AMOY_RPC_URL is not configured.');
     }
 
     return createWalletClient({
@@ -466,7 +484,7 @@ export class BlockchainService {
   private getAccount() {
     const privateKey = this.configService.blockchainPrivateKey;
     if (!privateKey) {
-      throw new Error("PRIVATE_KEY is not configured.");
+      throw new Error('PRIVATE_KEY is not configured.');
     }
 
     return privateKeyToAccount(privateKey as Hex);
@@ -475,13 +493,13 @@ export class BlockchainService {
   private getContractAddress() {
     const contractAddress = this.configService.blockchainContractAddress;
     if (!contractAddress) {
-      throw new Error("CONTRACT_ADDRESS is not configured.");
+      throw new Error('CONTRACT_ADDRESS is not configured.');
     }
 
     return this.normalizeAddress(contractAddress);
   }
 
   private normalizeAddress(address: string) {
-    return getAddress(address) as Address;
+    return getAddress(address);
   }
 }

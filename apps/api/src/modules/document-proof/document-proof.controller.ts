@@ -42,7 +42,10 @@ export class DocumentProofController {
 
   @Post('bulk-delete')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE)
-  bulkDelete(@GetAdmin() admin: JwtPayload, @Body() dto: BulkDeleteDocumentProofsDto) {
+  bulkDelete(
+    @GetAdmin() admin: JwtPayload,
+    @Body() dto: BulkDeleteDocumentProofsDto,
+  ) {
     return this.documentProofService.bulkDelete(admin, dto.ids);
   }
 
@@ -130,7 +133,10 @@ export class PublicDocumentProofController {
   @Get('document-proofs/:id/metadata')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   @Header('Content-Type', 'application/json; charset=utf-8')
-  async metadata(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
+  async metadata(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (this.configService.appEnv === 'staging') {
       res.setHeader('X-Asset-Storage', 'r2');
     }

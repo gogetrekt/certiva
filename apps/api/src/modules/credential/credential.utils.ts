@@ -1,21 +1,21 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes } from 'node:crypto';
 
-import { hashString, hmacSha256 } from "../../common/utils/hash.util";
+import { hashString, hmacSha256 } from '../../common/utils/hash.util';
 
 function normalizeValue(value: string) {
-  return value.trim().replace(/\s+/g, " ");
+  return value.trim().replace(/\s+/g, ' ');
 }
 
 export function generateCredentialId() {
-  return `crd_${randomBytes(9).toString("hex")}`;
+  return `crd_${randomBytes(9).toString('hex')}`;
 }
 
 export function generateVerificationId() {
-  return `vrf_${randomBytes(9).toString("hex")}`;
+  return `vrf_${randomBytes(9).toString('hex')}`;
 }
 
 export function generateVerificationCode() {
-  return `CV-${randomBytes(6).toString("hex").toUpperCase()}`;
+  return `CV-${randomBytes(6).toString('hex').toUpperCase()}`;
 }
 
 export function buildSignedVerificationToken(input: {
@@ -33,7 +33,7 @@ export function buildSignedVerificationToken(input: {
       `verificationCode:${input.verificationCode}`,
       `issuerId:${input.issuerId}`,
       `issuedAt:${input.issuedAt.toISOString()}`,
-    ].join("\n"),
+    ].join('\n'),
     input.secret,
   );
 }
@@ -54,7 +54,7 @@ export function buildRegistryProofHash(input: {
       `issuerId:${input.issuerId}`,
       `issuedAt:${input.issuedAt.toISOString()}`,
       `signedVerificationToken:${input.signedVerificationToken}`,
-    ].join("\n"),
+    ].join('\n'),
   );
 }
 
@@ -77,7 +77,7 @@ export function buildCanonicalCredentialPayload(input: {
     `studentId:${normalizeValue(input.studentId)}`,
     `degree:${normalizeValue(input.degree)}`,
     `issuedAt:${input.issuedAt.toISOString()}`,
-  ].join("\n");
+  ].join('\n');
 }
 
 export function buildCredentialHash(input: {

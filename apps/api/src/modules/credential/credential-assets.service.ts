@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { isAbsolute, join, resolve } from "node:path";
-import QRCode from "qrcode";
+import { Injectable } from '@nestjs/common';
+import { isAbsolute, join, resolve } from 'node:path';
+import QRCode from 'qrcode';
 
-import { StorageService } from "../../common/storage/storage.service";
-import { hashBuffer } from "../../common/utils/hash.util";
-import { AppConfigService } from "../../config/app-config.service";
-import { generateCredentialCertificatePdf } from "./credential-certificate";
+import { StorageService } from '../../common/storage/storage.service';
+import { hashBuffer } from '../../common/utils/hash.util';
+import { AppConfigService } from '../../config/app-config.service';
+import { generateCredentialCertificatePdf } from './credential-certificate';
 
 interface CredentialAssetIssuer {
   id: string;
@@ -46,7 +46,7 @@ export interface CredentialMetadataDocument {
   verificationCode: string;
   signedVerificationToken: string;
   qrPayload: string;
-  verificationMode: "CORE_REGISTRY" | "SECURE_PDF";
+  verificationMode: 'CORE_REGISTRY' | 'SECURE_PDF';
   securePdfEnabled: boolean;
   documentHash: string | null;
   revoked: boolean;
@@ -81,10 +81,10 @@ export interface CredentialAssetBundle {
 
 type CredentialAssetPreviewBundle = Omit<
   CredentialAssetBundle,
-  "documentHash" | "fileName" | "mimeType" | "fileSize"
+  'documentHash' | 'fileName' | 'mimeType' | 'fileSize'
 >;
 
-type AssetKind = "metadata" | "qr" | "certificate";
+type AssetKind = 'metadata' | 'qr' | 'certificate';
 
 @Injectable()
 export class CredentialAssetsService {
@@ -93,42 +93,45 @@ export class CredentialAssetsService {
     private readonly storage: StorageService,
   ) {}
 
-  async generateAndPersist(record: CredentialAssetRecord): Promise<CredentialAssetBundle> {
+  async generateAndPersist(
+    record: CredentialAssetRecord,
+  ): Promise<CredentialAssetBundle> {
     const previewBundle = this.buildBundle(record);
     const qrPayload = this.buildQrPayload(
       previewBundle.verificationUrl,
       record.signedVerificationToken,
     );
-    const qrCodePng = await QRCode.toBuffer(
-      qrPayload,
-      {
-      type: "png",
+    const qrCodePng = await QRCode.toBuffer(qrPayload, {
+      type: 'png',
       width: 320,
       margin: 1,
-      errorCorrectionLevel: "M",
+      errorCorrectionLevel: 'M',
       color: {
-        dark: "#1f2937",
-        light: "#ffffff",
+        dark: '#1f2937',
+        light: '#ffffff',
       },
-      },
-    );
+    });
     const bundle: CredentialAssetBundle = {
       ...previewBundle,
       documentHash: record.documentHash,
       fileName: record.securePdfEnabled
         ? this.buildCertificateFileName(record.verificationId)
         : null,
-      mimeType: record.securePdfEnabled ? "application/pdf" : null,
+      mimeType: record.securePdfEnabled ? 'application/pdf' : null,
       fileSize: null,
     };
 
     const writes: Array<Promise<void>> = [
       this.storage.put(
-        this.getAssetKey(record.id, "metadata"),
+        this.getAssetKey(record.id, 'metadata'),
         JSON.stringify(bundle.metadata, null, 2),
-        "application/json",
+        'application/json',
       ),
-      this.storage.put(this.getAssetKey(record.id, "qr"), qrCodePng, "image/png"),
+      this.storage.put(
+        this.getAssetKey(record.id, 'qr'),
+        qrCodePng,
+        'image/png',
+      ),
     ];
 
     if (record.securePdfEnabled && !record.documentHash) {
@@ -149,7 +152,11 @@ export class CredentialAssetsService {
       bundle.documentHash = hashBuffer(pdfBuffer);
       bundle.fileSize = pdfBuffer.byteLength;
       writes.push(
-        this.storage.put(this.getAssetKey(record.id, "certificate"), pdfBuffer, "application/pdf"),
+        this.storage.put(
+          this.getAssetKey(record.id, 'certificate'),
+          pdfBuffer,
+          'application/pdf',
+        ),
       );
     }
 
@@ -161,23 +168,23 @@ export class CredentialAssetsService {
   async updateMetadata(record: CredentialAssetRecord) {
     const bundle = this.buildBundle(record);
     await this.storage.put(
-      this.getAssetKey(record.id, "metadata"),
+      this.getAssetKey(record.id, 'metadata'),
       JSON.stringify(bundle.metadata, null, 2),
-      "application/json",
+      'application/json',
     );
     return bundle;
   }
 
   async readMetadata(credentialId: string) {
-    return this.storage.getText(this.getAssetKey(credentialId, "metadata"));
+    return this.storage.getText(this.getAssetKey(credentialId, 'metadata'));
   }
 
   async readQrCode(credentialId: string) {
-    return this.storage.get(this.getAssetKey(credentialId, "qr"));
+    return this.storage.get(this.getAssetKey(credentialId, 'qr'));
   }
 
   async readCertificate(credentialId: string) {
-    return this.storage.get(this.getAssetKey(credentialId, "certificate"));
+    return this.storage.get(this.getAssetKey(credentialId, 'certificate'));
   }
 
   async deleteAssets(credentialId: string) {
@@ -185,7 +192,7 @@ export class CredentialAssetsService {
   }
 
   async deleteQrCode(credentialId: string) {
-    await this.storage.delete(this.getAssetKey(credentialId, "qr"));
+    await this.storage.delete(this.getAssetKey(credentialId, 'qr'));
   }
 
   buildBundle(record: CredentialAssetRecord): CredentialAssetPreviewBundle {
@@ -194,7 +201,9 @@ export class CredentialAssetsService {
     const certificateUri = record.securePdfEnabled
       ? this.buildCertificateUri(record.verificationId)
       : null;
-    const verificationUrl = this.buildVerificationUrl(record.credentialExternalId);
+    const verificationUrl = this.buildVerificationUrl(
+      record.credentialExternalId,
+    );
 
     return {
       metadataUri,
@@ -211,8 +220,13 @@ export class CredentialAssetsService {
         issuedAt: record.issuedAt.toISOString(),
         verificationCode: record.verificationCode,
         signedVerificationToken: record.signedVerificationToken,
-        qrPayload: this.buildQrPayload(verificationUrl, record.signedVerificationToken),
-        verificationMode: record.securePdfEnabled ? "SECURE_PDF" : "CORE_REGISTRY",
+        qrPayload: this.buildQrPayload(
+          verificationUrl,
+          record.signedVerificationToken,
+        ),
+        verificationMode: record.securePdfEnabled
+          ? 'SECURE_PDF'
+          : 'CORE_REGISTRY',
         securePdfEnabled: record.securePdfEnabled,
         documentHash: record.documentHash,
         revoked: record.revoked,
@@ -288,9 +302,12 @@ export class CredentialAssetsService {
     return `${this.getWebBaseUrl()}/verify/${encodeURIComponent(credentialExternalId)}`;
   }
 
-  private buildQrPayload(verificationUrl: string, signedVerificationToken: string) {
+  private buildQrPayload(
+    verificationUrl: string,
+    signedVerificationToken: string,
+  ) {
     const url = new URL(verificationUrl);
-    url.searchParams.set("token", signedVerificationToken);
+    url.searchParams.set('token', signedVerificationToken);
     return url.toString();
   }
 
@@ -299,11 +316,11 @@ export class CredentialAssetsService {
   }
 
   private getApiBaseUrl() {
-    return this.configService.apiPublicBaseUrl.replace(/\/+$/, "");
+    return this.configService.apiPublicBaseUrl.replace(/\/+$/, '');
   }
 
   private getWebBaseUrl() {
-    return this.configService.webPublicBaseUrl.replace(/\/+$/, "");
+    return this.configService.webPublicBaseUrl.replace(/\/+$/, '');
   }
 
   /**
@@ -317,8 +334,8 @@ export class CredentialAssetsService {
 
   private getAssetKey(credentialId: string, kind: AssetKind) {
     const prefix = this.getCredentialPrefix(credentialId);
-    if (kind === "metadata") return `${prefix}/metadata.json`;
-    if (kind === "qr") return `${prefix}/verification-qr.png`;
+    if (kind === 'metadata') return `${prefix}/metadata.json`;
+    if (kind === 'qr') return `${prefix}/verification-qr.png`;
     return `${prefix}/certificate.pdf`;
   }
 
@@ -327,7 +344,9 @@ export class CredentialAssetsService {
   /** @internal Used only by migration tooling */
   getLocalAssetPath(credentialId: string, kind: AssetKind): string {
     const configured = this.configService.assetStorageRoot;
-    const root = isAbsolute(configured) ? configured : resolve(process.cwd(), configured);
+    const root = isAbsolute(configured)
+      ? configured
+      : resolve(process.cwd(), configured);
     return join(root, this.getAssetKey(credentialId, kind));
   }
 

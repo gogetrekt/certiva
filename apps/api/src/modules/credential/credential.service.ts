@@ -4,9 +4,14 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CredentialDocumentProofSourceType, Prisma, type Issuer } from '@prisma/client';
+import {
+  CredentialDocumentProofSourceType,
+  Prisma,
+  type Issuer,
+} from '@prisma/client';
 
 import { ADMIN_ROLE } from '../../common/auth/admin-role.constants';
 import { PdfReferenceService } from '../../common/services/pdf-reference.service';
@@ -91,6 +96,8 @@ function hasCredentialLogs(
 
 @Injectable()
 export class CredentialService {
+  private readonly logger = new Logger(CredentialService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly assetsService: CredentialAssetsService,
@@ -112,7 +119,10 @@ export class CredentialService {
 
     await this.auditLogService.log({
       action: 'CREDENTIAL_ISSUED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'Credential',
       targetId: credential.id,
       metadata: {
@@ -169,7 +179,8 @@ export class CredentialService {
         degree,
         documentHash: row.documentHash,
         status: 'VALID',
-        message: 'Registry record, QR code, metadata, and mapping reference will be generated.',
+        message:
+          'Registry record, QR code, metadata, and mapping reference will be generated.',
       };
 
       const missingFields = [] as string[];
@@ -230,6 +241,12 @@ export class CredentialService {
         row.verificationCode = credential.verificationCode;
         row.metadataUri = credential.metadataUri;
       } catch (error) {
+        // Failure is surfaced per-row in the result; also log for ops visibility.
+        this.logger.warn(
+          `Bulk issue row failed (batch ${batch.id}): ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
         row.status = 'FAILED';
         row.message = this.getIssueErrorMessage(error);
       }
@@ -252,6 +269,7 @@ export class CredentialService {
     const studentName = query.studentName?.trim();
     const where = {
       issuerId,
+      deletedAt: null,
       studentId: studentId
         ? {
             contains: studentId,
@@ -356,7 +374,10 @@ export class CredentialService {
 
     await this.auditLogService.log({
       action: 'CREDENTIAL_REVOKED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'Credential',
       targetId: id,
       metadata: {
@@ -401,41 +422,32 @@ export class CredentialService {
       throw new ConflictException('Only revoked credentials can be deleted');
     }
 
-    const deleteVerificationLogs = this.prisma.verificationLog.deleteMany({
-      where: {
-        credentialId: id,
-      },
-    });
-    const deleteDocumentProofs = this.prisma.credentialDocumentProof.deleteMany({
-      where: {
-        credentialId: id,
-      },
-    });
-    const deleteBlockchainLogs = this.prisma.blockchainAnchorLog.deleteMany({
-      where: {
-        credentialId: id,
-      },
-    });
-    const deleteCredential = this.prisma.credential.delete({
-      where: { id },
-    });
+    if (existing.deletedAt) {
+      throw new ConflictException('Credential is already deleted');
+    }
 
-    await this.prisma.$transaction([
-      deleteVerificationLogs,
-      deleteDocumentProofs,
-      deleteBlockchainLogs,
-      deleteCredential,
-    ]);
-    await this.assetsService.deleteAssets(id);
+    // Soft-delete: retain the row + verification/proof/anchor logs and stored
+    // assets as tamper evidence. Physical rows are never destroyed. (2.3)
+    await this.prisma.credential.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedBy: admin.username ?? admin.sub,
+        deletedByAdminId: admin.sub,
+      },
+    });
 
     await this.auditLogService.log({
       action: 'CREDENTIAL_DELETED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'Credential',
       targetId: id,
+      // Non-PII only — student identity stays out of the audit trail. (2.3)
       metadata: {
-        studentName: existing.studentName,
-        degree: existing.degree,
+        credentialExternalId: existing.credentialExternalId,
       },
     });
 
@@ -458,44 +470,74 @@ export class CredentialService {
 
     for (const id of ids) {
       try {
-        const existing = await this.prisma.credential.findUnique({ where: { id } });
-        if (!existing || existing.issuerId !== issuerId) { skipped++; continue; }
-        if (existing.revoked) { skipped++; continue; }
-
-        await this.prisma.credential.update({
+        const existing = await this.prisma.credential.findUnique({
           where: { id },
-          data: {
-            revoked: true,
-            revokedAt: new Date(),
-            revokedBy: admin.email,
-            revokedByAdminId: admin.sub,
-            revocationReason: reason,
-            revocationNotes: notes?.trim() || null,
-          },
         });
+        if (!existing || existing.issuerId !== issuerId) {
+          skipped++;
+          continue;
+        }
+        if (existing.revoked) {
+          skipped++;
+          continue;
+        }
 
-        await this.auditLogService.log({
-          action: 'CREDENTIAL_REVOKED',
-          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
-          targetType: 'Credential',
-          targetId: id,
-          metadata: {
-            reason,
-            notes: notes ?? null,
-            studentName: existing.studentName,
-            degree: existing.degree,
-            bulk: true,
-          },
+        // Atomic: the revoke status change and its audit record commit
+        // together or not at all — a rolled-back tx can't leave a revoked
+        // credential with no audit trail. Blockchain enqueue stays OUTSIDE
+        // (external side effect, only anchor after the tx commits).
+        await this.prisma.$transaction(async (tx) => {
+          await tx.credential.update({
+            where: { id },
+            data: {
+              revoked: true,
+              revokedAt: new Date(),
+              revokedBy: admin.email,
+              revokedByAdminId: admin.sub,
+              revocationReason: reason,
+              revocationNotes: notes?.trim() || null,
+            },
+          });
+
+          await tx.auditLog.create({
+            data: {
+              action: 'CREDENTIAL_REVOKED',
+              actorAdminId: admin.sub ?? null,
+              actorUsername: admin.username ?? null,
+              targetType: 'Credential',
+              targetId: id,
+              metadata: {
+                reason,
+                notes: notes ?? null,
+                studentName: existing.studentName,
+                degree: existing.degree,
+                bulk: true,
+              },
+              ipAddress: null,
+              userAgent: null,
+            },
+          });
         });
 
         try {
           await this.blockchainQueueService.enqueueRevoke(id);
-        } catch {
-          // blockchain queue failure is non-fatal
+        } catch (error) {
+          // Non-fatal: credential is revoked in the registry; the anchor can
+          // be retried. Log so the failed enqueue is not silently lost.
+          this.logger.warn(
+            `Blockchain revoke enqueue failed for credential ${id}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
         }
 
         revoked++;
-      } catch {
+      } catch (error) {
+        this.logger.error(
+          `Bulk revoke failed for credential ${id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
         failed++;
       }
     }
@@ -511,32 +553,50 @@ export class CredentialService {
 
     for (const id of ids) {
       try {
-        const existing = await this.prisma.credential.findUnique({ where: { id } });
-        if (!existing || existing.issuerId !== issuerId) { skipped++; continue; }
-        if (!existing.revoked) { skipped++; continue; }
+        const existing = await this.prisma.credential.findUnique({
+          where: { id },
+        });
+        if (!existing || existing.issuerId !== issuerId) {
+          skipped++;
+          continue;
+        }
+        if (!existing.revoked || existing.deletedAt) {
+          skipped++;
+          continue;
+        }
 
-        await this.prisma.$transaction([
-          this.prisma.verificationLog.deleteMany({ where: { credentialId: id } }),
-          this.prisma.credentialDocumentProof.deleteMany({ where: { credentialId: id } }),
-          this.prisma.blockchainAnchorLog.deleteMany({ where: { credentialId: id } }),
-          this.prisma.credential.delete({ where: { id } }),
-        ]);
-        await this.assetsService.deleteAssets(id);
+        // Soft-delete: retain row + logs + assets as evidence. (2.3)
+        await this.prisma.credential.update({
+          where: { id },
+          data: {
+            deletedAt: new Date(),
+            deletedBy: admin.username ?? admin.sub,
+            deletedByAdminId: admin.sub,
+          },
+        });
 
         await this.auditLogService.log({
           action: 'CREDENTIAL_DELETED',
-          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+          context: {
+            actorAdminId: admin.sub,
+            actorUsername: admin.username ?? undefined,
+          },
           targetType: 'Credential',
           targetId: id,
+          // Non-PII only. (2.3)
           metadata: {
-            studentName: existing.studentName,
-            degree: existing.degree,
+            credentialExternalId: existing.credentialExternalId,
             bulk: true,
           },
         });
 
         deleted++;
-      } catch {
+      } catch (error) {
+        this.logger.error(
+          `Bulk delete failed for credential ${id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
         failed++;
       }
     }
@@ -561,17 +621,19 @@ export class CredentialService {
     await this.assertCredentialAccess(admin, credential.issuerId);
     await this.pdfReferenceService.prepareUploadedPdf(file);
 
-    const reference = await this.pdfReferenceService.extractReferenceFromPdfBuffer(
-      file.buffer,
-      'credential',
-    );
+    const reference =
+      await this.pdfReferenceService.extractReferenceFromPdfBuffer(
+        file.buffer,
+        'credential',
+      );
     if (!reference) {
       throw new BadRequestException(
         'Unable to read a verification reference from this PDF.',
       );
     }
 
-    const referencedCredential = await this.findByVerificationReference(reference);
+    const referencedCredential =
+      await this.findByVerificationReference(reference);
     if (!referencedCredential || referencedCredential.id !== credential.id) {
       throw new BadRequestException(
         'The PDF verification reference does not match this credential.',
@@ -589,7 +651,7 @@ export class CredentialService {
   async registerBatchSecurePdf(
     admin: JwtPayload,
     batchId: string,
-    file: UploadedCredentialFile,
+    _file: UploadedCredentialFile,
   ) {
     const batch = await this.prisma.issuanceBatch.findUnique({
       where: { id: batchId },
@@ -1286,7 +1348,13 @@ export class CredentialService {
       certificateBuffer = await this.assetsService.readCertificate(
         credential.id,
       );
-    } catch {
+    } catch (error) {
+      // intentional: certificate asset missing/unreadable — regenerate below.
+      this.logger.debug(
+        `Certificate unreadable for credential ${credential.id}, regenerating: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
       const assetRecord = this.buildAssetRecord(credential, credential.issuer);
       const assetBundle =
         await this.assetsService.generateAndPersist(assetRecord);

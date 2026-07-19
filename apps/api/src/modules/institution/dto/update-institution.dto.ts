@@ -1,5 +1,5 @@
-import { IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
-import { IssuerStatus } from "@prisma/client";
+import { IsEnum, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IssuerStatus } from '@prisma/client';
 
 export class UpdateInstitutionDto {
   @IsOptional()
@@ -15,19 +15,15 @@ export class UpdateInstitutionDto {
   domain?: string;
 
   @IsOptional()
-  @IsUrl(
-    {
-      require_tld: false,
-    },
-  )
+  @IsUrl({
+    require_tld: false,
+  })
   logoUrl?: string;
 
   @IsOptional()
-  @IsUrl(
-    {
-      require_tld: false,
-    },
-  )
+  @IsUrl({
+    require_tld: false,
+  })
   websiteUrl?: string;
 
   @IsOptional()

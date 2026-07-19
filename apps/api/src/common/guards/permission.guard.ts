@@ -3,12 +3,12 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
-import { hasPermission, type Permission } from "../auth/permissions";
-import { PERMISSION_KEY } from "../decorators/require-permission.decorator";
-import type { JwtPayload } from "../../modules/auth/types/jwt-payload";
+import { hasPermission, type Permission } from '../auth/permissions';
+import { PERMISSION_KEY } from '../decorators/require-permission.decorator';
+import type { JwtPayload } from '../../modules/auth/types/jwt-payload';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -37,7 +37,7 @@ export class PermissionGuard implements CanActivate {
 
     if (missing.length > 0) {
       throw new ForbiddenException(
-        "You do not have permission to perform this action",
+        'You do not have permission to perform this action',
       );
     }
 

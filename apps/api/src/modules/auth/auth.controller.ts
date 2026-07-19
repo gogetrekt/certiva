@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminRole } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { GetAdmin } from '../../common/decorators/get-admin.decorator';
@@ -23,6 +24,7 @@ import { RegisterDto } from './dto/register.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import type { JwtPayload } from './types/jwt-payload';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -89,7 +91,7 @@ export class AuthController {
     const ip =
       typeof forwarded === 'string'
         ? forwarded.split(',')[0]?.trim()
-        : req.ip ?? 'unknown';
+        : (req.ip ?? 'unknown');
     const userAgent = req.headers['user-agent'] ?? undefined;
     return { ipAddress: ip, userAgent };
   }

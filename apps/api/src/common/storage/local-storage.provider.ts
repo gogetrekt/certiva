@@ -1,8 +1,8 @@
-import { Logger } from "@nestjs/common";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { Logger } from '@nestjs/common';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 
-import type { StorageProvider } from "./storage.interface";
+import type { StorageProvider } from './storage.interface';
 
 export class LocalStorageProvider implements StorageProvider {
   private readonly logger = new Logger(LocalStorageProvider.name);
@@ -29,7 +29,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async getText(key: string): Promise<string> {
-    return readFile(this.fullPath(key), "utf8");
+    return readFile(this.fullPath(key), 'utf8');
   }
 
   async exists(key: string): Promise<boolean> {

@@ -2,951 +2,951 @@ export const POLYGON_AMOY_CHAIN_ID = 80_002;
 
 export const credentialRegistryAbi = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    inputs: [],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "CredentialAlreadyAnchored",
-    "type": "error"
+    name: 'CredentialAlreadyAnchored',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "CredentialAlreadyRevoked",
-    "type": "error"
+    name: 'CredentialAlreadyRevoked',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "CredentialNotFound",
-    "type": "error"
+    name: 'CredentialNotFound',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "InvalidCredentialId",
-    "type": "error"
+    inputs: [],
+    name: 'InvalidCredentialId',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "InvalidIssuer",
-    "type": "error"
+    name: 'InvalidIssuer',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "InvalidIssuerName",
-    "type": "error"
+    inputs: [],
+    name: 'InvalidIssuerName',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "InvalidProofHash",
-    "type": "error"
+    inputs: [],
+    name: 'InvalidProofHash',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
     ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
+    name: 'OwnableInvalidOwner',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
     ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
+    name: 'OwnableUnauthorizedAccount',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "ProofHashAlreadyAnchored",
-    "type": "error"
+    name: 'ProofHashAlreadyAnchored',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "UnauthorizedIssuer",
-    "type": "error"
+    name: 'UnauthorizedIssuer',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
+        internalType: 'address',
+        name: 'caller',
+        type: 'address',
       },
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "UnauthorizedRevoker",
-    "type": "error"
+    name: 'UnauthorizedRevoker',
+    type: 'error',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
+        indexed: false,
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
       },
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: false,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'timestamp',
+        type: 'uint256',
+      },
     ],
-    "name": "CredentialAnchored",
-    "type": "event"
+    name: 'CredentialAnchored',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "credentialKey",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'credentialKey',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "issuedAt",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'issuedAt',
+        type: 'uint256',
+      },
     ],
-    "name": "CredentialProofAnchored",
-    "type": "event"
+    name: 'CredentialProofAnchored',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "credentialKey",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'credentialKey',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "revokedBy",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'revokedBy',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "issuedAt",
-        "type": "uint256"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'issuedAt',
+        type: 'uint256',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "revokedAt",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'revokedAt',
+        type: 'uint256',
+      },
     ],
-    "name": "CredentialProofRevoked",
-    "type": "event"
+    name: 'CredentialProofRevoked',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: false,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "revokedBy",
-        "type": "address"
+        indexed: false,
+        internalType: 'address',
+        name: 'revokedBy',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'timestamp',
+        type: 'uint256',
+      },
     ],
-    "name": "CredentialRevoked",
-    "type": "event"
+    name: 'CredentialRevoked',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: false,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'timestamp',
+        type: 'uint256',
+      },
     ],
-    "name": "IssuerAuthorized",
-    "type": "event"
+    name: 'IssuerAuthorized',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
+        indexed: false,
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'timestamp',
+        type: 'uint256',
+      },
     ],
-    "name": "IssuerProfileUpdated",
-    "type": "event"
+    name: 'IssuerProfileUpdated',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        indexed: false,
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'timestamp',
+        type: 'uint256',
+      },
     ],
-    "name": "IssuerRemoved",
-    "type": "event"
+    name: 'IssuerRemoved',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    name: 'OwnershipTransferred',
+    type: 'event',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "anchorCredential",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'anchorCredential',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "authorizeIssuer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'authorizeIssuer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
+      },
     ],
-    "name": "authorizeIssuerWithName",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'authorizeIssuerWithName',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "credentialExists",
-    "outputs": [
+    name: 'credentialExists',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "credentialHashExists",
-    "outputs": [
+    name: 'credentialHashExists',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredential",
-    "outputs": [
+    name: 'getCredential',
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "string",
-            "name": "credentialId",
-            "type": "string"
+            internalType: 'string',
+            name: 'credentialId',
+            type: 'string',
           },
           {
-            "internalType": "bytes32",
-            "name": "proofHash",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'proofHash',
+            type: 'bytes32',
           },
           {
-            "internalType": "address",
-            "name": "issuer",
-            "type": "address"
+            internalType: 'address',
+            name: 'issuer',
+            type: 'address',
           },
           {
-            "internalType": "uint256",
-            "name": "anchoredAt",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'anchoredAt',
+            type: 'uint256',
           },
           {
-            "internalType": "bool",
-            "name": "revoked",
-            "type": "bool"
+            internalType: 'bool',
+            name: 'revoked',
+            type: 'bool',
           },
           {
-            "internalType": "uint256",
-            "name": "revokedAt",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'revokedAt',
+            type: 'uint256',
           },
           {
-            "internalType": "address",
-            "name": "revokedBy",
-            "type": "address"
+            internalType: 'address',
+            name: 'revokedBy',
+            type: 'address',
           },
           {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
-          }
+            internalType: 'bool',
+            name: 'exists',
+            type: 'bool',
+          },
         ],
-        "internalType": "struct CredentialRegistry.CredentialProof",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: 'struct CredentialRegistry.CredentialProof',
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialHash",
-    "outputs": [
+    name: 'getCredentialHash',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialIssuer",
-    "outputs": [
+    name: 'getCredentialIssuer',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialKey",
-    "outputs": [
+    name: 'getCredentialKey',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: 'pure',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "getCredentialKeyByProofHash",
-    "outputs": [
+    name: 'getCredentialKeyByProofHash',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialProofMetadata",
-    "outputs": [
+    name: 'getCredentialProofMetadata',
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "string",
-            "name": "credentialId",
-            "type": "string"
+            internalType: 'string',
+            name: 'credentialId',
+            type: 'string',
           },
           {
-            "internalType": "bytes32",
-            "name": "proofHash",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'proofHash',
+            type: 'bytes32',
           },
           {
-            "internalType": "address",
-            "name": "issuer",
-            "type": "address"
+            internalType: 'address',
+            name: 'issuer',
+            type: 'address',
           },
           {
-            "internalType": "string",
-            "name": "issuerName",
-            "type": "string"
+            internalType: 'string',
+            name: 'issuerName',
+            type: 'string',
           },
           {
-            "internalType": "uint256",
-            "name": "issuedAt",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'issuedAt',
+            type: 'uint256',
           },
           {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
+            internalType: 'bool',
+            name: 'exists',
+            type: 'bool',
           },
           {
-            "internalType": "bool",
-            "name": "revoked",
-            "type": "bool"
+            internalType: 'bool',
+            name: 'revoked',
+            type: 'bool',
           },
           {
-            "internalType": "uint256",
-            "name": "revokedAt",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'revokedAt',
+            type: 'uint256',
           },
           {
-            "internalType": "address",
-            "name": "revokedBy",
-            "type": "address"
+            internalType: 'address',
+            name: 'revokedBy',
+            type: 'address',
           },
           {
-            "internalType": "bool",
-            "name": "issuerAuthorized",
-            "type": "bool"
+            internalType: 'bool',
+            name: 'issuerAuthorized',
+            type: 'bool',
           },
           {
-            "internalType": "bool",
-            "name": "active",
-            "type": "bool"
-          }
+            internalType: 'bool',
+            name: 'active',
+            type: 'bool',
+          },
         ],
-        "internalType": "struct CredentialRegistry.CredentialProofMetadata",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: 'struct CredentialRegistry.CredentialProofMetadata',
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialRevocation",
-    "outputs": [
+    name: 'getCredentialRevocation',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "revoked",
-        "type": "bool"
+        internalType: 'bool',
+        name: 'revoked',
+        type: 'bool',
       },
       {
-        "internalType": "uint256",
-        "name": "revokedAt",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'revokedAt',
+        type: 'uint256',
       },
       {
-        "internalType": "address",
-        "name": "revokedBy",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'revokedBy',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "getCredentialTimestamp",
-    "outputs": [
+    name: 'getCredentialTimestamp',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "getIssuerProfile",
-    "outputs": [
+    name: 'getIssuerProfile',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
+        internalType: 'bool',
+        name: 'authorized',
+        type: 'bool',
       },
       {
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
       },
       {
-        "internalType": "uint256",
-        "name": "authorizedAt",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: 'authorizedAt',
+        type: 'uint256',
       },
       {
-        "internalType": "uint256",
-        "name": "removedAt",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: 'removedAt',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "isAuthorizedIssuer",
-    "outputs": [
+    name: 'isAuthorizedIssuer',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "isCredentialIssuer",
-    "outputs": [
+    name: 'isCredentialIssuer',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "isCredentialRevoked",
-    "outputs": [
+    name: 'isCredentialRevoked',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "isCredentialValid",
-    "outputs": [
+    name: 'isCredentialValid',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
+    inputs: [],
+    name: 'owner',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
+      },
     ],
-    "name": "removeIssuer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'removeIssuer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
+      },
     ],
-    "name": "revokeCredential",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'revokeCredential',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
+      },
     ],
-    "name": "setIssuerName",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'setIssuerName',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "credentialId",
-        "type": "string"
+        internalType: 'string',
+        name: 'credentialId',
+        type: 'string',
       },
       {
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'proofHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "verifyCredential",
-    "outputs": [
+    name: 'verifyCredential',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
+        internalType: 'bool',
+        name: 'exists',
+        type: 'bool',
       },
       {
-        "internalType": "bool",
-        "name": "integrityVerified",
-        "type": "bool"
+        internalType: 'bool',
+        name: 'integrityVerified',
+        type: 'bool',
       },
       {
-        "internalType": "bool",
-        "name": "revoked",
-        "type": "bool"
+        internalType: 'bool',
+        name: 'revoked',
+        type: 'bool',
       },
       {
-        "internalType": "address",
-        "name": "issuer",
-        "type": "address"
+        internalType: 'address',
+        name: 'issuer',
+        type: 'address',
       },
       {
-        "internalType": "string",
-        "name": "issuerName",
-        "type": "string"
+        internalType: 'string',
+        name: 'issuerName',
+        type: 'string',
       },
       {
-        "internalType": "uint256",
-        "name": "issuedAt",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: 'issuedAt',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    stateMutability: 'view',
+    type: 'function',
+  },
 ] as const;

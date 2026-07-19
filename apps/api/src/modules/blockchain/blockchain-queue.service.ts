@@ -1,10 +1,10 @@
-import { Injectable, OnModuleDestroy } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { Queue } from "bullmq";
-import IORedis from "ioredis";
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
 
-import { AppConfigService } from "../../config/app-config.service";
-import { PrismaService } from "../../prisma/prisma.service";
+import { AppConfigService } from '../../config/app-config.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   ANCHOR_STATUS,
   BLOCKCHAIN_JOB_ATTEMPTS,
@@ -12,7 +12,7 @@ import {
   BLOCKCHAIN_OPERATION,
   BLOCKCHAIN_QUEUE_BACKOFF_MS,
   BLOCKCHAIN_QUEUE_NAME,
-} from "./blockchain.constants";
+} from './blockchain.constants';
 
 @Injectable()
 export class BlockchainQueueService implements OnModuleDestroy {
@@ -33,7 +33,7 @@ export class BlockchainQueueService implements OnModuleDestroy {
       defaultJobOptions: {
         attempts: BLOCKCHAIN_JOB_ATTEMPTS,
         backoff: {
-          type: "exponential",
+          type: 'exponential',
           delay: BLOCKCHAIN_QUEUE_BACKOFF_MS,
         },
         removeOnComplete: 200,
@@ -95,7 +95,11 @@ export class BlockchainQueueService implements OnModuleDestroy {
     );
   }
 
-  async markQueueFailure(credentialId: string, operation: string, message: string) {
+  async markQueueFailure(
+    credentialId: string,
+    operation: string,
+    message: string,
+  ) {
     await this.prisma.$transaction(async (tx) => {
       if (operation === BLOCKCHAIN_OPERATION.anchor) {
         await tx.credential.update({
@@ -138,35 +142,12 @@ export class BlockchainQueueService implements OnModuleDestroy {
       errorMessage: input.errorMessage ?? null,
     };
 
-    const updated = await tx.blockchainAnchorLog.updateMany({
-      where: { credentialId },
-      data,
+    // Append-only: one immutable row per lifecycle event (2.1).
+    await tx.blockchainAnchorLog.create({
+      data: {
+        credentialId,
+        ...data,
+      },
     });
-
-    if (updated.count > 0) {
-      return;
-    }
-
-    try {
-      await tx.blockchainAnchorLog.create({
-        data: {
-          credentialId,
-          ...data,
-        },
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        await tx.blockchainAnchorLog.updateMany({
-          where: { credentialId },
-          data,
-        });
-        return;
-      }
-
-      throw error;
-    }
   }
 }

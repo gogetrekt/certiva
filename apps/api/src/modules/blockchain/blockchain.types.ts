@@ -1,13 +1,12 @@
-import type { Hex } from "viem";
+import type { Hex } from 'viem';
 
 import type {
   ANCHOR_STATUS,
   BLOCKCHAIN_OPERATION,
   BLOCKCHAIN_PROOF_STATUS,
-} from "./blockchain.constants";
+} from './blockchain.constants';
 
-export type AnchorStatus =
-  (typeof ANCHOR_STATUS)[keyof typeof ANCHOR_STATUS];
+export type AnchorStatus = (typeof ANCHOR_STATUS)[keyof typeof ANCHOR_STATUS];
 
 export type BlockchainProofStatus =
   (typeof BLOCKCHAIN_PROOF_STATUS)[keyof typeof BLOCKCHAIN_PROOF_STATUS];

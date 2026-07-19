@@ -36,10 +36,7 @@ function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEYS.has(key.toLowerCase().replace(/[-_\s]/g, ''));
 }
 
-export function redact(
-  value: unknown,
-  depth = 0,
-): unknown {
+export function redact(value: unknown, depth = 0): unknown {
   if (depth > 5) return '[...]';
   if (value === null || value === undefined) return value;
   if (typeof value === 'string') return value;
@@ -66,7 +63,11 @@ export function redactHeaders(
   const result: Record<string, string | string[] | undefined> = {};
   for (const [k, v] of Object.entries(headers)) {
     const lower = k.toLowerCase();
-    if (lower === 'authorization' || lower === 'cookie' || lower === 'set-cookie') {
+    if (
+      lower === 'authorization' ||
+      lower === 'cookie' ||
+      lower === 'set-cookie'
+    ) {
       result[k] = '[REDACTED]';
     } else {
       result[k] = v;

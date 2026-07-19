@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
-import QRCode from "qrcode";
+import { Injectable } from '@nestjs/common';
+import QRCode from 'qrcode';
 
-import { StorageService } from "../../common/storage/storage.service";
-import { AppConfigService } from "../../config/app-config.service";
+import { StorageService } from '../../common/storage/storage.service';
+import { AppConfigService } from '../../config/app-config.service';
 
 interface DocumentProofIssuer {
   id: string;
@@ -64,34 +64,38 @@ export class DocumentProofAssetsService {
   ): Promise<DocumentProofAssetBundle> {
     const bundle = this.buildBundle(record);
     const qrCodePng = await QRCode.toBuffer(bundle.metadata.qrPayload, {
-      type: "png",
+      type: 'png',
       width: 320,
       margin: 1,
-      errorCorrectionLevel: "M",
+      errorCorrectionLevel: 'M',
       color: {
-        dark: "#1f2937",
-        light: "#ffffff",
+        dark: '#1f2937',
+        light: '#ffffff',
       },
     });
 
     await Promise.all([
       this.storage.put(
-        this.getAssetKey(record.id, "metadata"),
+        this.getAssetKey(record.id, 'metadata'),
         JSON.stringify(bundle.metadata, null, 2),
-        "application/json",
+        'application/json',
       ),
-      this.storage.put(this.getAssetKey(record.id, "qr"), qrCodePng, "image/png"),
+      this.storage.put(
+        this.getAssetKey(record.id, 'qr'),
+        qrCodePng,
+        'image/png',
+      ),
     ]);
 
     return bundle;
   }
 
   async readMetadata(proofId: string) {
-    return this.storage.getText(this.getAssetKey(proofId, "metadata"));
+    return this.storage.getText(this.getAssetKey(proofId, 'metadata'));
   }
 
   async readQrCode(proofId: string) {
-    return this.storage.get(this.getAssetKey(proofId, "qr"));
+    return this.storage.get(this.getAssetKey(proofId, 'qr'));
   }
 
   buildBundle(record: DocumentProofAssetRecord): DocumentProofAssetBundle {
@@ -156,24 +160,26 @@ export class DocumentProofAssetsService {
 
   private buildQrPayload(proofUrl: string, signedVerificationToken: string) {
     const url = new URL(proofUrl);
-    url.searchParams.set("token", signedVerificationToken);
+    url.searchParams.set('token', signedVerificationToken);
     return url.toString();
   }
 
   private getApiBaseUrl() {
-    return this.configService.apiPublicBaseUrl.replace(/\/+$/, "");
+    return this.configService.apiPublicBaseUrl.replace(/\/+$/, '');
   }
 
   private getWebBaseUrl() {
-    return this.configService.webPublicBaseUrl.replace(/\/+$/, "");
+    return this.configService.webPublicBaseUrl.replace(/\/+$/, '');
   }
 
   private getProofPrefix(proofId: string) {
     return `document-proofs/${proofId}`;
   }
 
-  private getAssetKey(proofId: string, kind: "metadata" | "qr") {
+  private getAssetKey(proofId: string, kind: 'metadata' | 'qr') {
     const prefix = this.getProofPrefix(proofId);
-    return kind === "metadata" ? `${prefix}/metadata.json` : `${prefix}/verification-qr.png`;
+    return kind === 'metadata'
+      ? `${prefix}/metadata.json`
+      : `${prefix}/verification-qr.png`;
   }
 }

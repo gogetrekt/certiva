@@ -65,7 +65,7 @@ export class AppConfigService {
         // validateEnv already rejects this state, but guard here too
         throw new Error(
           'CORS_ORIGINS must not be empty in staging or production. ' +
-          'Set CORS_ORIGINS to a comma-separated list of allowed origins.',
+            'Set CORS_ORIGINS to a comma-separated list of allowed origins.',
         );
       }
       // Local dev convenience: allow all (bracket widened only in dev)
@@ -112,7 +112,10 @@ export class AppConfigService {
       accessKeyId: this.configService.get<string>('r2.accessKeyId', ''),
       secretAccessKey: this.configService.get<string>('r2.secretAccessKey', ''),
       endpoint: this.configService.get<string>('r2.endpoint', ''),
-      forcePathStyle: this.configService.get<boolean>('r2.forcePathStyle', true),
+      forcePathStyle: this.configService.get<boolean>(
+        'r2.forcePathStyle',
+        true,
+      ),
     };
   }
 

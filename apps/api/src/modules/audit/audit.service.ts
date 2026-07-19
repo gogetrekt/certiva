@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma, VerificationEventType } from "@prisma/client";
+import { Injectable } from '@nestjs/common';
+import { Prisma, VerificationEventType } from '@prisma/client';
 
-import { ADMIN_ROLE } from "../../common/auth/admin-role.constants";
-import { PrismaService } from "../../prisma/prisma.service";
-import type { JwtPayload } from "../auth/types/jwt-payload";
-import { InstitutionService } from "../institution/institution.service";
+import { ADMIN_ROLE } from '../../common/auth/admin-role.constants';
+import { PrismaService } from '../../prisma/prisma.service';
+import type { JwtPayload } from '../auth/types/jwt-payload';
+import { InstitutionService } from '../institution/institution.service';
 
 @Injectable()
 export class AuditService {
@@ -30,21 +30,23 @@ export class AuditService {
   }
 
   private mapEventTypeToLookupType(
-    eventType: VerificationEventType | string,
-  ): "QR" | "ID" | "DOCUMENT" {
+    eventType: string,
+  ): 'QR' | 'ID' | 'DOCUMENT' {
     switch (eventType) {
       case VerificationEventType.QR_LOOKUP:
-        return "QR";
+        return 'QR';
       case VerificationEventType.PDF_INTEGRITY_CHECK:
-        return "DOCUMENT";
+        return 'DOCUMENT';
       case VerificationEventType.REGISTRY_CODE_LOOKUP:
       default:
-        return "ID";
+        return 'ID';
     }
   }
 
   async listLogs(admin: JwtPayload, limit = 50) {
-    const take = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 50;
+    const take = Number.isFinite(limit)
+      ? Math.min(Math.max(limit, 1), 200)
+      : 50;
     const issuerId = await this.resolveIssuerId(admin);
 
     const logs = await this.prisma.verificationLog.findMany({
@@ -54,7 +56,7 @@ export class AuditService {
           include: { issuer: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take,
     });
 
@@ -65,7 +67,9 @@ export class AuditService {
   }
 
   async listBlockchainAudit(admin: JwtPayload, limit = 100) {
-    const take = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 100;
+    const take = Number.isFinite(limit)
+      ? Math.min(Math.max(limit, 1), 200)
+      : 100;
     const issuerId = await this.resolveIssuerId(admin);
 
     return this.prisma.blockchainAnchorLog.findMany({
@@ -75,7 +79,7 @@ export class AuditService {
           include: { issuer: true },
         },
       },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: 'desc' },
       take,
     });
   }
@@ -96,14 +100,16 @@ export class AuditService {
     ] = await Promise.all([
       this.prisma.credential.count({ where }),
       this.prisma.credential.count({ where: { ...where, revoked: true } }),
-      this.prisma.credential.count({ where: { ...where, anchorStatus: "PENDING" } }),
+      this.prisma.credential.count({
+        where: { ...where, anchorStatus: 'PENDING' },
+      }),
       this.prisma.verificationLog.count({
         where: verificationWhere,
       }),
       this.prisma.verificationLog.count({
         where: {
           ...verificationWhere,
-          status: "VALID",
+          status: 'VALID',
         },
       }),
     ]);
@@ -152,7 +158,7 @@ export class AuditService {
             },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take,
         skip,
       }),
@@ -167,11 +173,15 @@ export class AuditService {
       action: this.mapEventTypeToAction(log.eventType, log.status),
       lookupType: this.mapEventTypeToLookupType(log.eventType),
       status: log.status,
-      credentialId: log.credential?.credentialExternalId ?? log.credentialId ?? "-",
+      credentialId:
+        log.credential?.credentialExternalId ?? log.credentialId ?? '-',
       credentialDbId: log.credential?.id ?? log.credentialId,
       degree: log.credential?.degree ?? null,
       studentName: log.credential?.studentName ?? null,
-      institution: log.credential?.issuer?.displayName ?? log.credential?.issuer?.name ?? null,
+      institution:
+        log.credential?.issuer?.displayName ??
+        log.credential?.issuer?.name ??
+        null,
       occurredAt: log.createdAt.toISOString(),
       ipAddress: log.ipAddress ?? null,
       matched: log.matched,
@@ -181,25 +191,22 @@ export class AuditService {
   }
 
   private mapEventTypeToAction(eventType: string, status: string): string {
-    if (status === "REVOKED") return "Credential Revoked";
+    if (status === 'REVOKED') return 'Credential Revoked';
     switch (eventType) {
-      case "REGISTRY_CODE_LOOKUP":
-        return "ID Lookup";
-      case "QR_LOOKUP":
-        return "QR Verification";
-      case "PDF_INTEGRITY_CHECK":
-        return "PDF Integrity Check";
+      case 'REGISTRY_CODE_LOOKUP':
+        return 'ID Lookup';
+      case 'QR_LOOKUP':
+        return 'QR Verification';
+      case 'PDF_INTEGRITY_CHECK':
+        return 'PDF Integrity Check';
       default:
-        return "Verification Completed";
+        return 'Verification Completed';
     }
   }
 
   // ─── Verification analytics ───────────────────────────────────────────────
 
-  async getVerificationAnalytics(
-    admin: JwtPayload,
-    days: 7 | 30 | 90 = 7,
-  ) {
+  async getVerificationAnalytics(admin: JwtPayload, days: 7 | 30 | 90 = 7) {
     const issuerId = await this.resolveIssuerId(admin);
     const since = new Date();
     since.setDate(since.getDate() - days);
@@ -210,11 +217,14 @@ export class AuditService {
         createdAt: { gte: since },
       },
       select: { createdAt: true, status: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     // Aggregate by day
-    const buckets = new Map<string, { date: string; total: number; valid: number; invalid: number }>();
+    const buckets = new Map<
+      string,
+      { date: string; total: number; valid: number; invalid: number }
+    >();
 
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
@@ -228,7 +238,7 @@ export class AuditService {
       const bucket = buckets.get(key);
       if (!bucket) continue;
       bucket.total++;
-      if (log.status === "VALID") bucket.valid++;
+      if (log.status === 'VALID') bucket.valid++;
       else bucket.invalid++;
     }
 
@@ -254,7 +264,7 @@ export class AuditService {
         anchorVersion: true,
         issuer: { select: { id: true, name: true, displayName: true } },
       },
-      orderBy: { issuedAt: "desc" },
+      orderBy: { issuedAt: 'desc' },
       take,
     });
   }
@@ -278,7 +288,7 @@ export class AuditService {
         revokedBy: true,
         issuer: { select: { id: true, name: true, displayName: true } },
       },
-      orderBy: { revokedAt: "desc" },
+      orderBy: { revokedAt: 'desc' },
       take,
     });
   }
@@ -290,14 +300,22 @@ export class AuditService {
     const where = issuerId ? { credential: { issuerId } } : {};
 
     const [pending, processing, failed, completed] = await Promise.all([
-      this.prisma.blockchainAnchorLog.count({ where: { ...where, status: "PENDING" } }),
-      this.prisma.blockchainAnchorLog.count({ where: { ...where, status: "RETRYING" } }),
-      this.prisma.blockchainAnchorLog.count({ where: { ...where, status: "FAILED" } }),
-      this.prisma.blockchainAnchorLog.count({ where: { ...where, status: "ANCHORED" } }),
+      this.prisma.blockchainAnchorLog.count({
+        where: { ...where, status: 'PENDING' },
+      }),
+      this.prisma.blockchainAnchorLog.count({
+        where: { ...where, status: 'RETRYING' },
+      }),
+      this.prisma.blockchainAnchorLog.count({
+        where: { ...where, status: 'FAILED' },
+      }),
+      this.prisma.blockchainAnchorLog.count({
+        where: { ...where, status: 'ANCHORED' },
+      }),
     ]);
 
-    const health: "healthy" | "warning" | "critical" =
-      failed === 0 ? "healthy" : failed > 5 ? "critical" : "warning";
+    const health: 'healthy' | 'warning' | 'critical' =
+      failed === 0 ? 'healthy' : failed > 5 ? 'critical' : 'warning';
 
     return { pending, processing, failed, completed, health };
   }
@@ -323,7 +341,7 @@ export class AuditService {
         txHash: true,
         issuer: { select: { name: true, displayName: true } },
       },
-      orderBy: { issuedAt: "desc" },
+      orderBy: { issuedAt: 'desc' },
     });
 
     return credentials.map((c) => ({
@@ -334,9 +352,9 @@ export class AuditService {
       studentId: c.studentId,
       issuedDate: c.issuedAt.toISOString().slice(0, 10),
       verificationCount: c.verificationCount,
-      status: c.revoked ? "REVOKED" : "ACTIVE",
+      status: c.revoked ? 'REVOKED' : 'ACTIVE',
       blockchainState: c.anchorStatus,
-      txHash: c.txHash ?? "",
+      txHash: c.txHash ?? '',
     }));
   }
 }

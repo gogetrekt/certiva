@@ -13,6 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
 import { AppConfigService } from '../../config/app-config.service';
@@ -22,6 +23,7 @@ import { CredentialService } from '../credential/credential.service';
 import { VerifyCredentialDto } from './dto/verify-credential.dto';
 import { VerificationService } from './verification.service';
 
+@ApiTags('verification')
 @Controller()
 export class VerificationController {
   constructor(
@@ -54,7 +56,9 @@ export class VerificationController {
 
   @Post('verify/credential/pdf')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   verifyCredentialPdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
     @Req() req: Request,
@@ -65,7 +69,9 @@ export class VerificationController {
 
   @Post('verify/secure-pdf')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   verifySecurePdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
     @Req() req: Request,
@@ -89,7 +95,9 @@ export class VerificationController {
 
   @Post('verification/upload')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   verifyUploadedPdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
     @Req() req: Request,
@@ -133,9 +141,18 @@ export class VerificationController {
   }
 
   private resolveRequestIp(req: Request) {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string' && forwarded.trim()) {
-      return forwarded.split(',')[0]?.trim() || req.ip || 'unknown';
+    // Prefer Cloudflare's unspoofable cf-connecting-ip; only honour raw
+    // x-forwarded-for when a proxy is explicitly trusted, else use req.ip.
+    const cloudflareIp = req.headers['cf-connecting-ip'];
+    if (typeof cloudflareIp === 'string' && cloudflareIp.trim()) {
+      return cloudflareIp.trim();
+    }
+
+    if (this.configService.trustProxy) {
+      const forwarded = req.headers['x-forwarded-for'];
+      if (typeof forwarded === 'string' && forwarded.trim()) {
+        return forwarded.split(',')[0]?.trim() || req.ip || 'unknown';
+      }
     }
 
     return req.ip ?? 'unknown';

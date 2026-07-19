@@ -11,7 +11,9 @@ export class CredentialIntegrityService implements OnModuleInit {
   async onModuleInit() {
     const updatedCount = await this.credentialService.backfillDocumentHashes();
     if (updatedCount > 0) {
-      this.logger.log(`Backfilled document hashes for ${updatedCount} credential(s).`);
+      this.logger.log(
+        `Backfilled document hashes for ${updatedCount} credential(s).`,
+      );
     }
   }
 }

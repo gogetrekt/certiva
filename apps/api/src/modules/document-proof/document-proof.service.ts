@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   DocumentProofVerificationSource,
   Prisma,
@@ -111,7 +107,7 @@ export class DocumentProofService {
       },
     });
 
-    let created = await this.prisma.secureDocumentProof.create({
+    const created = await this.prisma.secureDocumentProof.create({
       data: {
         id: proofId,
         proofExternalId: proofId,
@@ -148,7 +144,10 @@ export class DocumentProofService {
 
     await this.auditLogService.log({
       action: 'DOCUMENT_PROOF_CREATED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'SecureDocumentProof',
       targetId: proofId,
       metadata: {
@@ -241,7 +240,10 @@ export class DocumentProofService {
 
     await this.auditLogService.log({
       action: 'DOCUMENT_PROOF_DELETED',
-      context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+      context: {
+        actorAdminId: admin.sub,
+        actorUsername: admin.username ?? undefined,
+      },
       targetType: 'SecureDocumentProof',
       targetId: id,
       metadata: {
@@ -269,17 +271,28 @@ export class DocumentProofService {
           where: { id },
           select: { id: true, issuerId: true },
         });
-        if (!proof) { skipped++; continue; }
-        if (issuerId && proof.issuerId !== issuerId) { skipped++; continue; }
+        if (!proof) {
+          skipped++;
+          continue;
+        }
+        if (issuerId && proof.issuerId !== issuerId) {
+          skipped++;
+          continue;
+        }
 
         await this.prisma.$transaction([
-          this.prisma.secureDocumentProofVerificationLog.deleteMany({ where: { documentProofId: id } }),
+          this.prisma.secureDocumentProofVerificationLog.deleteMany({
+            where: { documentProofId: id },
+          }),
           this.prisma.secureDocumentProof.delete({ where: { id } }),
         ]);
 
         await this.auditLogService.log({
           action: 'DOCUMENT_PROOF_DELETED',
-          context: { actorAdminId: admin.sub, actorUsername: admin.username ?? undefined },
+          context: {
+            actorAdminId: admin.sub,
+            actorUsername: admin.username ?? undefined,
+          },
           targetType: 'SecureDocumentProof',
           targetId: id,
           metadata: { bulk: true },
@@ -642,10 +655,7 @@ export class DocumentProofService {
   private sanitizeFilename(name?: string | null): string {
     if (!name) return 'document.pdf';
     // Strip path separators and null bytes, allow only safe filename characters
-    const stripped = name
-      .replace(/[/\\]/g, '')
-      .replace(/\0/g, '')
-      .trim();
+    const stripped = name.replace(/[/\\]/g, '').replace(/\0/g, '').trim();
     const safe = stripped.replace(/[^a-zA-Z0-9._\- ]/g, '_');
     return safe.slice(0, 200) || 'document.pdf';
   }

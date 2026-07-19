@@ -1,7 +1,7 @@
-import { IsBoolean, IsIn, IsOptional } from "class-validator";
-import type { AdminRole } from "@prisma/client";
+import { IsBoolean, IsIn, IsOptional } from 'class-validator';
+import type { AdminRole } from '@prisma/client';
 
-import { ADMIN_ROLE_VALUES } from "../../../common/auth/admin-role.constants";
+import { ADMIN_ROLE_VALUES } from '../../../common/auth/admin-role.constants';
 
 export class UpdateAdminDto {
   @IsOptional()
