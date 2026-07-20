@@ -20,6 +20,7 @@ import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import { AuditLogService } from '../audit/audit-log.service';
+import { SigningKeyService } from '../../common/signing/signing-key.service';
 import { BlockchainQueueService } from '../blockchain/blockchain-queue.service';
 import { BLOCKCHAIN_OPERATION } from '../blockchain/blockchain.constants';
 import { InstitutionService } from '../institution/institution.service';
@@ -106,6 +107,7 @@ export class CredentialService {
     private readonly configService: AppConfigService,
     private readonly pdfReferenceService: PdfReferenceService,
     private readonly auditLogService: AuditLogService,
+    private readonly signingKeyService: SigningKeyService,
   ) {}
 
   async create(admin: JwtPayload, dto: CreateCredentialDto) {
@@ -1047,6 +1049,20 @@ export class CredentialService {
       degree: input.degree,
       issuedAt,
     });
+    // Ed25519 signature over a DB-free public payload. Lazy-inits the issuer's
+    // signing key on first issuance; no manual setup required.
+    const credentialSignature = await this.signingKeyService.signCredential({
+      issuerId,
+      credentialId,
+      verificationId,
+      issuerDomain: issuer.domain,
+      issuerName: institution,
+      studentName: input.studentName,
+      studentId: input.studentId,
+      degree: input.degree,
+      graduationYear: input.graduationYear ?? null,
+      issuedAt,
+    });
     let assetBundle: CredentialAssetBundle;
 
     try {
@@ -1084,6 +1100,11 @@ export class CredentialService {
           registryHash: registryProofHash,
           chainProofHash: registryProofHash,
           documentHash: null,
+          publicPayload: credentialSignature.publicPayload,
+          signature: credentialSignature.signature,
+          signatureAlgorithm: 'Ed25519',
+          signedAt: credentialSignature.signedAt,
+          signingKeyId: credentialSignature.signingKeyDbId,
           fileName: assetBundle.fileName,
           mimeType: assetBundle.mimeType,
           fileSize: assetBundle.fileSize,
