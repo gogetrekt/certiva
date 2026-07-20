@@ -12,6 +12,7 @@ import {
 } from '@prisma/client';
 
 import { hashBuffer } from '../../common/utils/hash.util';
+import { verifyEd25519 } from '../../common/signing/signing-crypto.util';
 import { PdfReferenceService } from '../../common/services/pdf-reference.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
@@ -49,6 +50,43 @@ function resolveIssuerLabel(credential: VerificationCredentialRecord) {
   return credential.issuer.displayName ?? credential.issuer.name;
 }
 
+export type CredentialSignatureBlock = {
+  algorithm: string;
+  signingKeyId: string;
+  publicKey: string;
+  signatureValid: boolean;
+} | null;
+
+/**
+ * Recompute the Ed25519 signature verdict for a credential. Returns null for
+ * pre-Fase-0 credentials that were never signed (backward compatible — never an
+ * error). The public key is included so a verifier can cross-check independently.
+ */
+export function buildSignatureBlock(credential: {
+  signature: string | null;
+  publicPayload: string | null;
+  signatureAlgorithm: string | null;
+  signingKey: { keyId: string; publicKey: string } | null;
+}): CredentialSignatureBlock {
+  if (
+    !credential.signature ||
+    !credential.publicPayload ||
+    !credential.signingKey
+  ) {
+    return null;
+  }
+  return {
+    algorithm: credential.signatureAlgorithm ?? 'Ed25519',
+    signingKeyId: credential.signingKey.keyId,
+    publicKey: credential.signingKey.publicKey,
+    signatureValid: verifyEd25519(
+      credential.publicPayload,
+      credential.signature,
+      credential.signingKey.publicKey,
+    ),
+  };
+}
+
 @Injectable()
 export class VerificationService {
   constructor(
@@ -79,13 +117,17 @@ export class VerificationService {
             }
           : undefined,
       },
-      include: { issuer: true },
+      include: { issuer: true, signingKey: true },
     });
 
     const verification =
       credential && (await this.blockchainService.verifyCredential(credential));
     const status = credential
-      ? this.resolveStatus(credential, verification ?? null)
+      ? this.resolveStatus(
+          credential,
+          verification ?? null,
+          buildSignatureBlock(credential)?.signatureValid,
+        )
       : 'NOT_FOUND';
 
     await this.recordVerification({
@@ -160,6 +202,7 @@ export class VerificationService {
       },
       include: {
         issuer: true,
+        signingKey: true,
       },
     });
 
@@ -202,12 +245,21 @@ export class VerificationService {
         trustChecks: this.buildTrustChecks(null, null),
         verifiedAtTimestamp: createdAt,
         credential: null,
+        signature: null,
       };
     }
 
+    // Immutable signature verdict — computed from the queried record (which
+    // includes signingKey) before recordVerification mutates counts.
+    const signatureBlock = buildSignatureBlock(credential);
+
     const blockchainVerification =
       await this.blockchainService.verifyCredential(credential);
-    const status = this.resolveStatus(credential, blockchainVerification);
+    const status = this.resolveStatus(
+      credential,
+      blockchainVerification,
+      signatureBlock?.signatureValid,
+    );
     const updatedCredential = await this.recordVerification({
       credentialId: credential.id,
       createdAt,
@@ -278,6 +330,55 @@ export class VerificationService {
       credential: {
         id: currentCredential.id,
         studentName: currentCredential.studentName,
+      },
+      signature: signatureBlock,
+    };
+  }
+
+  /**
+   * Public, DB-independent proof bundle. Contains everything needed to verify
+   * the Ed25519 signature offline — the exact signed `publicPayload` bytes plus
+   * the issuer public key — so it stays verifiable even if this server is down.
+   * 404 for unsigned pre-Fase-0 credentials.
+   */
+  async getCredentialProof(credentialId: string) {
+    const credential = await this.prisma.credential.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ credentialExternalId: credentialId }, { id: credentialId }],
+      },
+      include: { issuer: true, signingKey: true },
+    });
+
+    if (
+      !credential ||
+      !credential.signature ||
+      !credential.publicPayload ||
+      !credential.signingKey
+    ) {
+      throw new NotFoundException(
+        'No verifiable signature for this credential',
+      );
+    }
+
+    return {
+      credentialId: credential.credentialExternalId,
+      // Exact canonical string the signature covers — feed verbatim into an
+      // Ed25519 verify() with the publicKey below. Do not reformat.
+      publicPayload: credential.publicPayload,
+      signature: credential.signature,
+      signatureAlgorithm: credential.signatureAlgorithm ?? 'Ed25519',
+      issuer: {
+        domain: credential.issuer.domain,
+        name: credential.issuer.displayName ?? credential.issuer.name,
+        signingKeyId: credential.signingKey.keyId,
+        publicKey: credential.signingKey.publicKey,
+      },
+      blockchain: {
+        anchored: Boolean(credential.txHash),
+        chainId: credential.chainId,
+        txHash: credential.txHash,
+        anchoredAt: credential.anchoredAt,
       },
     };
   }
@@ -582,6 +683,7 @@ export class VerificationService {
     blockchainVerification: Awaited<
       ReturnType<BlockchainService['verifyCredential']>
     > | null,
+    signatureValid?: boolean | null,
   ): VerificationStatus {
     if (credential.issuer.status !== IssuerStatus.ACTIVE) {
       return 'INVALID';
@@ -596,6 +698,13 @@ export class VerificationService {
 
     if (blockchainVerification?.proof?.revoked || credential.revoked) {
       return 'REVOKED';
+    }
+
+    // Fail-closed: a signature that is present but does not recompute means the
+    // stored record was altered after signing — never report VALID. (null =
+    // pre-Fase-0 credential that was never signed; not a tampering signal.)
+    if (signatureValid === false) {
+      return 'TAMPERED';
     }
 
     return 'VALID';

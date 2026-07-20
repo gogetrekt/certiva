@@ -93,6 +93,12 @@ export class VerificationController {
     );
   }
 
+  @Get('verification/:credentialId/proof')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
+  getProof(@Param('credentialId') credentialId: string) {
+    return this.verificationService.getCredentialProof(credentialId);
+  }
+
   @Post('verification/upload')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
   @UseInterceptors(
