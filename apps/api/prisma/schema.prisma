@@ -44,6 +44,7 @@ enum AuditAction {
   CREDENTIAL_DELETED
   DOCUMENT_PROOF_CREATED
   DOCUMENT_PROOF_DELETED
+  SIGNING_KEY_GENERATED
   SETTINGS_UPDATED
   FORBIDDEN_ATTEMPT
 }
@@ -103,8 +104,26 @@ model Issuer {
   admins         Admin[]
   batches        IssuanceBatch[]
   documentProofs SecureDocumentProof[]
+  signingKeys    IssuerSigningKey[]
 
   @@index([domain])
+}
+
+model IssuerSigningKey {
+  id                  String       @id @default(cuid())
+  issuerId            String
+  issuer              Issuer       @relation(fields: [issuerId], references: [id])
+  keyId               String       @unique
+  publicKey           String
+  privateKeyEncrypted String
+  algorithm           String       @default("Ed25519")
+  createdAt           DateTime     @default(now())
+  revokedAt           DateTime?
+  active              Boolean      @default(true)
+  credentials         Credential[]
+
+  @@index([issuerId])
+  @@index([active])
 }
 
 model Credential {
@@ -143,6 +162,12 @@ model Credential {
   anchorVersion             String                    @default("V1")
   issuerWallet              String?
   chainVerificationMetadata Json?
+  publicPayload             String?
+  signature                 String?
+  signatureAlgorithm        String?                   @default("Ed25519")
+  signedAt                  DateTime?
+  signingKeyId              String?
+  signingKey                IssuerSigningKey?         @relation(fields: [signingKeyId], references: [id])
   revoked                   Boolean                   @default(false)
   revokedAt                 DateTime?
   revokedBy                 String?
@@ -178,6 +203,7 @@ model Credential {
   @@index([chainStatus])
   @@index([anchorVersion])
   @@index([deletedAt])
+  @@index([signingKeyId])
 }
 
 model IssuanceBatch {
@@ -346,19 +372,19 @@ model BlockchainAnchorLog {
 // prevHash -> entryHash, so any edit or deletion breaks the chain and is
 // detectable by verifyChain(). Legacy rows (pre-chain) have null entryHash. (2.2)
 model AuditLog {
-  id             String      @id @default(cuid())
-  seq            Int         @unique @default(autoincrement())
-  action         AuditAction
-  actorAdminId   String?
-  actorUsername  String?
-  targetType     String?
-  targetId       String?
-  metadata       Json?
-  ipAddress      String?
-  userAgent      String?
-  prevHash       String?
-  entryHash      String?     @unique
-  createdAt      DateTime    @default(now())
+  id            String      @id @default(cuid())
+  seq           Int         @unique @default(autoincrement())
+  action        AuditAction
+  actorAdminId  String?
+  actorUsername String?
+  targetType    String?
+  targetId      String?
+  metadata      Json?
+  ipAddress     String?
+  userAgent     String?
+  prevHash      String?
+  entryHash     String?     @unique
+  createdAt     DateTime    @default(now())
 
   @@index([actorAdminId])
   @@index([action])

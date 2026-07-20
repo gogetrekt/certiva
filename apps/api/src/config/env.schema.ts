@@ -38,6 +38,30 @@ const jwtSecretSchema = z
     },
   );
 
+const signingKeyEncryptionSecretSchema = z
+  .string()
+  .min(32, 'SIGNING_KEY_ENCRYPTION_SECRET must be at least 32 characters')
+  .refine(
+    (val) => {
+      const appEnv = process.env.APP_ENV;
+      const nodeEnv = process.env.NODE_ENV;
+      if (
+        nodeEnv === 'development' &&
+        appEnv !== 'staging' &&
+        appEnv !== 'production'
+      ) {
+        return true;
+      }
+      return !WEAK_SECRET_PLACEHOLDERS.some((p) =>
+        val.toLowerCase().includes(p.toLowerCase()),
+      );
+    },
+    {
+      message:
+        'SIGNING_KEY_ENCRYPTION_SECRET must not be a placeholder value in staging/production',
+    },
+  );
+
 export const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
@@ -51,6 +75,8 @@ export const envSchema = z.object({
 
   JWT_SECRET: jwtSecretSchema,
   JWT_EXPIRES_IN: z.string().optional(),
+
+  SIGNING_KEY_ENCRYPTION_SECRET: signingKeyEncryptionSecretSchema,
 
   PORT: z.coerce.number().default(4000),
 

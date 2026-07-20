@@ -26,6 +26,7 @@ export const configuration = () => ({
   auth: {
     jwtSecret: process.env.JWT_SECRET,
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '12h',
+    signingKeyEncryptionSecret: process.env.SIGNING_KEY_ENCRYPTION_SECRET,
   },
   database: {
     url: process.env.DATABASE_URL,

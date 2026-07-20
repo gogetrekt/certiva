@@ -92,3 +92,42 @@ export function buildCredentialHash(input: {
 }) {
   return hashString(buildCanonicalCredentialPayload(input));
 }
+
+/**
+ * The payload covered by the issuer's Ed25519 signature. Unlike the internal
+ * canonical payload, this carries NO server secret and NO internal issuerId —
+ * only publicly-resolvable identity (issuerDomain/name) plus every field that
+ * appears on the printed/PDF credential. Anything a verifier can read off the
+ * paper and compare by eye must be signed, or it could be altered without
+ * breaking the signature. It is therefore fully verifiable by a third party
+ * with no access to Certiva's database.
+ */
+export interface PublicCredentialPayload {
+  credentialId: string;
+  verificationId: string;
+  issuerDomain: string;
+  issuerName: string;
+  studentName: string;
+  studentId: string;
+  degree: string;
+  graduationYear: number | null;
+  issuedAt: Date;
+  signingKeyId: string;
+}
+
+export function buildPublicSignaturePayload(
+  input: PublicCredentialPayload,
+): string {
+  return [
+    `credentialId:${input.credentialId}`,
+    `verificationId:${input.verificationId}`,
+    `issuerDomain:${normalizeValue(input.issuerDomain)}`,
+    `issuerName:${normalizeValue(input.issuerName)}`,
+    `studentName:${normalizeValue(input.studentName)}`,
+    `studentId:${normalizeValue(input.studentId)}`,
+    `degree:${normalizeValue(input.degree)}`,
+    `graduationYear:${input.graduationYear ?? ''}`,
+    `issuedAt:${input.issuedAt.toISOString()}`,
+    `signingKeyId:${input.signingKeyId}`,
+  ].join('\n');
+}

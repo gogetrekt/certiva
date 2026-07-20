@@ -44,6 +44,12 @@ export class AppConfigService {
     return this.configService.getOrThrow<string>('auth.jwtSecret');
   }
 
+  get signingKeyEncryptionSecret() {
+    return this.configService.getOrThrow<string>(
+      'auth.signingKeyEncryptionSecret',
+    );
+  }
+
   get jwtExpiresIn() {
     return this.configService.get<string>('auth.jwtExpiresIn', '12h');
   }
