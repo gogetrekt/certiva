@@ -80,7 +80,7 @@ packages/
 
 Certiva is built with a security-first posture across all layers.
 
-**Environment validation** - All required environment variables are validated at startup via Zod schema. Weak placeholder values for `JWT_SECRET` are rejected in staging and production. Empty or wildcard `CORS_ORIGINS` is rejected when `NODE_ENV=production` or `APP_ENV=staging`.
+**Environment validation** - All required environment variables are validated at startup via Zod schema. Weak placeholder values for `JWT_SECRET` and `SIGNING_KEY_ENCRYPTION_SECRET` are rejected in staging and production. Empty or wildcard `CORS_ORIGINS` is rejected when `NODE_ENV=production` or `APP_ENV=staging`.
 
 **CORS** - `CORS_ORIGINS` accepts a comma-separated allowlist. Wildcard origins are blocked in non-development modes.
 
@@ -97,6 +97,8 @@ Certiva is built with a security-first posture across all layers.
 **Safe logging** - The API and worker use a structured logging approach that never writes JWTs, cookies, passwords, `DATABASE_URL`, `REDIS_URL`, `PRIVATE_KEY`, or raw uploaded document content to logs.
 
 **Object storage** - Credential assets are stored in Cloudflare R2 (or locally in development). The storage layer is abstracted behind a `StorageService` interface so the driver can be swapped without changing domain code.
+
+**Credential signatures (Ed25519)** - Each issued credential is signed with the issuing institution's Ed25519 key over a canonical, secret-free public payload (student name/ID, degree, graduation year, issuer domain/name, issue date — every field printed on the certificate). Keys are per-issuer with a rotation history (old keys are revoked, never deleted, so older credentials stay verifiable). Private keys are AES-256-GCM encrypted at rest under `SIGNING_KEY_ENCRYPTION_SECRET`, decrypted in memory only during signing, and never exposed via any API or log. Verification recomputes the signature independently, and `GET /api/verification/:credentialId/proof` returns a self-contained bundle anyone can verify offline with the bundled public key — even if Certiva's servers are down. This gives third parties asymmetric verification without the shared secret the HMAC token requires. Credentials issued before this feature simply report `signature: null` and remain verifiable as before.
 
 **Blockchain** - Private key handling is isolated. Known development placeholder keys are rejected in staging and production. Blockchain usage is limited to hash anchoring. No personal data, PDFs, student IDs, or emails are placed on-chain.
 

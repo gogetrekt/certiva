@@ -336,6 +336,39 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
               )}
             </div>
 
+            {/* Digital signature card — only for signed (Fase 0+) credentials */}
+            {verification.signature && (
+              <div className="work-surface overflow-hidden p-0">
+                <div className="px-5 py-4 border-b border-[hsl(var(--border-default))]">
+                  <p className="kicker mb-1">{t.verifyResult.digitalSignature}</p>
+                  <p className="meta-text">{t.verifyResult.digitalSignatureSubtitle}</p>
+                </div>
+                <div className="px-5 py-4 space-y-3">
+                  <span
+                    className={`badge ${verification.signature.signatureValid ? "badge-valid" : "badge-warn"}`}
+                  >
+                    {verification.signature.signatureValid ? (
+                      <CheckCircle size={14} weight="fill" aria-hidden />
+                    ) : (
+                      <Warning size={14} weight="fill" aria-hidden />
+                    )}
+                    {verification.signature.signatureValid
+                      ? t.verifyResult.signatureVerified
+                      : t.verifyResult.signatureInvalid}
+                  </span>
+                  {verification.credentialExternalId && (
+                    <a
+                      href={`/api/proof/${encodeURIComponent(verification.credentialExternalId)}`}
+                      className="flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
+                    >
+                      {t.verifyResult.downloadProof}
+                      <ArrowSquareOut size={13} aria-hidden />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Note */}
             <div className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] px-5 py-4">
               <p className="kicker mb-1.5">{t.verifyResult.aboutThisVerification}</p>

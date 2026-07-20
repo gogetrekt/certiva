@@ -857,6 +857,11 @@ const en = {
     aboutThisVerification: "About this verification",
     aboutBody:
       "Certiva is an independent verification infrastructure. Results reflect the institutional registry state at the time of this check.",
+    digitalSignature: "Digital signature",
+    digitalSignatureSubtitle: "Issuer-signed, independently verifiable",
+    signatureVerified: "Signature verified",
+    signatureInvalid: "Signature mismatch",
+    downloadProof: "Download verification proof",
   },
   document: {
     kicker: "Document integrity check",
@@ -2817,6 +2822,11 @@ const id: typeof en = {
     aboutThisVerification: "Tentang verifikasi ini",
     aboutBody:
       "Certiva adalah infrastruktur verifikasi independen. Hasil mencerminkan status registri institusi pada saat pemeriksaan ini.",
+    digitalSignature: "Tanda tangan digital",
+    digitalSignatureSubtitle: "Ditandatangani penerbit, bisa diverifikasi independen",
+    signatureVerified: "Tanda tangan terverifikasi",
+    signatureInvalid: "Tanda tangan tidak cocok",
+    downloadProof: "Unduh bukti verifikasi",
   },
   document: {
     kicker: "Pemeriksaan Integritas Dokumen",

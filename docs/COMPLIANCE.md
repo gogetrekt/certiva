@@ -16,6 +16,8 @@ determination for their jurisdiction (e.g. Indonesia's PDP Law, GDPR, FERPA).
 | Blockchain anchor | **No** | Public chain (Polygon Amoy) |
 | Audit log | Actor + action metadata, **no student PII** | PostgreSQL |
 | Verification log | Relying-party IP, timestamp | PostgreSQL |
+| **Issuer signing private key (Ed25519)** — *most sensitive* | No | PostgreSQL, **encrypted at rest** (AES-256-GCM under `SIGNING_KEY_ENCRYPTION_SECRET`). Decrypted in-memory only during signing; **never** returned by any API or written to logs. No admin UI exposes the plaintext. |
+| Issuer signing public key + credential signature | No | PostgreSQL; published freely (verification response, `/proof` bundle) — meant to be shared |
 
 ## 2. PII is never placed on-chain
 
@@ -85,10 +87,14 @@ the record of who issued or revoked what?"* — no, not without detection.
 
 ## 7. Secrets & transport
 
-- Secrets (`JWT_SECRET`, DB/Redis URLs, R2 keys, blockchain `PRIVATE_KEY`) are
-  supplied via environment and validated at startup; weak placeholders are
-  rejected in staging/production. They are never committed and never written to
-  logs.
+- Secrets (`JWT_SECRET`, `SIGNING_KEY_ENCRYPTION_SECRET`, DB/Redis URLs, R2 keys,
+  blockchain `PRIVATE_KEY`) are supplied via environment and validated at startup;
+  weak placeholders are rejected in staging/production. They are never committed
+  and never written to logs.
+- `SIGNING_KEY_ENCRYPTION_SECRET` encrypts issuer Ed25519 private keys at rest
+  and is long-lived: rotating it renders existing encrypted signing keys
+  undecryptable (old credentials stay verifiable via their public keys, but
+  those private keys can no longer sign).
 - Sessions use `httpOnly`, `secure`, `sameSite=lax` cookies; tokens are not
   reachable from client-side JavaScript.
 - TLS is terminated at the operator's reverse proxy (see DEPLOY.md §6);

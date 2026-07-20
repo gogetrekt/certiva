@@ -218,6 +218,13 @@ export interface VerificationResponse {
     label: string;
     ok: boolean;
   }>;
+  // Ed25519 signature verdict. null for pre-Fase-0 credentials (never signed).
+  signature: {
+    algorithm: string;
+    signingKeyId: string;
+    publicKey: string;
+    signatureValid: boolean;
+  } | null;
 }
 
 export interface VerificationLogRecord {
