@@ -112,60 +112,108 @@ export class AuditLogService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async log(input: AuditEventInput): Promise<void> {
+  /**
+   * Take the chain-head advisory lock on an existing transaction.
+   *
+   * LOCK ORDER — DO NOT REORDER. A caller that writes its own rows *and* an
+   * audit entry in one transaction must take this lock as its FIRST statement,
+   * before touching any other row. Every audit writer then acquires locks in the
+   * same order (audit chain lock → data rows); the reverse order in even one
+   * path introduces a deadlock that only shows up under concurrency in
+   * production. Re-taking the lock inside the same transaction is safe (Postgres
+   * advisory locks are reference-counted per session), so callers that lock here
+   * can still pass the same tx to `log()`.
+   */
+  async lockChain(tx: Prisma.TransactionClient): Promise<void> {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${AUDIT_CHAIN_LOCK})`;
+  }
+
+  /**
+   * Append one entry to the hash chain.
+   *
+   * Two failure postures, picked by whether `tx` is passed:
+   *
+   * - **No `tx` (default)**: the write gets its own transaction and failures are
+   *   swallowed — an audit outage must never break the primary operation.
+   * - **With `tx`**: the entry is written inside the caller's transaction and
+   *   failures **propagate**, rolling the caller's work back with it. Use this
+   *   for actions where a silently missing entry is unacceptable. A missing
+   *   entry does not break the chain (prevHash→entryHash stays contiguous), so
+   *   chain verification cannot detect the omission afterwards — fail-closed at
+   *   write time is the only place it can be caught.
+   */
+  async log(
+    input: AuditEventInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    if (tx) {
+      // Deliberately outside the try/catch: the caller opted into fail-closed.
+      await this.writeEntry(tx, input);
+      return;
+    }
+
     try {
-      const createdAt = new Date();
-      const metadata =
-        input.metadata !== undefined
-          ? (input.metadata as unknown as Prisma.InputJsonValue)
-          : Prisma.DbNull;
-
-      await this.prisma.$transaction(async (tx) => {
-        // Serialize the chain head so concurrent writers can't fork prevHash.
-        await tx.$executeRaw`SELECT pg_advisory_xact_lock(${AUDIT_CHAIN_LOCK})`;
-
-        const last = await tx.auditLog.findFirst({
-          where: { entryHash: { not: null } },
-          orderBy: { seq: 'desc' },
-          select: { entryHash: true },
-        });
-        const prevHash = last?.entryHash ?? null;
-
-        const entryHash = computeEntryHash({
-          action: input.action,
-          actorAdminId: input.context.actorAdminId ?? null,
-          actorUsername: input.context.actorUsername ?? null,
-          targetType: input.targetType ?? null,
-          targetId: input.targetId ?? null,
-          metadata: input.metadata ?? null,
-          ipAddress: input.context.ipAddress ?? null,
-          userAgent: input.context.userAgent ?? null,
-          createdAt,
-          prevHash,
-        });
-
-        await tx.auditLog.create({
-          data: {
-            action: input.action,
-            actorAdminId: input.context.actorAdminId ?? null,
-            actorUsername: input.context.actorUsername ?? null,
-            targetType: input.targetType ?? null,
-            targetId: input.targetId ?? null,
-            metadata,
-            ipAddress: input.context.ipAddress ?? null,
-            userAgent: input.context.userAgent ?? null,
-            prevHash,
-            entryHash,
-            createdAt,
-          },
-        });
-      });
+      await this.prisma.$transaction((ownTx) => this.writeEntry(ownTx, input));
     } catch (error) {
-      // Audit log failure must never break the primary operation
+      // ponytail: audit failure must never break the primary operation — but
+      // that also means an omission here is silent and undetectable by chain
+      // verification. Callers that cannot tolerate that pass a tx (see above);
+      // the remaining non-tx call sites are tracked in docs/PLAN.md.
       this.logger.error(
         `Failed to write audit log for action ${input.action}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+
+  private async writeEntry(
+    tx: Prisma.TransactionClient,
+    input: AuditEventInput,
+  ): Promise<void> {
+    const createdAt = new Date();
+    const metadata =
+      input.metadata !== undefined
+        ? (input.metadata as unknown as Prisma.InputJsonValue)
+        : Prisma.DbNull;
+
+    // Serialize the chain head so concurrent writers can't fork prevHash. No-op
+    // when the caller already holds it (see lockChain).
+    await this.lockChain(tx);
+
+    const last = await tx.auditLog.findFirst({
+      where: { entryHash: { not: null } },
+      orderBy: { seq: 'desc' },
+      select: { entryHash: true },
+    });
+    const prevHash = last?.entryHash ?? null;
+
+    const entryHash = computeEntryHash({
+      action: input.action,
+      actorAdminId: input.context.actorAdminId ?? null,
+      actorUsername: input.context.actorUsername ?? null,
+      targetType: input.targetType ?? null,
+      targetId: input.targetId ?? null,
+      metadata: input.metadata ?? null,
+      ipAddress: input.context.ipAddress ?? null,
+      userAgent: input.context.userAgent ?? null,
+      createdAt,
+      prevHash,
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: input.action,
+        actorAdminId: input.context.actorAdminId ?? null,
+        actorUsername: input.context.actorUsername ?? null,
+        targetType: input.targetType ?? null,
+        targetId: input.targetId ?? null,
+        metadata,
+        ipAddress: input.context.ipAddress ?? null,
+        userAgent: input.context.userAgent ?? null,
+        prevHash,
+        entryHash,
+        createdAt,
+      },
+    });
   }
 
   async listAuditLogs(options?: { limit?: number; offset?: number }) {

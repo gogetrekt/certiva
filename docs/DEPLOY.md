@@ -111,6 +111,44 @@ hash-chained; this recomputes the chain and reports any break:
 GET /api/audit/action-logs/verify        (owner / super-admin / auditor)
 ```
 
+**Replace the institution's verification key** (suspected key exposure, or routine
+rotation): Dashboard → Settings → *Institution verification keys* → **Replace
+verification key** (OWNER / SUPER_ADMIN). Credentials issued earlier keep
+verifying with the retired key — nothing already issued is invalidated. The
+change is recorded in the audit trail as `SIGNING_KEY_ROTATED`.
+
+**Change `SIGNING_KEY_ENCRYPTION_SECRET`** — this is the master secret that
+encrypts every stored signing private key. Changing it in the environment
+*without* re-encrypting first leaves every private key permanently
+undecryptable, and the institution can never sign again. Run the re-key script
+as part of the change:
+
+```bash
+# 1. Back up the database first (see above). Non-negotiable.
+
+# 2. Dry run — validates that every key decrypts with the old secret and
+#    round-trips with the new one. Writes nothing.
+docker compose -f docker-compose.prod.yml exec api \
+  env SIGNING_KEY_ENCRYPTION_SECRET_OLD="<old>" SIGNING_KEY_ENCRYPTION_SECRET="<new>" \
+  npx tsx scripts/rekey-signing-secret.ts
+
+# 3. Apply once the counts look right.
+docker compose -f docker-compose.prod.yml exec api \
+  env SIGNING_KEY_ENCRYPTION_SECRET_OLD="<old>" SIGNING_KEY_ENCRYPTION_SECRET="<new>" \
+  npx tsx scripts/rekey-signing-secret.ts --apply
+
+# 4. Put the new value in .env (drop the old one) and restart.
+docker compose -f docker-compose.prod.yml up -d
+
+# 5. Verify before deleting the backup: issue one credential (proves signing
+#    works with the new secret) and verify one pre-existing credential (proves
+#    old keys were re-encrypted, not corrupted).
+```
+
+The script is safe to re-run: rows already readable with the new secret are
+skipped, so an interrupted run can simply be repeated. It aborts without writing
+if any key fails to decrypt or fails to match its stored public key.
+
 **Stop / restart**
 
 ```bash

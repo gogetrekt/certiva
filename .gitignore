@@ -36,4 +36,6 @@ packages/contracts/artifacts/
 packages/contracts/cache/
 packages/contracts/build-info/
 
-/docs/plan.md
+/docs/PLAN.md
+/docs/ANALYSTIC.md
+/docs/PROMPT.md

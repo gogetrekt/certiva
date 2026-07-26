@@ -659,6 +659,44 @@ const en = {
         roleCards: [],
       },
       {
+        id: "signingKeys",
+        title: "Digital signature & verification keys",
+        summary: "What the signature on each credential is, and how to replace the key behind it.",
+        intro:
+          "Every credential your institution issues carries a digital signature: a short mathematical stamp produced from the credential's own data. Anyone checking that credential can confirm two things from it — that the record was issued by your institution, and that its details have not been edited since. The stamp is produced with your institution's verification key, which the system creates for you the first time you issue a credential.",
+        steps: [
+          { title: "Find your verification key", body: "Open Settings. The 'Institution verification keys' panel shows the key currently in use, when it was created, and how many credentials were signed with it. The key shown is public — it is safe to publish or send to anyone who wants to verify your credentials independently." },
+          { title: "Read the signature badge on a verification result", body: "A public verification result shows 'Signature verified' when the stamp matches the record. If it shows a signature mismatch, the record's details do not match what was signed — treat that as a data integrity problem, not a normal revocation." },
+          { title: "Replace the key if you suspect it was exposed", body: "In Settings, use 'Replace verification key'. The system retires the current key and starts signing new credentials with a fresh one. Do this if the key material may have leaked, or as a routine precaution." },
+          { title: "Confirm after replacing", body: "Open any credential issued before the replacement and verify it publicly: it must still show a verified signature. Then issue or open a new credential to confirm it uses the new key." },
+        ],
+        details: [
+          {
+            title: "What the signature proves",
+            body: "That the credential data shown came from your institution and has not been altered. It does not prove the underlying academic decision was correct — accuracy of names, programs, and dates stays the institution's responsibility.",
+          },
+          {
+            title: "Replacing a key never invalidates old credentials",
+            body: "Retired keys are kept, and every credential remembers which key signed it. Credentials issued in the past keep verifying against their original key; only newly issued credentials use the new one.",
+          },
+          {
+            title: "Public key, private key",
+            body: "The key shown in Settings is the public half — it can only check signatures, never create them. The private half never leaves the server and is stored encrypted; it is never displayed anywhere in the interface.",
+          },
+        ],
+        notes: [
+          {
+            title: "Replacing the key is an owner-level action",
+            body: "Only Owner and Super Admin can replace the verification key, and every replacement is recorded in the audit trail with who did it and which key was retired.",
+          },
+        ],
+        actions: [
+          { label: "Open settings", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
+          { label: "Open audit trail", href: "/dashboard/blockchain", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
         id: "safety",
         title: "Safety rules",
         summary: "Operational rules for sensitive credential actions.",
@@ -1449,6 +1487,40 @@ const en = {
       successFailed: "failed",
       unable: "Unable to delete selected proof records",
     },
+    signingKeys: {
+      kicker: "Verification keys",
+      title: "Institution verification keys",
+      description:
+        "Every credential your institution issues is stamped with a digital signature. Anyone can use the verification key below to confirm a credential really came from your institution and has not been edited.",
+      activeLabel: "In use",
+      retiredLabel: "Previous keys",
+      retiredBadge: "Retired",
+      retiredNote:
+        "Retired keys are kept on purpose: credentials issued while a key was in use are still verified with that key. Nothing issued in the past stops working.",
+      emptyState:
+        "No verification key yet. One is created automatically the first time you issue a credential.",
+      publicKeyLabel: "Verification key",
+      createdLabel: "Created",
+      retiredAtLabel: "Retired",
+      credentialsLabel: "Credentials signed",
+      copy: "Copy",
+      copied: "Copied",
+      copyFailed: "Unable to copy the verification key",
+      rotateAction: "Replace verification key",
+      confirmTitle: "Replace the verification key?",
+      confirmBody:
+        "Do this if you suspect the key may have been exposed, or as a routine precaution.",
+      confirmPoints: [
+        "Credentials already issued stay valid and keep verifying with the old key.",
+        "Credentials issued from now on use the new key.",
+        "The old key is kept in the list as a previous key. Nothing is deleted.",
+        "The change is recorded in the audit trail.",
+      ],
+      confirmAction: "Replace key",
+      rotating: "Replacing...",
+      cancel: "Cancel",
+      rotateFailed: "Unable to replace the verification key",
+    },
   },
   auditComponents: {
     lookupTypes: {
@@ -1647,6 +1719,12 @@ const en = {
         meaning:
           "The credential record exists but no blockchain proof is available. Anchoring may not have been configured for this credential or deployment. Treat the registry record as the authoritative source.",
       },
+      {
+        label: "Modified",
+        applies: "Credential Check, Document Check",
+        meaning:
+          "The record exists, but its digital signature does not match its contents — the details have changed since the institution signed them. Do not treat the credential as verified. Contact the issuing institution before relying on it.",
+      },
     ],
     workflowSteps: [
       {
@@ -1679,6 +1757,10 @@ const en = {
       {
         title: "Records are institution-controlled",
         body: "Public verification results depend entirely on records submitted by the issuing institution. Certiva does not independently validate the accuracy of credential data; it only confirms whether a record exists and its current status.",
+      },
+      {
+        title: "What the signature badge means",
+        body: "'Signature verified' means the credential's details were signed by the issuing institution's verification key and have not been edited since. It confirms origin and integrity of the record — not that the credential is currently active, so still check the status, and not that the holder is the person presenting it.",
       },
       {
         title: "Document integrity is not credential validity",
@@ -2624,6 +2706,44 @@ const id: typeof en = {
         roleCards: [],
       },
       {
+        id: "signingKeys",
+        title: "Tanda tangan digital & kunci verifikasi",
+        summary: "Apa itu tanda tangan pada setiap ijazah, dan cara mengganti kunci di baliknya.",
+        intro:
+          "Setiap ijazah yang institusi Anda terbitkan membawa tanda tangan digital: sebuah cap matematis singkat yang dihitung dari data ijazah itu sendiri. Siapa pun yang memeriksa ijazah tersebut bisa memastikan dua hal darinya — bahwa catatannya diterbitkan oleh institusi Anda, dan bahwa rinciannya belum diubah sejak diterbitkan. Cap itu dibuat memakai kunci verifikasi institusi, yang dibuat sistem secara otomatis saat Anda menerbitkan ijazah pertama.",
+        steps: [
+          { title: "Temukan kunci verifikasi Anda", body: "Buka Pengaturan. Panel 'Kunci Verifikasi Institusi' menampilkan kunci yang sedang dipakai, kapan dibuat, dan berapa ijazah yang ditandatangani dengannya. Kunci yang ditampilkan bersifat publik — aman untuk dipublikasikan atau dikirim ke siapa pun yang ingin memverifikasi ijazah Anda secara mandiri." },
+          { title: "Pahami badge tanda tangan pada hasil verifikasi", body: "Hasil verifikasi publik menampilkan 'Tanda tangan terverifikasi' bila cap cocok dengan catatannya. Bila yang muncul adalah tanda tangan tidak cocok, berarti rincian catatan tidak sama dengan yang ditandatangani — perlakukan itu sebagai masalah integritas data, bukan pencabutan biasa." },
+          { title: "Ganti kunci bila diduga bocor", body: "Di Pengaturan, gunakan 'Ganti kunci verifikasi'. Sistem menghentikan pemakaian kunci saat ini dan mulai menandatangani ijazah baru dengan kunci baru. Lakukan bila kunci mungkin bocor, atau sebagai pencegahan berkala." },
+          { title: "Periksa setelah mengganti", body: "Buka salah satu ijazah yang diterbitkan sebelum penggantian lalu verifikasi secara publik: tanda tangannya harus tetap terverifikasi. Setelah itu terbitkan atau buka ijazah baru untuk memastikan ia memakai kunci baru." },
+        ],
+        details: [
+          {
+            title: "Apa yang dibuktikan tanda tangan",
+            body: "Bahwa data ijazah yang ditampilkan berasal dari institusi Anda dan belum diubah. Ia tidak membuktikan keputusan akademiknya benar — ketepatan nama, program studi, dan tanggal tetap tanggung jawab institusi.",
+          },
+          {
+            title: "Mengganti kunci tidak pernah membatalkan ijazah lama",
+            body: "Kunci lama tetap disimpan, dan setiap ijazah mengingat kunci mana yang menandatanganinya. Ijazah yang diterbitkan di masa lalu tetap terverifikasi dengan kunci aslinya; hanya ijazah baru yang memakai kunci baru.",
+          },
+          {
+            title: "Kunci publik dan kunci privat",
+            body: "Kunci yang tampil di Pengaturan adalah bagian publiknya — hanya bisa memeriksa tanda tangan, tak pernah membuatnya. Bagian privatnya tidak pernah keluar dari server, disimpan terenkripsi, dan tidak pernah ditampilkan di antarmuka mana pun.",
+          },
+        ],
+        notes: [
+          {
+            title: "Penggantian kunci adalah aksi tingkat pemilik",
+            body: "Hanya Owner dan Super Admin yang bisa mengganti kunci verifikasi, dan setiap penggantian tercatat di jejak audit lengkap dengan pelakunya serta kunci mana yang dihentikan.",
+          },
+        ],
+        actions: [
+          { label: "Buka pengaturan", href: "/dashboard/settings", roles: ["OWNER", "SUPER_ADMIN"] },
+          { label: "Buka jejak audit", href: "/dashboard/blockchain", roles: ["OWNER", "SUPER_ADMIN", "ADMIN", "AUDITOR"] },
+        ],
+        roleCards: [],
+      },
+      {
         id: "safety",
         title: "Aturan keamanan",
         summary: "Aturan operasional untuk aksi kredensial yang sensitif.",
@@ -3414,6 +3534,40 @@ const id: typeof en = {
       successFailed: "gagal",
       unable: "Tidak dapat menghapus catatan bukti yang dipilih",
     },
+    signingKeys: {
+      kicker: "Kunci verifikasi",
+      title: "Kunci Verifikasi Institusi",
+      description:
+        "Setiap ijazah yang institusi Anda terbitkan dibubuhi tanda tangan digital. Siapa pun bisa memakai kunci verifikasi di bawah untuk memastikan sebuah ijazah benar berasal dari institusi Anda dan belum diubah.",
+      activeLabel: "Dipakai",
+      retiredLabel: "Kunci sebelumnya",
+      retiredBadge: "Tidak dipakai lagi",
+      retiredNote:
+        "Kunci lama sengaja disimpan: ijazah yang diterbitkan saat kunci itu dipakai tetap diverifikasi dengan kunci tersebut. Tidak ada ijazah lama yang jadi tidak sah.",
+      emptyState:
+        "Belum ada kunci verifikasi. Kunci dibuat otomatis saat Anda menerbitkan ijazah pertama.",
+      publicKeyLabel: "Kunci verifikasi",
+      createdLabel: "Dibuat",
+      retiredAtLabel: "Berhenti dipakai",
+      credentialsLabel: "Ijazah ditandatangani",
+      copy: "Salin",
+      copied: "Tersalin",
+      copyFailed: "Tidak dapat menyalin kunci verifikasi",
+      rotateAction: "Ganti kunci verifikasi",
+      confirmTitle: "Ganti kunci verifikasi?",
+      confirmBody:
+        "Lakukan ini bila Anda menduga kunci bocor, atau sebagai langkah pencegahan berkala.",
+      confirmPoints: [
+        "Ijazah yang sudah diterbitkan tetap sah dan tetap terverifikasi dengan kunci lama.",
+        "Ijazah yang diterbitkan mulai sekarang memakai kunci baru.",
+        "Kunci lama tetap tersimpan sebagai kunci sebelumnya. Tidak ada yang dihapus.",
+        "Perubahan ini tercatat di jejak audit.",
+      ],
+      confirmAction: "Ganti kunci",
+      rotating: "Mengganti...",
+      cancel: "Batal",
+      rotateFailed: "Tidak dapat mengganti kunci verifikasi",
+    },
   },
   auditComponents: {
     lookupTypes: {
@@ -3612,6 +3766,12 @@ const id: typeof en = {
         meaning:
           "Catatan kredensial ada tetapi tidak ada bukti blockchain. Anchoring mungkin belum dikonfigurasi untuk kredensial atau deployment ini. Perlakukan catatan registri sebagai sumber utama.",
       },
+      {
+        label: "Diubah",
+        applies: "Periksa Kredensial, Periksa Dokumen",
+        meaning:
+          "Catatan ada, tetapi tanda tangan digitalnya tidak cocok dengan isinya — rinciannya berubah setelah ditandatangani institusi. Jangan perlakukan kredensial ini sebagai terverifikasi. Hubungi institusi penerbit sebelum mengandalkannya.",
+      },
     ],
     workflowSteps: [
       {
@@ -3644,6 +3804,10 @@ const id: typeof en = {
       {
         title: "Catatan dikendalikan institusi",
         body: "Hasil verifikasi publik sepenuhnya bergantung pada catatan yang dikirim oleh institusi penerbit. Certiva tidak memvalidasi akurasi data kredensial secara independen; Certiva hanya mengonfirmasi apakah catatan ada dan status terkininya.",
+      },
+      {
+        title: "Arti badge tanda tangan",
+        body: "'Tanda tangan terverifikasi' berarti rincian kredensial ditandatangani dengan kunci verifikasi institusi penerbit dan belum diubah sejak itu. Ini mengonfirmasi asal dan keutuhan catatan — bukan bahwa kredensialnya masih aktif, jadi tetap periksa statusnya, dan bukan bahwa pemegangnya adalah orang yang menunjukkannya.",
       },
       {
         title: "Integritas dokumen bukan validitas kredensial",

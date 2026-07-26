@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 
 import { InstitutionSettingsForm } from "../../../components/institution-settings-form";
 import { InstitutionSetupState } from "../../../components/institution-setup-state";
+import { InstitutionSigningKeys } from "../../../components/institution-signing-keys";
 import type { InstitutionRecord } from "../../../lib/api";
 import {
   getCurrentAdmin,
   getInstitution,
+  getInstitutionSigningKeys,
   getSessionToken,
   isInstitutionSetupRequired,
 } from "../../../lib/api";
@@ -35,6 +37,10 @@ export default async function SettingsPage() {
     throw error;
   }
 
+  // Page is already restricted to OWNER/SUPER_ADMIN above — the same roles the
+  // API allows to rotate — so the rotate action is always available here.
+  const signingKeys = await getInstitutionSigningKeys(token);
+
   return (
     <div className="space-y-5">
       <div className="pb-4 border-b border-[hsl(var(--border-default))]">
@@ -44,6 +50,8 @@ export default async function SettingsPage() {
       </div>
 
       <InstitutionSettingsForm institution={institution} />
+
+      <InstitutionSigningKeys keys={signingKeys.keys} canRotate />
     </div>
   );
 }

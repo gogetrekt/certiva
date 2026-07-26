@@ -490,6 +490,22 @@ export async function getInstitution(token: string) {
   return apiFetch<InstitutionRecord>("/institution", { token });
 }
 
+export interface SigningKeyRecord {
+  keyId: string;
+  publicKey: string;
+  algorithm: string;
+  active: boolean;
+  createdAt: string;
+  revokedAt: string | null;
+  _count: { credentials: number };
+}
+
+export async function getInstitutionSigningKeys(token: string) {
+  return apiFetch<{ keys: SigningKeyRecord[] }>("/institution/signing-keys", {
+    token,
+  });
+}
+
 export async function getCredentials(
   token: string,
   filters?: {

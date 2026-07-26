@@ -8,6 +8,7 @@ import {
   CheckCircle,
   FileText,
   IdentificationCard,
+  Key,
   LockKey,
   Shield,
   ShieldWarning,
@@ -55,6 +56,7 @@ function getTopicIcon(id: string) {
     bulkRevoke: Shield,
     bulkDelete: ShieldWarning,
     roles: UsersThree,
+    signingKeys: Key,
     audit: LockKey,
     safety: ShieldWarning,
   };
@@ -132,7 +134,7 @@ function TopicIndex({
               <Link
                 key={topic.id}
                 href={`/dashboard/guide?topic=${encodeURIComponent(topic.id)}`}
-                className="group flex min-h-36 cursor-pointer flex-col justify-between rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4 transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--bg-subtle))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--border-focus))]"
+                className="group flex min-h-36 cursor-pointer flex-col justify-between rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] p-4 transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--bg-subtle))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--border-focus))]"
               >
                 <div>
                   <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] text-[hsl(var(--text-tertiary))] transition-colors group-hover:text-[hsl(var(--text-primary))]">
@@ -249,7 +251,7 @@ function TopicDetail({
           {topic.details.map((detail) => (
             <div
               key={detail.title}
-              className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--surface-page))] p-4"
+              className="rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-base))] p-4"
             >
               <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">
                 {detail.title}

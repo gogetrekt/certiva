@@ -3,7 +3,10 @@ import { randomBytes } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IssuerSigningKey } from '@prisma/client';
 
-import { AuditLogService } from '../../modules/audit/audit-log.service';
+import {
+  AuditLogService,
+  type AuditContext,
+} from '../../modules/audit/audit-log.service';
 import {
   PublicCredentialPayload,
   buildPublicSignaturePayload,
@@ -59,17 +62,8 @@ export class SigningKeyService {
     // with, so verification is unaffected. Add a per-issuer advisory lock (like
     // the audit chain) only if the "one active key" invariant must be strict.
 
-    const { publicKey, privateKeyStored } =
-      await this.provider.generateKeyPair();
     const created = await this.prisma.issuerSigningKey.create({
-      data: {
-        issuerId,
-        keyId: `sk_${randomBytes(9).toString('hex')}`,
-        publicKey,
-        privateKeyEncrypted: privateKeyStored,
-        algorithm: this.provider.algorithm,
-        active: true,
-      },
+      data: await this.buildKeyData(issuerId),
     });
 
     // Key creation is a high-impact event; record it (no admin actor — system
@@ -85,6 +79,105 @@ export class SigningKeyService {
       `Generated ${created.algorithm} signing key ${created.keyId} for issuer ${issuerId}`,
     );
     return created;
+  }
+
+  /**
+   * Retire the issuer's active key(s) and generate a replacement. Retired keys
+   * are marked (active=false, revokedAt) but never deleted: every credential
+   * carries the FK of the key it was signed with, so credentials issued before a
+   * rotation keep verifying against their original key. Rotation therefore only
+   * changes which key signs *new* credentials.
+   */
+  async rotateActiveKey(
+    issuerId: string,
+    context: AuditContext,
+  ): Promise<{ created: IssuerSigningKey; retiredKeyIds: string[] }> {
+    // Generate outside the transaction: key generation and encryption touch no
+    // DB state, and keeping crypto out of the tx keeps the row lock short.
+    const data = await this.buildKeyData(issuerId);
+
+    // Rotation and its audit entry commit together or not at all. A rotation
+    // with no audit entry would be invisible to chain verification (a missing
+    // entry keeps prevHash→entryHash contiguous), so for key actions the audit
+    // write is fail-closed: if it throws, the rotation rolls back with it.
+    const { created, retiredKeyIds } = await this.prisma.$transaction(
+      async (tx) => {
+        // FIRST statement, before any IssuerSigningKey row is touched. Every
+        // audit writer must take the chain lock before data rows; acquiring them
+        // in the opposite order here would deadlock against a concurrent audit
+        // write. Do not "tidy" this below the queries.
+        await this.auditLog.lockChain(tx);
+
+        const current = await tx.issuerSigningKey.findMany({
+          where: { issuerId, active: true, revokedAt: null },
+          select: { keyId: true },
+        });
+        await tx.issuerSigningKey.updateMany({
+          where: { issuerId, active: true, revokedAt: null },
+          data: { active: false, revokedAt: new Date() },
+        });
+        const createdKey = await tx.issuerSigningKey.create({ data });
+        const retired = current.map((key) => key.keyId);
+
+        await this.auditLog.log(
+          {
+            action: 'SIGNING_KEY_ROTATED',
+            targetType: 'IssuerSigningKey',
+            targetId: createdKey.keyId,
+            metadata: {
+              issuerId,
+              algorithm: createdKey.algorithm,
+              retiredKeyIds: retired,
+            },
+            context,
+          },
+          tx,
+        );
+
+        return { created: createdKey, retiredKeyIds: retired };
+      },
+    );
+
+    this.logger.log(
+      `Rotated signing key for issuer ${issuerId}: retired [${retiredKeyIds.join(', ')}], now signing with ${created.keyId}`,
+    );
+
+    return { created, retiredKeyIds };
+  }
+
+  /**
+   * Public key history for an issuer. Private key material is never selected —
+   * this feeds the admin "institution verification keys" view and the public
+   * key endpoint verifiers use to check signatures independently.
+   */
+  listPublicKeys(issuerId: string) {
+    return this.prisma.issuerSigningKey.findMany({
+      where: { issuerId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        keyId: true,
+        publicKey: true,
+        algorithm: true,
+        active: true,
+        createdAt: true,
+        revokedAt: true,
+        _count: { select: { credentials: true } },
+      },
+    });
+  }
+
+  /** Fresh keypair row data (private key already encrypted by the provider). */
+  private async buildKeyData(issuerId: string) {
+    const { publicKey, privateKeyStored } =
+      await this.provider.generateKeyPair();
+    return {
+      issuerId,
+      keyId: `sk_${randomBytes(9).toString('hex')}`,
+      publicKey,
+      privateKeyEncrypted: privateKeyStored,
+      algorithm: this.provider.algorithm,
+      active: true,
+    };
   }
 
   /** Build and sign the public payload for a credential using the issuer's active key. */
