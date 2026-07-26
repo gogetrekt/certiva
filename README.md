@@ -53,8 +53,8 @@ apps/
 
 packages/
   contracts/  Credential registry contract interface and deployment artifacts
-  types/      Shared TypeScript domain types
-  ui/         Shared interface primitives
+  types/      Domain types shared by api, web, and worker — the single source
+              for BlockchainOperation and the queue job payloads
   config/     Shared TypeScript and ESLint configuration
 ```
 

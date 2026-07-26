@@ -171,14 +171,16 @@ that are currently trusted".
 
 ## Backfilling credentials issued before the export existed
 
+Both scripts write nothing without `--apply`.
+
 ```bash
-pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts --dry-run
 pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts
+pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts --apply
 
 # then capture the signed document itself, for credentials that predate the
 # `vcDocument` snapshot column:
-pnpm --filter api exec ts-node scripts/backfill-vc-document.ts --dry-run
 pnpm --filter api exec ts-node scripts/backfill-vc-document.ts
+pnpm --filter api exec ts-node scripts/backfill-vc-document.ts --apply
 ```
 
 Re-running either is safe: credentials that already have a proof (or a snapshot)

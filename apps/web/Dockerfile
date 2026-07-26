@@ -7,7 +7,6 @@ WORKDIR /app
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/types/package.json  ./packages/types/
-COPY packages/ui/package.json     ./packages/ui/
 COPY packages/config/package.json ./packages/config/
 COPY apps/web/package.json        ./apps/web/
 

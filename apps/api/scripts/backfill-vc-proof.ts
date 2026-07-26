@@ -9,7 +9,12 @@
  * point of revoking it. Those credentials keep working through /proof with their
  * original Ed25519 signature; they simply have no VC export.
  *
- *   pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts [--dry-run]
+ * Run from apps/api. Dry-run is the default — it writes nothing without
+ * --apply, matching rekey-signing-secret.ts so the two runbooks cannot be
+ * confused for one another:
+ *
+ *     npx ts-node -T scripts/backfill-vc-proof.ts
+ *     npx ts-node -T scripts/backfill-vc-proof.ts --apply
  */
 import { PrismaClient } from '@prisma/client';
 
@@ -30,7 +35,7 @@ import { loadScriptEnv } from './load-env';
 loadScriptEnv();
 
 const SECRET = process.env.SIGNING_KEY_ENCRYPTION_SECRET;
-const DRY_RUN = process.argv.includes('--dry-run');
+const APPLY = process.argv.includes('--apply');
 
 const prisma = new PrismaClient();
 
@@ -100,7 +105,7 @@ async function main() {
       );
     }
 
-    if (!DRY_RUN) {
+    if (APPLY) {
       await prisma.credential.update({
         where: { id: credential.id },
         data: {
@@ -113,13 +118,18 @@ async function main() {
   }
 
   console.log(
-    `${DRY_RUN ? '[dry-run] would sign' : 'Signed'} ${written} credential(s).`,
+    `${APPLY ? 'Signed' : '[dry-run] would sign'} ${written} credential(s).`,
   );
   if (skipped.length > 0) {
     console.log(`Skipped ${skipped.length} credential(s) with a revoked key:`);
     for (const line of skipped) console.log(`  - ${line}`);
     console.log(
       'These keep verifying through /proof; they get no VC export by design.',
+    );
+  }
+  if (!APPLY) {
+    console.log(
+      '\nDry run only — nothing written. Re-run with --apply once the counts look right.',
     );
   }
 }

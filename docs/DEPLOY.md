@@ -137,12 +137,12 @@ as part of the change:
 #    round-trips with the new one. Writes nothing.
 docker compose -f docker-compose.prod.yml exec api \
   env SIGNING_KEY_ENCRYPTION_SECRET_OLD="<old>" SIGNING_KEY_ENCRYPTION_SECRET="<new>" \
-  npx tsx scripts/rekey-signing-secret.ts
+  npx ts-node -T scripts/rekey-signing-secret.ts
 
 # 3. Apply once the counts look right.
 docker compose -f docker-compose.prod.yml exec api \
   env SIGNING_KEY_ENCRYPTION_SECRET_OLD="<old>" SIGNING_KEY_ENCRYPTION_SECRET="<new>" \
-  npx tsx scripts/rekey-signing-secret.ts --apply
+  npx ts-node -T scripts/rekey-signing-secret.ts --apply
 
 # 4. Put the new value in .env (drop the old one) and restart.
 docker compose -f docker-compose.prod.yml up -d
@@ -163,13 +163,13 @@ Credentials issued *before* the upgrade have no proof and will return `404` from
 `/api/verification/:id/vc` until backfilled. Run this once, after migrations:
 
 ```bash
-# Dry run first. NOTE the flag polarity is the opposite of the re-key script
-# above: this one WRITES by default, and --dry-run is what makes it read-only.
+# Dry run first. Same flag polarity as the re-key script above: writes nothing
+# without --apply.
 docker compose -f docker-compose.prod.yml exec api \
-  npx tsx scripts/backfill-vc-proof.ts --dry-run
+  npx ts-node -T scripts/backfill-vc-proof.ts
 
 docker compose -f docker-compose.prod.yml exec api \
-  npx tsx scripts/backfill-vc-proof.ts
+  npx ts-node -T scripts/backfill-vc-proof.ts --apply
 ```
 
 Safe to re-run: credentials that already have a proof are skipped. Credentials

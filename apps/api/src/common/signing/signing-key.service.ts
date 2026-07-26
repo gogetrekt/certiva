@@ -230,7 +230,10 @@ export class SigningKeyService {
       key.privateKeyEncrypted,
     );
 
-    const vcProofCreated = new Date();
+    // One timestamp for one signing event: signedAt and the VC proof's `created`
+    // describe the same act, so they must not drift by however long the second
+    // signature takes.
+    const signedAt = new Date();
     const document = buildOpenBadgeCredential({
       credentialId: input.credentialId,
       issuerId: input.issuerId,
@@ -245,7 +248,7 @@ export class SigningKeyService {
     const proofConfig = buildProofConfig({
       issuerDomain: input.issuerDomain,
       keyId: key.keyId,
-      created: vcProofCreated,
+      created: signedAt,
     });
     const vcProofValue = signatureToMultibase(
       await this.provider.sign(
@@ -259,9 +262,9 @@ export class SigningKeyService {
       publicPayload,
       signingKeyDbId: key.id,
       signingKeyId: key.keyId,
-      signedAt: new Date(),
+      signedAt,
       vcProofValue,
-      vcProofCreated,
+      vcProofCreated: signedAt,
       vcDocument: attachProof(document, proofConfig, vcProofValue),
     };
   }
