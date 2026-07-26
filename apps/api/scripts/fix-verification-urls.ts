@@ -11,9 +11,10 @@
 import { PrismaClient } from "@prisma/client";
 import { unlink } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import * as dotenv from "dotenv";
 
-dotenv.config();
+import { loadScriptEnv } from './load-env';
+
+loadScriptEnv();
 
 const WEB_BASE = (process.env.WEB_PUBLIC_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 const ASSET_ROOT = resolve(process.cwd(), process.env.ASSET_STORAGE_ROOT ?? "storage");

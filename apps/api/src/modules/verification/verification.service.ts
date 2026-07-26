@@ -15,8 +15,6 @@ import {
 import { hashBuffer } from '../../common/utils/hash.util';
 import { verifyEd25519 } from '../../common/signing/signing-crypto.util';
 import { PdfReferenceService } from '../../common/services/pdf-reference.service';
-import { buildOpenBadgeCredential } from '../../common/vc/vc-claims.util';
-import { attachProof, buildProofConfig } from '../../common/vc/vc-proof.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { BLOCKCHAIN_PROOF_STATUS } from '../blockchain/blockchain.constants';
@@ -401,15 +399,19 @@ export class VerificationService {
       where: {
         OR: [{ credentialExternalId: credentialId }, { id: credentialId }],
       },
-      include: { issuer: true, signingKey: true },
+      select: {
+        vcDocument: true,
+        revoked: true,
+        deletedAt: true,
+      },
     });
 
-    if (
-      !credential ||
-      !credential.vcProofValue ||
-      !credential.vcProofCreated ||
-      !credential.signingKey
-    ) {
+    // The stored snapshot is the only acceptable source. Rebuilding the document
+    // here from the live `issuer` row would silently invalidate every VC signed
+    // before an admin edited the institution's display name or domain, so a
+    // credential without a snapshot has no VC export at all — run
+    // scripts/backfill-vc-document.ts for credentials signed before it existed.
+    if (!credential?.vcDocument) {
       throw new NotFoundException(
         'No verifiable credential export for this credential',
       );
@@ -419,27 +421,7 @@ export class VerificationService {
       throw new GoneException('This credential has been revoked.');
     }
 
-    const document = buildOpenBadgeCredential({
-      credentialId: credential.credentialExternalId,
-      issuerId: credential.issuerId,
-      issuerDomain: credential.issuer.domain,
-      issuerName: credential.issuer.displayName ?? credential.issuer.name,
-      studentName: credential.studentName,
-      studentId: credential.studentId,
-      degree: credential.degree,
-      graduationYear: credential.graduationYear,
-      issuedAt: credential.issuedAt,
-    });
-
-    return attachProof(
-      document,
-      buildProofConfig({
-        issuerDomain: credential.issuer.domain,
-        keyId: credential.signingKey.keyId,
-        created: credential.vcProofCreated,
-      }),
-      credential.vcProofValue,
-    );
+    return credential.vcDocument;
   }
 
   async verifyCredentialPdf(file: UploadedPdfFile, ipAddress: string) {

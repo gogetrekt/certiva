@@ -14,7 +14,11 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { signatureToMultibase } from '../vc/multibase.util';
 import { buildOpenBadgeCredential } from '../vc/vc-claims.util';
-import { buildProofConfig, buildProofHashData } from '../vc/vc-proof.util';
+import {
+  attachProof,
+  buildProofConfig,
+  buildProofHashData,
+} from '../vc/vc-proof.util';
 import {
   SIGNING_KEY_PROVIDER,
   SigningKeyProvider,
@@ -36,6 +40,13 @@ export interface CredentialSignature {
    */
   vcProofValue: string;
   vcProofCreated: Date;
+  /**
+   * The secured VC — the exact document these bytes were signed over, with the
+   * proof attached. Persisted as `Credential.vcDocument` and served verbatim:
+   * rebuilding it at export time from a live `Issuer` row would break every old
+   * VC as soon as an admin edits the institution's name or domain.
+   */
+  vcDocument: Record<string, unknown>;
 }
 
 /**
@@ -231,16 +242,14 @@ export class SigningKeyService {
       graduationYear: input.graduationYear,
       issuedAt: input.issuedAt,
     });
+    const proofConfig = buildProofConfig({
+      issuerDomain: input.issuerDomain,
+      keyId: key.keyId,
+      created: vcProofCreated,
+    });
     const vcProofValue = signatureToMultibase(
       await this.provider.sign(
-        buildProofHashData(
-          document,
-          buildProofConfig({
-            issuerDomain: input.issuerDomain,
-            keyId: key.keyId,
-            created: vcProofCreated,
-          }),
-        ),
+        buildProofHashData(document, proofConfig),
         key.privateKeyEncrypted,
       ),
     );
@@ -253,6 +262,7 @@ export class SigningKeyService {
       signedAt: new Date(),
       vcProofValue,
       vcProofCreated,
+      vcDocument: attachProof(document, proofConfig, vcProofValue),
     };
   }
 }

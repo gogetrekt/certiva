@@ -55,13 +55,13 @@ describe('buildOpenBadgeCredential', () => {
   });
 
   it('normalizes the issuer domain into the DID and the credential IRI', () => {
-    expect(normalizeIssuerDomain(INPUT.issuerDomain)).toBe('verify.kampus.ac.id');
+    expect(normalizeIssuerDomain(INPUT.issuerDomain)).toBe(
+      'verify.kampus.ac.id',
+    );
     expect((document.issuer as Record<string, unknown>).id).toBe(
       'did:web:verify.kampus.ac.id',
     );
-    expect(document.id).toBe(
-      'https://verify.kampus.ac.id/verify/crd_abc123',
-    );
+    expect(document.id).toBe('https://verify.kampus.ac.id/verify/crd_abc123');
   });
 
   it('carries recipient name and student id as OBv3 IdentityObject values', () => {

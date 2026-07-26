@@ -21,7 +21,7 @@ determination for their jurisdiction (e.g. Indonesia's PDP Law, GDPR, FERPA).
 | **Issuer signing private key (Ed25519)** — *most sensitive* | No | PostgreSQL, **encrypted at rest** (AES-256-GCM under `SIGNING_KEY_ENCRYPTION_SECRET`). Decrypted in-memory only during signing; **never** returned by any API or written to logs. No admin UI exposes the plaintext. |
 | Issuer signing public key + credential signature | No | PostgreSQL; published freely (verification response, `/proof` bundle, `/api/institution/public-keys`, `did:web` document) — meant to be shared |
 | Stored VC proof value (`vcProofValue`) | No (signature over a digest) | PostgreSQL; published in the VC export |
-| **Exported Verifiable Credential document** | **Yes — student name and ID in plaintext** | Generated on request at `/api/verification/:credentialId/vc`. Not a new store, but a new *distribution channel* — see §2. |
+| **Exported Verifiable Credential document** | **Yes — student name and ID in plaintext** | Stored at issuance in `Credential.vcDocument` (PostgreSQL) and served verbatim at `/api/verification/:credentialId/vc`. The same fields already stored in the credential row, held a second time because the signed document cannot be rebuilt without invalidating its proof (see `docs/PLAN.md` P1.9); deleting the credential deletes it. Also a *distribution channel* — see §2. |
 
 ## 2. Two different privacy boundaries: on-chain vs the VC export
 

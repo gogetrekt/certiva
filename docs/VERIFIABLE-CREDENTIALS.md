@@ -61,8 +61,11 @@ hashing them here would protect nothing while making the document unusable. See
 
 Status codes on the export endpoint:
 
-- `404` — no VC proof stored for this credential (issued before the export
-  existed and skipped by the backfill, see below).
+- `404` — no signed VC document stored for this credential (issued before the
+  export existed and skipped by the backfill, see below). The document is served
+  exactly as it was signed, never rebuilt from the current `Issuer` row: an
+  institution renaming itself or changing its domain would otherwise invalidate
+  the proof on every credential it had already issued.
 - `410` — the credential has been revoked or deleted. No document is returned.
 
 ## Verifying it yourself
@@ -171,9 +174,21 @@ that are currently trusted".
 ```bash
 pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts --dry-run
 pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts
+
+# then capture the signed document itself, for credentials that predate the
+# `vcDocument` snapshot column:
+pnpm --filter api exec ts-node scripts/backfill-vc-document.ts --dry-run
+pnpm --filter api exec ts-node scripts/backfill-vc-document.ts
 ```
 
-Re-running it is safe: credentials that already have a proof are left alone.
+Re-running either is safe: credentials that already have a proof (or a snapshot)
+are left alone.
+
+The snapshot script rebuilds each document from the current `Issuer` row and
+verifies it against the stored proof before writing. If they disagree, the
+institution's name or domain changed after signing and that credential's VC has
+been failing verification ever since — it is re-signed over the current document,
+which the script reports. Credentials with a revoked key are skipped instead.
 
 Credentials whose signing key has since been revoked are **skipped and listed**,
 not re-signed — signing new material with a retired key would defeat the point of

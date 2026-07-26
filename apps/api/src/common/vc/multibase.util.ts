@@ -60,7 +60,9 @@ export function base58btcDecode(text: string): Uint8Array {
   for (const char of text.slice(zeros)) {
     let carry = BASE58BTC_ALPHABET.indexOf(char);
     if (carry < 0) {
-      throw new Error(`Not a base58btc string: unexpected character "${char}".`);
+      throw new Error(
+        `Not a base58btc string: unexpected character "${char}".`,
+      );
     }
     for (let i = 0; i < bytes.length; i += 1) {
       carry += bytes[i] * 58;
@@ -119,7 +121,9 @@ export function signatureToMultibase(signatureB64: string): string {
  */
 export function multibaseToSignatureBase64(proofValue: string): string {
   if (!proofValue.startsWith('z')) {
-    throw new Error('proofValue is not base58btc multibase (expected "z" prefix).');
+    throw new Error(
+      'proofValue is not base58btc multibase (expected "z" prefix).',
+    );
   }
   return Buffer.from(base58btcDecode(proofValue.slice(1))).toString('base64');
 }

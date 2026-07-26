@@ -1,11 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from '@prisma/client';
 import request from 'supertest';
 import { App } from 'supertest/types';
 
 import { AppModule } from './../src/app.module';
 import { PrismaService } from './../src/prisma/prisma.service';
 import { SigningKeyService } from './../src/common/signing/signing-key.service';
+import { verifyEd25519 } from './../src/common/signing/signing-crypto.util';
+import { extractVerificationInput } from './../src/common/vc/vc-proof.util';
 
 /**
  * DB-backed check of the VC export endpoint, specifically the revocation path.
@@ -17,6 +20,14 @@ import { SigningKeyService } from './../src/common/signing/signing-key.service';
  *
  *   pnpm --filter api test:e2e
  */
+/** Minimal shape of the VC document this suite asserts on. */
+interface VcResponseBody {
+  '@context': string[];
+  type: string[];
+  issuer: { id: string };
+  proof: { cryptosuite: string; proofValue: string; '@context': string[] };
+}
+
 const SUFFIX = 'vce2e';
 const CREDENTIAL_ID = `crd_${SUFFIX}`;
 const UNSIGNED_ID = `crd_${SUFFIX}_unsigned`;
@@ -35,8 +46,10 @@ describe('GET /api/verification/:credentialId/vc (e2e)', () => {
     await prisma.issuer.deleteMany({ where: { id: issuerId } });
   }
 
-  function credentialData(overrides: Record<string, unknown> = {}) {
-    const id = String(overrides.credentialExternalId ?? CREDENTIAL_ID);
+  function credentialData(
+    overrides: Record<string, unknown> & { credentialExternalId?: string } = {},
+  ) {
+    const id = overrides.credentialExternalId ?? CREDENTIAL_ID;
     return {
       credentialExternalId: id,
       verificationId: `vrf_${id}`,
@@ -105,6 +118,7 @@ describe('GET /api/verification/:credentialId/vc (e2e)', () => {
         signingKeyId: signature.signingKeyDbId,
         vcProofValue: signature.vcProofValue,
         vcProofCreated: signature.vcProofCreated,
+        vcDocument: signature.vcDocument as unknown as Prisma.InputJsonValue,
       }),
     });
 
@@ -123,14 +137,49 @@ describe('GET /api/verification/:credentialId/vc (e2e)', () => {
       .get(`/api/verification/${CREDENTIAL_ID}/vc`)
       .expect(200);
 
-    expect(response.body.type).toEqual([
-      'VerifiableCredential',
-      'OpenBadgeCredential',
-    ]);
-    expect(response.body.issuer.id).toBe(`did:web:${DOMAIN}`);
-    expect(response.body.proof.cryptosuite).toBe('eddsa-jcs-2022');
-    expect(String(response.body.proof.proofValue).startsWith('z')).toBe(true);
-    expect(response.body.proof['@context']).toEqual(response.body['@context']);
+    const body = response.body as VcResponseBody;
+    expect(body.type).toEqual(['VerifiableCredential', 'OpenBadgeCredential']);
+    expect(body.issuer.id).toBe(`did:web:${DOMAIN}`);
+    expect(body.proof.cryptosuite).toBe('eddsa-jcs-2022');
+    expect(body.proof.proofValue.startsWith('z')).toBe(true);
+    expect(body.proof['@context']).toEqual(body['@context']);
+  });
+
+  it('serves the byte-identical document after the issuer is renamed', async () => {
+    // The regression this guards: the document used to be rebuilt from the live
+    // Issuer row on every request, so one PATCH /api/institution silently broke
+    // the stored proof for every credential already issued.
+    const before = await request(app.getHttpServer())
+      .get(`/api/verification/${CREDENTIAL_ID}/vc`)
+      .expect(200);
+
+    await prisma.issuer.update({
+      where: { id: issuerId },
+      data: {
+        displayName: 'Universitas E2E (Nama Baru)',
+        domain: 'verify.e2e-domain-baru.ac.id',
+      },
+    });
+
+    const after = await request(app.getHttpServer())
+      .get(`/api/verification/${CREDENTIAL_ID}/vc`)
+      .expect(200);
+
+    expect(after.body).toEqual(before.body);
+
+    // Identical bytes are only worth something if they still verify.
+    const { hashData, signatureB64, verificationMethod } =
+      extractVerificationInput(after.body as Record<string, unknown>);
+    const key = await prisma.issuerSigningKey.findFirstOrThrow({
+      where: { issuerId },
+    });
+    expect(verifyEd25519(hashData, signatureB64, key.publicKey)).toBe(true);
+    expect(verificationMethod).toBe(`did:web:${DOMAIN}#${key.keyId}`);
+
+    await prisma.issuer.update({
+      where: { id: issuerId },
+      data: { displayName: 'Universitas E2E', domain: DOMAIN },
+    });
   });
 
   it('is 404 when the credential has no VC proof stored', async () => {

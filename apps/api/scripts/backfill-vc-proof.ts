@@ -12,7 +12,6 @@
  *   pnpm --filter api exec ts-node scripts/backfill-vc-proof.ts [--dry-run]
  */
 import { PrismaClient } from '@prisma/client';
-import * as dotenv from 'dotenv';
 
 import {
   decryptSecret,
@@ -26,7 +25,9 @@ import {
   buildProofHashData,
 } from '../src/common/vc/vc-proof.util';
 
-dotenv.config();
+import { loadScriptEnv } from './load-env';
+
+loadScriptEnv();
 
 const SECRET = process.env.SIGNING_KEY_ENCRYPTION_SECRET;
 const DRY_RUN = process.argv.includes('--dry-run');

@@ -24,7 +24,6 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import * as dotenv from 'dotenv';
 
 import {
   decryptSecret,
@@ -33,7 +32,9 @@ import {
   verifyEd25519,
 } from '../src/common/signing/signing-crypto.util';
 
-dotenv.config();
+import { loadScriptEnv } from './load-env';
+
+loadScriptEnv();
 
 const APPLY = process.argv.includes('--apply');
 const OLD_SECRET = process.env.SIGNING_KEY_ENCRYPTION_SECRET_OLD ?? '';

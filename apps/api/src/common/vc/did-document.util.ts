@@ -63,7 +63,7 @@ export function buildDidDocument(
           // its main website. A link would be one more URL that can rot.
           description:
             `Official credential verification authority for ${input.institutionName}. ` +
-            'This domain is the institution\'s dedicated verification subdomain; ' +
+            "This domain is the institution's dedicated verification subdomain; " +
             'DNS delegation of it is controlled by the institution.',
         },
       },

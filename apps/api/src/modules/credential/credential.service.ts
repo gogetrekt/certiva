@@ -1107,6 +1107,8 @@ export class CredentialService {
           signingKeyId: credentialSignature.signingKeyDbId,
           vcProofValue: credentialSignature.vcProofValue,
           vcProofCreated: credentialSignature.vcProofCreated,
+          vcDocument:
+            credentialSignature.vcDocument as unknown as Prisma.InputJsonValue,
           fileName: assetBundle.fileName,
           mimeType: assetBundle.mimeType,
           fileSize: assetBundle.fileSize,

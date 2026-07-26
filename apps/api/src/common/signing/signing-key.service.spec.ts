@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { EncryptedSigningKeyProvider } from './encrypted-signing-key.provider';
 import { SigningKeyService } from './signing-key.service';
 import { verifyEd25519 } from './signing-crypto.util';
+import { extractVerificationInput } from '../vc/vc-proof.util';
 
 /**
  * In-memory stand-in for the IssuerSigningKey table — just enough of the Prisma
@@ -140,6 +141,23 @@ describe('SigningKeyService key rotation', () => {
     expect(
       verifyEd25519(signed.publicPayload, signed.signature, first.publicKey),
     ).toBe(true);
+  });
+
+  it('returns the secured VC snapshot it actually signed', async () => {
+    const store = new FakeKeyStore();
+    const svc = makeService(store);
+
+    const signed = await svc.signCredential(payloadInput);
+    const key = store.rows[0];
+
+    // The snapshot is what /vc serves verbatim, so its own bytes must verify —
+    // nothing downstream rebuilds the document to fix a mismatch.
+    const { hashData, signatureB64, verificationMethod } =
+      extractVerificationInput(signed.vcDocument);
+    expect(verifyEd25519(hashData, signatureB64, key.publicKey)).toBe(true);
+    expect(verificationMethod).toBe(
+      `did:web:${payloadInput.issuerDomain}#${key.keyId}`,
+    );
   });
 
   it('keeps old-key credentials verifiable after rotation (revoked != deleted)', async () => {

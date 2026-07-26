@@ -119,9 +119,13 @@ export function extractVerificationInput(secured: Record<string, unknown>): {
   // The proof's @context wins, mirroring the cryptosuite: it is what the signer
   // committed to, and a document whose context was swapped afterwards must fail.
   const unsecured = { ...document, '@context': proofRest['@context'] };
+  // verificationMethod is a DID URL, i.e. always a string in a valid proof;
+  // anything else is a malformed proof and must not be coerced into one.
+  const { verificationMethod } = proofRest;
   return {
     hashData: buildProofHashData(unsecured, proofRest),
     signatureB64: multibaseToSignatureBase64(proofValue),
-    verificationMethod: String(proofRest.verificationMethod ?? ''),
+    verificationMethod:
+      typeof verificationMethod === 'string' ? verificationMethod : '',
   };
 }
