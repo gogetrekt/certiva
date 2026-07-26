@@ -152,7 +152,7 @@ From the monorepo root:
 pnpm dev        Start all apps in watch mode (Turborepo)
 pnpm build      Build all apps
 pnpm lint       Lint all apps
-pnpm typecheck  tsc --noEmit across all packages
+pnpm typecheck  tsc --noEmit — api, web, worker, packages/types (not packages/contracts)
 pnpm test       Unit tests (jest)
 ```
 

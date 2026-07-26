@@ -38,7 +38,7 @@ Everything CI enforces must pass locally:
 
 ```bash
 pnpm lint        # eslint — 0 errors (warnings allowed)
-pnpm typecheck   # tsc --noEmit across all packages
+pnpm typecheck   # tsc --noEmit — api, web, worker, packages/types (not packages/contracts)
 pnpm test        # jest — unit tests only
 pnpm build       # turbo build
 ```

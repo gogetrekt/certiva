@@ -1,6 +1,9 @@
 import type { Job } from "bullmq";
 import { Prisma } from "@prisma/client";
-import type { CredentialAnchorJobPayload } from "@certiva/types";
+import {
+  BLOCKCHAIN_OPERATION,
+  type CredentialAnchorJobPayload,
+} from "@certiva/types";
 
 import { prisma } from "../lib/prisma";
 import {
@@ -12,11 +15,6 @@ const ANCHOR_STATUS = {
   pending: "PENDING",
   anchored: "ANCHORED",
   failed: "FAILED",
-} as const;
-
-const BLOCKCHAIN_OPERATION = {
-  anchor: "ISSUANCE",
-  revoke: "REVOCATION",
 } as const;
 
 function safeLog(
@@ -115,6 +113,17 @@ export async function processCredentialAnchor(
         credentialId: credential.id,
         txHash: result.txHash,
       };
+    }
+
+    // Everything that is not an anchor used to fall through to revocation. With
+    // the operation type corrected there are four possible values, and revoking
+    // a credential on chain because it arrived as BATCH_ISSUANCE is not
+    // something a later retry can undo. Neither of the other two is enqueued
+    // onto this queue today; if one ever is, it fails loudly here.
+    if (job.data.operation !== BLOCKCHAIN_OPERATION.revoke) {
+      throw new Error(
+        `Unsupported operation ${job.data.operation} on the credential anchor queue.`,
+      );
     }
 
     const result = await revokeCredentialOnChain(credential);

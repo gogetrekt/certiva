@@ -19,7 +19,21 @@ export type BlockchainProofStatus =
   | "FAILED"
   | "PENDING"
   | "UNAVAILABLE";
-export type BlockchainOperation = "ANCHOR" | "REVOKE";
+/**
+ * The operations the API actually enqueues onto the blockchain queue. The type
+ * is derived from the values rather than written out beside them: it used to be
+ * a hand-written `"ANCHOR" | "REVOKE"` that matched nothing the API sends, which
+ * made every comparison in the worker a TS2367 error nobody saw.
+ */
+export const BLOCKCHAIN_OPERATION = {
+  anchor: "ISSUANCE",
+  revoke: "REVOCATION",
+  batchIssuance: "BATCH_ISSUANCE",
+  documentProof: "DOCUMENT_PROOF",
+} as const;
+
+export type BlockchainOperation =
+  (typeof BLOCKCHAIN_OPERATION)[keyof typeof BLOCKCHAIN_OPERATION];
 
 export type RevocationReason =
   | "DATA_CORRECTION"
