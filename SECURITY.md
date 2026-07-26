@@ -201,7 +201,7 @@ Certiva logs must not include the following:
 - Raw uploaded document content
 - Full HTTP request bodies containing credentials or file uploads
 
-Structured log output is written to stdout/stderr in JSON format. Log entries include `timestamp`, `level`, `context`, and `message`. Sensitive fields are omitted or redacted before writing.
+Structured log output is written to stdout/stderr in JSON format. Log entries include `timestamp`, `level`, `context`, and `message`. Sensitive fields are omitted rather than redacted: the exception filter builds its log context from an explicit allowlist (`method`, `path`, `statusCode`, `actorId`, `ip`) instead of filtering a raw request object, so request bodies, headers, cookies, and tokens are never passed to the logger in the first place.
 
 The `AuditLog` table is append-only. No sensitive values are written to audit log metadata — metadata is limited to non-PII fields such as a credential's public external ID, so student names and degrees are not copied into the audit trail. No `UPDATE` or `DELETE` endpoints are exposed for audit log records. See *Audit Trail Integrity* above.
 

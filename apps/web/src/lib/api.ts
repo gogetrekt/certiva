@@ -1,3 +1,4 @@
+import type { BlockchainOperation } from "@certiva/types";
 import { cookies } from "next/headers";
 
 export interface InstitutionRecord {
@@ -93,7 +94,7 @@ export interface CredentialActivityRecord {
 
 export interface BlockchainAnchorLogRecord {
   id: string;
-  operation: "ISSUANCE" | "REVOCATION" | "BATCH_ISSUANCE" | "DOCUMENT_PROOF";
+  operation: BlockchainOperation;
   status: "PENDING" | "ANCHORED" | "FAILED" | "RETRYING" | "REVOKED";
   txHash: string | null;
   chainId: number | null;
@@ -577,10 +578,6 @@ export async function getDocumentProofs(token: string) {
   return apiFetch<DocumentProofsResponse>("/document-proofs", { token });
 }
 
-export async function getDocumentProof(token: string, id: string) {
-  return apiFetch<DocumentProofRecord>(`/document-proofs/${id}`, { token });
-}
-
 // --- Dashboard audit APIs ----------------------------------------------------
 
 export interface DashboardMetrics {
@@ -700,10 +697,6 @@ export async function getLatestRevocations(token: string, limit = 10) {
 
 export async function getQueueHealth(token: string) {
   return apiFetch<QueueHealthResponse>("/audit/dashboard/queue", { token });
-}
-
-export function getDashboardExportUrl() {
-  return `${getApiBaseUrl()}/audit/dashboard/export`;
 }
 
 // ---------------------------------------------------------------------------

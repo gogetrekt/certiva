@@ -20,7 +20,3 @@ export async function getServerLanguage(): Promise<Language> {
 export async function getServerDictionary(): Promise<Dictionary> {
   return dictionaries[await getServerLanguage()];
 }
-
-export function getDictionary(language: Language): Dictionary {
-  return dictionaries[language];
-}

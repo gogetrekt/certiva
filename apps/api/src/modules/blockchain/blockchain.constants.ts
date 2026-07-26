@@ -1,5 +1,10 @@
 import { POLYGON_AMOY_CHAIN_ID } from './credential-registry.contract';
 
+// Single source of truth for the operation values the API enqueues; the worker
+// reads the same object from `@certiva/types`. Re-exported here so existing
+// call sites keep importing blockchain constants from one place.
+export { BLOCKCHAIN_OPERATION } from '@certiva/types';
+
 export const BLOCKCHAIN_QUEUE_NAME = 'credential-anchor';
 export const BLOCKCHAIN_JOB_NAMES = {
   anchor: 'ANCHOR_ISSUANCE',
@@ -23,13 +28,6 @@ export const BLOCKCHAIN_PROOF_STATUS = {
   failed: 'FAILED',
   pending: 'PENDING',
   unavailable: 'UNAVAILABLE',
-} as const;
-
-export const BLOCKCHAIN_OPERATION = {
-  anchor: 'ISSUANCE',
-  revoke: 'REVOCATION',
-  batchIssuance: 'BATCH_ISSUANCE',
-  documentProof: 'DOCUMENT_PROOF',
 } as const;
 
 export const BLOCKCHAIN_JOB_ATTEMPTS = 5;

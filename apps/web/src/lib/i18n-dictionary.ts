@@ -1440,12 +1440,6 @@ const en = {
       openVerification: "Open verification",
       openQrAsset: "Open QR asset",
     },
-    rebuildAssets: {
-      unable: "Unable to rebuild assets",
-      rebuilding: "Rebuilding...",
-      rebuilt: "Rebuilt",
-      submit: "Rebuild QR & assets",
-    },
     bulkActions: {
       selectedCount: "selected",
       selectAll: "Select all",
@@ -3495,12 +3489,6 @@ const id: typeof en = {
       verificationUrl: "URL verifikasi",
       openVerification: "Buka verifikasi",
       openQrAsset: "Buka asset QR",
-    },
-    rebuildAssets: {
-      unable: "Tidak dapat membangun ulang asset",
-      rebuilding: "Membangun ulang...",
-      rebuilt: "Dibangun ulang",
-      submit: "Bangun ulang QR & asset",
     },
     bulkActions: {
       selectedCount: "dipilih",

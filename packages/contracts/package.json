@@ -20,7 +20,6 @@
     "@openzeppelin/contracts": "^5.4.0"
   },
   "devDependencies": {
-    "@certiva/config": "workspace:*",
     "@nomicfoundation/hardhat-ethers": "^4.0.3",
     "@nomicfoundation/hardhat-verify": "^3.0.17",
     "@types/node": "^20.19.40",

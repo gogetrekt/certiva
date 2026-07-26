@@ -12,9 +12,6 @@ export const ADMIN_ROLE_VALUES = [
   AUDITOR_ROLE,
 ] as const;
 
-/** Roles with full elevated access (Owner kept for DB legacy; treated same as Super Admin) */
-export const ELEVATED_ROLES = [OWNER_ROLE, SUPER_ADMIN_ROLE] as const;
-
 /** Roles that can mutate credentials */
 export const CREDENTIAL_MUTATOR_ROLES = [
   OWNER_ROLE,
