@@ -43,8 +43,15 @@ Edit `.env` and fill every value marked **REQUIRED**:
 | `POSTGRES_PASSWORD` | A strong DB password |
 | `DATABASE_URL` | Replace `CHANGE_ME` with the same password |
 | `JWT_SECRET` | 64+ random chars — `openssl rand -hex 48` |
+| `SIGNING_KEY_ENCRYPTION_SECRET` | 32+ random chars — `openssl rand -hex 32`. Encrypts every issuer Ed25519 private key at rest. **Back this up with the same care as the database**: lose it and no stored signing key can be decrypted again. Changing it later requires the re-key runbook in [§5](#5-day-2-operations). |
 | `WEB_PUBLIC_BASE_URL`, `API_PUBLIC_BASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_SITE_URL` | Your real domain |
+| `STORAGE_DRIVER` | Must be `r2` when `NODE_ENV=production` or `APP_ENV=staging` — the env validation rejects `local` there. `local` is for development only. |
 | `R2_*` | Your Cloudflare R2 credentials + bucket |
+
+Placeholder values for `JWT_SECRET` and `SIGNING_KEY_ENCRYPTION_SECRET` (`secret`,
+`change-me`, and similar) are rejected at startup outside development, as are an
+empty or wildcard `CORS_ORIGINS`. The API refuses to boot rather than run
+insecurely, and the error names the offending variable.
 
 `NEXT_PUBLIC_*` values are baked into the web image **at build time**, so if you
 change them later you must rebuild `web` (`--build`).
@@ -149,6 +156,48 @@ The script is safe to re-run: rows already readable with the new secret are
 skipped, so an interrupted run can simply be repeated. It aborts without writing
 if any key fails to decrypt or fails to match its stored public key.
 
+**Backfilling W3C VC proofs after upgrading**
+
+The VC export stores its Data Integrity proof on the credential row at issuance.
+Credentials issued *before* the upgrade have no proof and will return `404` from
+`/api/verification/:id/vc` until backfilled. Run this once, after migrations:
+
+```bash
+# Dry run first. NOTE the flag polarity is the opposite of the re-key script
+# above: this one WRITES by default, and --dry-run is what makes it read-only.
+docker compose -f docker-compose.prod.yml exec api \
+  npx tsx scripts/backfill-vc-proof.ts --dry-run
+
+docker compose -f docker-compose.prod.yml exec api \
+  npx tsx scripts/backfill-vc-proof.ts
+```
+
+Safe to re-run: credentials that already have a proof are skipped. Credentials
+whose signing key has since been **revoked** are skipped and listed by design —
+signing new material with a retired key would defeat the point of retiring it.
+Those credentials keep verifying through `/proof`; they simply have no VC export.
+Each proof is verified against its own public key before being written.
+
+**Verify the `did:web` document (mandatory, first deploy only)**
+
+`did:web` resolvers fetch `https://<domain>/.well-known/did.json`. That path is
+served by the `web` container through a `rewrites()` entry in `next.config.ts`,
+which has been exercised in development but **not yet verified against a
+production standalone build** — treat it as unconfirmed until you have checked it
+on your own deployment:
+
+```bash
+curl -sS https://verify.your-univ.ac.id/.well-known/did.json | head -20
+```
+
+Expect a JSON document whose `id` is `did:web:verify.your-univ.ac.id` and whose
+`verificationMethod` lists your signing keys as `Multikey` entries. A 404 here
+means the rewrite is not active in the production build; the underlying data is
+still reachable at `/api/institution/did.json`, and a proxy-level rewrite from
+`/.well-known/did.json` to that path is a valid fallback. Without this working,
+the VC export is still cryptographically valid but external verifiers cannot
+resolve the issuer's keys.
+
 **Stop / restart**
 
 ```bash
@@ -177,7 +226,11 @@ and proxy `/api` to `localhost:4000`.
 | Symptom | Likely cause |
 |---|---|
 | `migrate` exits non-zero | `DATABASE_URL` wrong, or Postgres not healthy — check `logs postgres` |
-| API boots then crashes | A REQUIRED env var missing/invalid (JWT_SECRET < 64 chars, R2 unset) — the error names the field |
+| API boots then crashes | A REQUIRED env var missing/invalid (`JWT_SECRET` < 64 chars, `SIGNING_KEY_ENCRYPTION_SECRET` < 32 chars or placeholder, `STORAGE_DRIVER=local` in production, R2 unset) — the error names the field |
 | Login works but session drops | Serving over HTTP with `COOKIE_SECURE=true` — put HTTPS in front or set it `false` for local testing only |
 | Web shows wrong domain in links | `NEXT_PUBLIC_SITE_URL` changed without rebuilding `web` |
 | Anchor jobs never run | `BLOCKCHAIN_ENABLED=false`, or worker can't reach `REDIS_URL` |
+| Signing or key rotation fails after an env change | `SIGNING_KEY_ENCRYPTION_SECRET` was changed without running the re-key script (§5) — restore the old value and re-key properly |
+| `/.well-known/did.json` returns 404 | The Next.js rewrite is not active in this build — see §5, and fall back to a proxy rewrite onto `/api/institution/did.json` |
+| `/verification/:id/vc` returns 404 | Credential predates the VC export and has no stored proof — run the backfill (§5) |
+| `/verification/:id/vc` returns 410 | Working as intended: the credential is revoked or soft-deleted |

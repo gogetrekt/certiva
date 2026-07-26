@@ -21,6 +21,35 @@ that ever went dark would make every credential already issued impossible to
 expand — permanently. Every field maps onto a term Open Badges 3.0 already
 defines.
 
+## Field mapping
+
+| Credential field | Location in the VC |
+|---|---|
+| `credentialExternalId` | `id` → `https://<domain>/verify/<credentialExternalId>` |
+| `Issuer.domain` | `issuer.id` → `did:web:<domain>`; `issuer.url` → `https://<domain>` |
+| `Issuer.displayName ?? name` | `issuer.name` |
+| `issuedAt` | `validFrom` and `awardedDate` |
+| `studentName` | `credentialSubject.identifier[]` → `IdentityObject` with `identityType: "name"` |
+| `studentId` | `credentialSubject.identifier[]` → `IdentityObject` with `identityType: "sourcedId"` |
+| `degree` | `credentialSubject.achievement.name` (+ `description`) |
+| `graduationYear` | `credentialSubject.term` (string). Omitted when unknown. |
+| `verificationUrl` | `evidence[0].id` |
+| `verificationCode` | **Not included** — same exclusion as the signed public payload |
+| — | `credentialSubject.id` is **not** set: the graduate has no DID yet, and a `urn:` derived from `studentId` would be a fabricated subject identifier |
+| — | `credentialSubject.achievement.achievementType` is the constant `"Degree"` |
+
+`achievementType` is held constant deliberately. Parsing Indonesian degree strings
+("S1", "Sarjana", "S.Kom.", "M.T.") into `BachelorDegree`/`MasterDegree`/
+`DoctoralDegree` guesses wrong on real data, and a wrong guess is a wrong academic
+claim inside a signed document. If precision is ever needed it should come from an
+institution-curated per-programme mapping table, not a parser.
+
+Recipient identifiers are OBv3 `IdentityObject` entries with `hashed: false`
+(plaintext). OBv3 does support hashed identifiers, but the same values are already
+printed on the certificate and already covered by the signed public payload, so
+hashing them here would protect nothing while making the document unusable. See
+[COMPLIANCE.md](COMPLIANCE.md) §2 for the privacy consequences of that choice.
+
 ## Endpoints
 
 | Route | Purpose |
@@ -77,6 +106,37 @@ where `JCS` is RFC 8785 JSON canonicalization, and the proof's `@context` is the
 document's `@context`. `apps/api/src/common/vc/vc-proof.util.ts`
 (`extractVerificationInput`) is a working reference implementation of exactly
 this, in ~20 lines.
+
+### Two details that will silently break verification
+
+Both were found by running a third-party verifier against the output rather than
+by reading the spec, and both are covered by regression tests
+(`apps/api/src/common/vc/vc-proof.util.spec.ts`).
+
+1. **The published proof must carry `@context`, equal to the document's.** The
+   cryptosuite copies the unsecured document's `@context` onto the proof options
+   *before* hashing, and a verifier reconstructs the hash from the proof exactly
+   as published. Stripping `@context` from the proof — or substituting a
+   different one — makes every conforming verifier report `Invalid signature.`
+   even though the underlying Ed25519 operation is correct. This is an easy bug
+   to misdiagnose as "the library is being difficult".
+2. **Recipient identity is `IdentityObject`, not `IdentifierEntry`.** OBv3 uses
+   `IdentifierEntry` elsewhere (e.g. `Achievement.otherIdentifier`), but
+   `AchievementSubject.identifier` takes `IdentityObject` — requiring `type`,
+   `hashed`, `identityType`, and `identityHash`. Getting this wrong produces a
+   document that signs and verifies fine but fails OBv3 schema validation.
+
+### JCS implementation
+
+Canonicalization uses `canonicalize`, pinned to exactly `2.1.0`. Two notes for
+anyone tempted to bump it:
+
+- `3.0.0` is ESM-only and cannot be `require`d from this CJS build. `2.1.0` is the
+  last CJS release. If `apps/api` ever moves to ESM, upgrading is mechanical.
+- Staying on an older line is acceptable here specifically because JCS is a frozen
+  specification (RFC 8785, 2020) — the algorithm does not evolve. Both versions
+  are published by the same author (Samuel Erdtman, a co-author of RFC 8785), from
+  the same repository, with no runtime dependencies.
 
 ## What the signature does and does not prove
 
