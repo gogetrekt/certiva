@@ -683,6 +683,14 @@ const en = {
             title: "Public key, private key",
             body: "The key shown in Settings is the public half — it can only check signatures, never create them. The private half never leaves the server and is stored encrypted; it is never displayed anywhere in the interface.",
           },
+          {
+            title: "Standards export: W3C Verifiable Credential and did:web",
+            body: "Every credential can also be downloaded as a W3C Verifiable Credential 2.0 / Open Badges 3.0 document, signed with the same key, so systems outside Certiva can check it with off-the-shelf tooling. Your institution's public keys are published as a did:web document at /.well-known/did.json on this verification domain. That domain is your institution's dedicated verification subdomain — its DNS delegation is controlled by the institution, which is what makes it the institution's own verification authority rather than a third party's.",
+          },
+          {
+            title: "What the exported credential does not prove",
+            body: "The signature proves the content is authentic and unaltered since issuance. It does NOT prove the credential is still valid today. Revocation is not embedded in the downloaded file — a verifier must re-check this server (the verification page, /proof, or the credential export endpoint) to see current status. A revoked credential stops being exported.",
+          },
         ],
         notes: [
           {
@@ -900,6 +908,7 @@ const en = {
     signatureVerified: "Signature verified",
     signatureInvalid: "Signature mismatch",
     downloadProof: "Download verification proof",
+    downloadVc: "Download W3C verifiable credential",
   },
   document: {
     kicker: "Document integrity check",
@@ -2730,6 +2739,14 @@ const id: typeof en = {
             title: "Kunci publik dan kunci privat",
             body: "Kunci yang tampil di Pengaturan adalah bagian publiknya — hanya bisa memeriksa tanda tangan, tak pernah membuatnya. Bagian privatnya tidak pernah keluar dari server, disimpan terenkripsi, dan tidak pernah ditampilkan di antarmuka mana pun.",
           },
+          {
+            title: "Ekspor standar: W3C Verifiable Credential dan did:web",
+            body: "Setiap kredensial juga bisa diunduh sebagai dokumen W3C Verifiable Credential 2.0 / Open Badges 3.0, ditandatangani dengan kunci yang sama, sehingga sistem di luar Certiva bisa memeriksanya dengan alat standar. Kunci publik institusi diterbitkan sebagai dokumen did:web di /.well-known/did.json pada domain verifikasi ini. Domain itu adalah subdomain verifikasi khusus milik institusi — delegasi DNS-nya dikontrol institusi, dan itulah yang membuatnya otoritas verifikasi institusi sendiri, bukan pihak ketiga.",
+          },
+          {
+            title: "Yang TIDAK dibuktikan oleh kredensial hasil ekspor",
+            body: "Tanda tangan membuktikan isinya otentik dan tidak diubah sejak diterbitkan. Tanda tangan TIDAK membuktikan kredensial itu masih berlaku hari ini. Status pencabutan tidak tertanam di file yang diunduh — verifier harus memeriksa ulang server ini (halaman verifikasi, /proof, atau endpoint ekspor kredensial) untuk melihat status terkini. Kredensial yang dicabut berhenti diekspor.",
+          },
         ],
         notes: [
           {
@@ -2947,6 +2964,7 @@ const id: typeof en = {
     signatureVerified: "Tanda tangan terverifikasi",
     signatureInvalid: "Tanda tangan tidak cocok",
     downloadProof: "Unduh bukti verifikasi",
+    downloadVc: "Unduh kredensial W3C",
   },
   document: {
     kicker: "Pemeriksaan Integritas Dokumen",

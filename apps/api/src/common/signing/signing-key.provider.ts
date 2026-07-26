@@ -1,3 +1,5 @@
+import type { SignablePayload } from './signing-crypto.util';
+
 export interface GeneratedSigningKey {
   /** Ed25519 public key, SPKI DER base64. Safe to store in the clear / publish. */
   publicKey: string;
@@ -22,8 +24,13 @@ export interface SigningKeyProvider {
   /** Create a fresh keypair. Public key returned plain; private returned as opaque stored material. */
   generateKeyPair(): Promise<GeneratedSigningKey>;
 
-  /** Sign a canonical payload string using previously stored private material. Returns base64 signature. */
-  sign(payload: string, privateKeyStored: string): Promise<string>;
+  /**
+   * Sign a canonical payload using previously stored private material. Returns
+   * a base64 signature. Strings are signed as UTF-8; raw bytes are signed
+   * as-is, which is what W3C Data Integrity proofs need (they sign a digest
+   * concatenation, not text).
+   */
+  sign(payload: SignablePayload, privateKeyStored: string): Promise<string>;
 }
 
 export const SIGNING_KEY_PROVIDER = Symbol('SIGNING_KEY_PROVIDER');

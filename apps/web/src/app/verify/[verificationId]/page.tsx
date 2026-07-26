@@ -357,13 +357,22 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
                       : t.verifyResult.signatureInvalid}
                   </span>
                   {verification.credentialExternalId && (
-                    <a
-                      href={`/api/proof/${encodeURIComponent(verification.credentialExternalId)}`}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
-                    >
-                      {t.verifyResult.downloadProof}
-                      <ArrowSquareOut size={13} aria-hidden />
-                    </a>
+                    <>
+                      <a
+                        href={`/api/proof/${encodeURIComponent(verification.credentialExternalId)}`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
+                      >
+                        {t.verifyResult.downloadProof}
+                        <ArrowSquareOut size={13} aria-hidden />
+                      </a>
+                      <a
+                        href={`/api/proof/${encodeURIComponent(verification.credentialExternalId)}/vc`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"
+                      >
+                        {t.verifyResult.downloadVc}
+                        <ArrowSquareOut size={13} aria-hidden />
+                      </a>
+                    </>
                   )}
                 </div>
               </div>

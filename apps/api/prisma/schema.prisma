@@ -169,6 +169,11 @@ model Credential {
   signedAt                  DateTime?
   signingKeyId              String?
   signingKey                IssuerSigningKey?         @relation(fields: [signingKeyId], references: [id])
+  // W3C VC export (eddsa-jcs-2022). A separate signature from `signature`:
+  // Data Integrity covers SHA-256(proof config) || SHA-256(canonical document),
+  // not the `publicPayload` byte string. Signed by the same key at issuance.
+  vcProofValue              String?
+  vcProofCreated            DateTime?
   revoked                   Boolean                   @default(false)
   revokedAt                 DateTime?
   revokedBy                 String?

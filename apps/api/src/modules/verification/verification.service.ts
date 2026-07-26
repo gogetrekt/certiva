@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  GoneException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,6 +15,8 @@ import {
 import { hashBuffer } from '../../common/utils/hash.util';
 import { verifyEd25519 } from '../../common/signing/signing-crypto.util';
 import { PdfReferenceService } from '../../common/services/pdf-reference.service';
+import { buildOpenBadgeCredential } from '../../common/vc/vc-claims.util';
+import { attachProof, buildProofConfig } from '../../common/vc/vc-proof.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { BLOCKCHAIN_PROOF_STATUS } from '../blockchain/blockchain.constants';
@@ -381,6 +384,62 @@ export class VerificationService {
         anchoredAt: credential.anchoredAt,
       },
     };
+  }
+
+  /**
+   * The same credential as a standards-compliant W3C VC 2.0 / Open Badges 3.0
+   * document, secured with an `eddsa-jcs-2022` DataIntegrityProof. Additive to
+   * `/proof` — that bundle and the Ed25519 flow behind it are untouched.
+   *
+   * Revocation is re-checked here at request time, not just at issuance: an
+   * exported VC carries no `credentialStatus` list, so this endpoint is the only
+   * place a verifier can learn the credential was withdrawn. A revoked or
+   * soft-deleted credential yields 410 and no document body.
+   */
+  async getCredentialVc(credentialId: string) {
+    const credential = await this.prisma.credential.findFirst({
+      where: {
+        OR: [{ credentialExternalId: credentialId }, { id: credentialId }],
+      },
+      include: { issuer: true, signingKey: true },
+    });
+
+    if (
+      !credential ||
+      !credential.vcProofValue ||
+      !credential.vcProofCreated ||
+      !credential.signingKey
+    ) {
+      throw new NotFoundException(
+        'No verifiable credential export for this credential',
+      );
+    }
+
+    if (credential.revoked || credential.deletedAt) {
+      throw new GoneException('This credential has been revoked.');
+    }
+
+    const document = buildOpenBadgeCredential({
+      credentialId: credential.credentialExternalId,
+      issuerId: credential.issuerId,
+      issuerDomain: credential.issuer.domain,
+      issuerName: credential.issuer.displayName ?? credential.issuer.name,
+      studentName: credential.studentName,
+      studentId: credential.studentId,
+      degree: credential.degree,
+      graduationYear: credential.graduationYear,
+      issuedAt: credential.issuedAt,
+    });
+
+    return attachProof(
+      document,
+      buildProofConfig({
+        issuerDomain: credential.issuer.domain,
+        keyId: credential.signingKey.keyId,
+        created: credential.vcProofCreated,
+      }),
+      credential.vcProofValue,
+    );
   }
 
   async verifyCredentialPdf(file: UploadedPdfFile, ipAddress: string) {

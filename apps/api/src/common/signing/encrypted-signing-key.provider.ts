@@ -6,6 +6,7 @@ import {
   SigningKeyProvider,
 } from './signing-key.provider';
 import {
+  SignablePayload,
   decryptSecret,
   encryptSecret,
   generateEd25519KeyPair,
@@ -35,7 +36,7 @@ export class EncryptedSigningKeyProvider implements SigningKeyProvider {
     });
   }
 
-  sign(payload: string, privateKeyStored: string): Promise<string> {
+  sign(payload: SignablePayload, privateKeyStored: string): Promise<string> {
     // Defer so a decrypt failure surfaces as a rejected promise (the async
     // contract) rather than a synchronous throw.
     return Promise.resolve().then(() => {

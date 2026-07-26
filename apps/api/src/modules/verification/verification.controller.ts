@@ -99,6 +99,17 @@ export class VerificationController {
     return this.verificationService.getCredentialProof(credentialId);
   }
 
+  /**
+   * W3C VC 2.0 / Open Badges 3.0 export, secured with a DataIntegrityProof.
+   * Sits alongside /proof rather than replacing it.
+   */
+  @Get('verification/:credentialId/vc')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
+  @Header('Content-Type', 'application/vc+ld+json')
+  getVerifiableCredential(@Param('credentialId') credentialId: string) {
+    return this.verificationService.getCredentialVc(credentialId);
+  }
+
   @Post('verification/upload')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
   @UseInterceptors(

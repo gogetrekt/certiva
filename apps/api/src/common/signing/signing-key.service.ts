@@ -12,6 +12,9 @@ import {
   buildPublicSignaturePayload,
 } from '../../modules/credential/credential.utils';
 import { PrismaService } from '../../prisma/prisma.service';
+import { signatureToMultibase } from '../vc/multibase.util';
+import { buildOpenBadgeCredential } from '../vc/vc-claims.util';
+import { buildProofConfig, buildProofHashData } from '../vc/vc-proof.util';
 import {
   SIGNING_KEY_PROVIDER,
   SigningKeyProvider,
@@ -25,6 +28,14 @@ export interface CredentialSignature {
   /** IssuerSigningKey.keyId (public short id) — embedded in the signed payload. */
   signingKeyId: string;
   signedAt: Date;
+  /**
+   * `eddsa-jcs-2022` proofValue for the W3C VC export, base58btc multibase.
+   * A second signature rather than a reuse of `signature`: Data Integrity signs
+   * SHA-256(proof config) || SHA-256(document), which is not the byte string
+   * `publicPayload` covers.
+   */
+  vcProofValue: string;
+  vcProofCreated: Date;
 }
 
 /**
@@ -180,7 +191,13 @@ export class SigningKeyService {
     };
   }
 
-  /** Build and sign the public payload for a credential using the issuer's active key. */
+  /**
+   * Build and sign the public payload for a credential using the issuer's active
+   * key, plus the W3C VC Data Integrity proof over the same facts. Both come out
+   * of one key lookup, and the VC proof is produced at issuance rather than on
+   * export so the public export endpoint never decrypts a private key and never
+   * has to sign with a key that has since been revoked.
+   */
   async signCredential(
     input: Omit<PublicCredentialPayload, 'signingKeyId'> & { issuerId: string },
   ): Promise<CredentialSignature> {
@@ -201,12 +218,41 @@ export class SigningKeyService {
       publicPayload,
       key.privateKeyEncrypted,
     );
+
+    const vcProofCreated = new Date();
+    const document = buildOpenBadgeCredential({
+      credentialId: input.credentialId,
+      issuerId: input.issuerId,
+      issuerDomain: input.issuerDomain,
+      issuerName: input.issuerName,
+      studentName: input.studentName,
+      studentId: input.studentId,
+      degree: input.degree,
+      graduationYear: input.graduationYear,
+      issuedAt: input.issuedAt,
+    });
+    const vcProofValue = signatureToMultibase(
+      await this.provider.sign(
+        buildProofHashData(
+          document,
+          buildProofConfig({
+            issuerDomain: input.issuerDomain,
+            keyId: key.keyId,
+            created: vcProofCreated,
+          }),
+        ),
+        key.privateKeyEncrypted,
+      ),
+    );
+
     return {
       signature,
       publicPayload,
       signingKeyDbId: key.id,
       signingKeyId: key.keyId,
       signedAt: new Date(),
+      vcProofValue,
+      vcProofCreated,
     };
   }
 }

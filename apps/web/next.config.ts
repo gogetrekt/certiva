@@ -71,6 +71,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  async rewrites() {
+    return [
+      // did:web resolvers fetch https://<domain>/.well-known/did.json. Served via
+      // a rewrite rather than an app/.well-known directory: a dot-prefixed
+      // segment is not reliably picked up by the router.
+      { source: "/.well-known/did.json", destination: "/well-known/did.json" },
+    ];
+  },
 };
 
 export default nextConfig;

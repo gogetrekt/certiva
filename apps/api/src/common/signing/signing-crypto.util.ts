@@ -40,9 +40,20 @@ export function generateEd25519KeyPair(): Ed25519KeyPair {
   };
 }
 
-/** Sign a UTF-8 payload string; returns a base64 Ed25519 signature. */
+/**
+ * A string payload is signed as UTF-8; raw bytes are signed as-is. The byte
+ * form exists because W3C Data Integrity proofs sign a digest concatenation,
+ * not text — encoding those bytes as a string first would sign the wrong thing.
+ */
+export type SignablePayload = string | Uint8Array;
+
+function toSignableBytes(payload: SignablePayload): Uint8Array {
+  return typeof payload === 'string' ? Buffer.from(payload, 'utf8') : payload;
+}
+
+/** Sign a payload; returns a base64 Ed25519 signature. */
 export function signEd25519(
-  payload: string,
+  payload: SignablePayload,
   privateKeyPkcs8B64: string,
 ): string {
   const key = createPrivateKey({
@@ -50,7 +61,7 @@ export function signEd25519(
     format: 'der',
     type: 'pkcs8',
   });
-  return edSign(null, Buffer.from(payload, 'utf8'), key).toString('base64');
+  return edSign(null, toSignableBytes(payload), key).toString('base64');
 }
 
 /**
@@ -59,7 +70,7 @@ export function signEd25519(
  * implementation for external verifiers. Never throws; malformed input -> false.
  */
 export function verifyEd25519(
-  payload: string,
+  payload: SignablePayload,
   signatureB64: string,
   publicKeySpkiB64: string,
 ): boolean {
@@ -71,7 +82,7 @@ export function verifyEd25519(
     });
     return edVerify(
       null,
-      Buffer.from(payload, 'utf8'),
+      toSignableBytes(payload),
       key,
       Buffer.from(signatureB64, 'base64'),
     );

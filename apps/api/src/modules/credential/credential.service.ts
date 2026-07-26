@@ -1105,6 +1105,8 @@ export class CredentialService {
           signatureAlgorithm: 'Ed25519',
           signedAt: credentialSignature.signedAt,
           signingKeyId: credentialSignature.signingKeyDbId,
+          vcProofValue: credentialSignature.vcProofValue,
+          vcProofCreated: credentialSignature.vcProofCreated,
           fileName: assetBundle.fileName,
           mimeType: assetBundle.mimeType,
           fileSize: assetBundle.fileSize,

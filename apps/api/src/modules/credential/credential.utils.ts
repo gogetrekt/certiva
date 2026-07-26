@@ -2,7 +2,12 @@ import { randomBytes } from 'node:crypto';
 
 import { hashString, hmacSha256 } from '../../common/utils/hash.util';
 
-function normalizeValue(value: string) {
+/**
+ * Exported so the VC serializer normalises names/degrees exactly the way the
+ * signed public payload does — two different normalisations would let the same
+ * credential print one string on paper and another inside the VC.
+ */
+export function normalizeValue(value: string) {
   return value.trim().replace(/\s+/g, ' ');
 }
 

@@ -1,7 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
+import { buildDidDocument } from '../../common/vc/did-document.util';
 import { SigningKeyService } from '../../common/signing/signing-key.service';
 import { InstitutionService } from './institution.service';
 
@@ -44,5 +45,31 @@ export class InstitutionPublicController {
         revokedAt: key.revokedAt,
       })),
     };
+  }
+
+  /**
+   * did:web document for the institution. Served here because Nest runs under a
+   * global `api` prefix; apps/web re-exposes this at /.well-known/did.json,
+   * which is where a did:web resolver actually looks (and the web container is
+   * the only one exposed publicly — see docs/DEPLOY.md).
+   */
+  @Get('did.json')
+  @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
+  @Header('Content-Type', 'application/did+json')
+  // Short TTL: a key rotation has to become visible quickly.
+  @Header('Cache-Control', 'public, max-age=300')
+  async getDidDocument() {
+    const institution = await this.institutionService.getInstitution();
+    const keys = await this.signingKeyService.listPublicKeys(institution.id);
+
+    return buildDidDocument({
+      issuerDomain: institution.domain,
+      institutionName: institution.displayName ?? institution.name,
+      keys: keys.map((key) => ({
+        keyId: key.keyId,
+        publicKey: key.publicKey,
+        revokedAt: key.revokedAt,
+      })),
+    });
   }
 }
