@@ -57,7 +57,10 @@ describe('GET /api/verification/:credentialId/vc (e2e)', () => {
       signedVerificationToken: `svt_${id}`,
       qrPayload: `https://${DOMAIN}/verify/${id}`,
       studentName: 'Siti Rahma',
-      studentId: '20250001',
+      // Derived from `id`: these fixtures share one issuer, and
+      // credential_issuer_student_degree_active_key forbids two live
+      // credentials for the same (issuer, student, degree).
+      studentId: `20250001-${id}`,
       degree: 'Sarjana Teknik Informatika',
       graduationYear: 2025,
       metadataUri: `https://${DOMAIN}/meta/${id}.json`,
@@ -104,7 +107,7 @@ describe('GET /api/verification/:credentialId/vc (e2e)', () => {
       issuerDomain: DOMAIN,
       issuerName: 'Universitas E2E',
       studentName: 'Siti Rahma',
-      studentId: '20250001',
+      studentId: `20250001-${CREDENTIAL_ID}`,
       degree: 'Sarjana Teknik Informatika',
       graduationYear: 2025,
       issuedAt: new Date('2026-01-15T04:05:06.000Z'),

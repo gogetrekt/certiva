@@ -12,6 +12,10 @@ COPY packages/types/package.json     ./packages/types/
 COPY packages/config/package.json    ./packages/config/
 COPY apps/api/package.json           ./apps/api/
 
+# `postinstall` generates the Prisma Client from this schema and is not allowed
+# to fail, so the schema must exist before install.
+COPY apps/api/prisma/ ./apps/api/prisma/
+
 RUN pnpm install --frozen-lockfile
 
 # ── build ─────────────────────────────────────────────────────────────────────

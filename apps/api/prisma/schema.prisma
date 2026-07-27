@@ -207,6 +207,11 @@ model Credential {
   @@index([hash])
   @@index([registryHash])
   @@index([studentId])
+  // A partial unique index on ("issuerId", "studentId", "degree") WHERE
+  // "deletedAt" IS NULL AND "revoked" = false also exists on this table. It is
+  // created in migration 20260727100000_credential_active_unique_index and has
+  // no declarative equivalent here: Prisma cannot express partial indexes, and
+  // a plain @@unique would block legitimate re-issuance after revocation.
   @@index([issuerId, studentId])
   @@index([verificationId])
   @@index([verificationCode])

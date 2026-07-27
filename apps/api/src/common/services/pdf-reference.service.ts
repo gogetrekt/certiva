@@ -3,7 +3,13 @@ import { createCanvas } from '@napi-rs/canvas';
 import jsQR from 'jsqr';
 import { PDFDocument } from 'pdf-lib';
 
-const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+/**
+ * Also the multer `limits.fileSize` for every upload route, so a body larger
+ * than this is refused while it streams instead of being buffered into memory
+ * first and rejected afterwards. Keep the two in one place: a multer limit
+ * higher than this check means unbounded RAM per request.
+ */
+export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 const PDF_MAGIC_HEADER = Buffer.from('%PDF-');
 const ACCEPTED_PDF_MIME_TYPES = new Set([
   'application/pdf',

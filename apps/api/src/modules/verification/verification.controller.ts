@@ -22,6 +22,8 @@ import { CredentialAssetsService } from '../credential/credential-assets.service
 import { CredentialService } from '../credential/credential.service';
 import { VerifyCredentialDto } from './dto/verify-credential.dto';
 import { VerificationService } from './verification.service';
+import { MAX_UPLOAD_SIZE_BYTES } from '../../common/services/pdf-reference.service';
+import { resolveClientIp } from '../../common/http/resolve-client-ip';
 
 @ApiTags('verification')
 @Controller()
@@ -57,7 +59,7 @@ export class VerificationController {
   @Post('verify/credential/pdf')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
   )
   verifyCredentialPdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
@@ -70,7 +72,7 @@ export class VerificationController {
   @Post('verify/secure-pdf')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
   )
   verifySecurePdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
@@ -113,7 +115,7 @@ export class VerificationController {
   @Post('verification/upload')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
   )
   verifyUploadedPdf(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
@@ -158,20 +160,6 @@ export class VerificationController {
   }
 
   private resolveRequestIp(req: Request) {
-    // Prefer Cloudflare's unspoofable cf-connecting-ip; only honour raw
-    // x-forwarded-for when a proxy is explicitly trusted, else use req.ip.
-    const cloudflareIp = req.headers['cf-connecting-ip'];
-    if (typeof cloudflareIp === 'string' && cloudflareIp.trim()) {
-      return cloudflareIp.trim();
-    }
-
-    if (this.configService.trustProxy) {
-      const forwarded = req.headers['x-forwarded-for'];
-      if (typeof forwarded === 'string' && forwarded.trim()) {
-        return forwarded.split(',')[0]?.trim() || req.ip || 'unknown';
-      }
-    }
-
-    return req.ip ?? 'unknown';
+    return resolveClientIp(req, this.configService.trustProxy);
   }
 }

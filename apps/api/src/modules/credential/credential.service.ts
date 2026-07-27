@@ -44,6 +44,15 @@ import {
   generateVerificationId,
 } from './credential.utils';
 
+/**
+ * Reported both by the pre-loop `existingKeys` read and by the
+ * `credential_issuer_student_degree_active_key` violation that catches whatever
+ * that read missed. One string so a client cannot tell the two apart — they are
+ * the same outcome, only detected at different moments.
+ */
+const EXISTING_CREDENTIAL_ROW_MESSAGE =
+  'Credential already exists for this student ID and degree.';
+
 type BulkIssueMode = 'preview' | 'issue';
 
 type BulkIssueRowStatus =
@@ -203,8 +212,7 @@ export class CredentialService {
         result.message = 'Duplicate row in this CSV upload.';
       } else if (existingKeys.has(this.buildRowKey(studentId, degree))) {
         result.status = 'EXISTS';
-        result.message =
-          'Credential already exists for this student ID and degree.';
+        result.message = EXISTING_CREDENTIAL_ROW_MESSAGE;
       }
 
       rowResults.push(result);
@@ -243,6 +251,17 @@ export class CredentialService {
         row.verificationCode = credential.verificationCode;
         row.metadataUri = credential.metadataUri;
       } catch (error) {
+        // A duplicate that the pre-loop `existingKeys` read did not see: a
+        // concurrent commit inserted the same (student, degree) first. The DB
+        // constraint is the authority here, so report it as EXISTS — the same
+        // outcome the read would have produced had it run a moment later — not
+        // as a generic failure.
+        if (error instanceof ConflictException) {
+          row.status = 'EXISTS';
+          row.message = EXISTING_CREDENTIAL_ROW_MESSAGE;
+          continue;
+        }
+
         // Failure is surfaced per-row in the result; also log for ops visibility.
         this.logger.warn(
           `Bulk issue row failed (batch ${batch.id}): ${
@@ -1139,8 +1158,39 @@ export class CredentialService {
       return this.findOneOrThrow(created.id);
     } catch (error) {
       await this.assetsService.deleteAssets(credentialId);
+
+      if (this.isActiveDuplicateError(error)) {
+        throw new ConflictException(
+          'A live credential already exists for this student ID and degree.',
+        );
+      }
+
       throw error;
     }
+  }
+
+  /**
+   * True when the insert was rejected by
+   * `credential_issuer_student_degree_active_key` (see the migration
+   * 20260727100000_credential_active_unique_index). Prisma reports the index'
+   * columns rather than its name, verified against the running database.
+   */
+  private isActiveDuplicateError(error: unknown) {
+    if (
+      !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+      error.code !== 'P2002'
+    ) {
+      return false;
+    }
+
+    const target = error.meta?.target;
+    const columns = Array.isArray(target) ? target : [];
+
+    return (
+      columns.includes('issuerId') &&
+      columns.includes('studentId') &&
+      columns.includes('degree')
+    );
   }
 
   private async refreshCredentialAssets(credential: CredentialWithIssuer) {
@@ -1308,13 +1358,18 @@ export class CredentialService {
     if (studentIds.length === 0) {
       return new Set<string>();
     }
-
     const existing = await this.prisma.credential.findMany({
       where: {
         issuerId,
         studentId: {
           in: studentIds,
         },
+        // Same predicate as credential_issuer_student_degree_active_key. Without
+        // it this preview would report EXISTS for pairs the database now accepts,
+        // and bulk re-issuance after a revocation would be blocked here instead
+        // of succeeding.
+        deletedAt: null,
+        revoked: false,
       },
       select: {
         studentId: true,

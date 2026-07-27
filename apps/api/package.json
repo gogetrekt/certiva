@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "prebuild": "prisma generate --schema=./prisma/schema.prisma",
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "dev": "pnpm run prisma:deploy && nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",

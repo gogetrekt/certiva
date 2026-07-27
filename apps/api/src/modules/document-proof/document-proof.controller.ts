@@ -33,6 +33,8 @@ import type { JwtPayload } from '../auth/types/jwt-payload';
 import { BulkDeleteDocumentProofsDto } from './dto/bulk-delete-document-proofs.dto';
 import { CreateDocumentProofDto } from './dto/create-document-proof.dto';
 import { DocumentProofService } from './document-proof.service';
+import { MAX_UPLOAD_SIZE_BYTES } from '../../common/services/pdf-reference.service';
+import { resolveClientIp } from '../../common/http/resolve-client-ip';
 
 @Controller('document-proofs')
 @RateLimit(RATE_LIMIT_RULE.ADMIN)
@@ -69,7 +71,9 @@ export class DocumentProofController {
 
   @Post()
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
+  )
   create(
     @GetAdmin() admin: JwtPayload,
     @Body() dto: CreateDocumentProofDto,
@@ -107,7 +111,9 @@ export class PublicDocumentProofController {
 
   @Post('verify/document')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION_UPLOAD)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
+  )
   verifyUploadedDocument(
     @UploadedFile() file: { buffer: Buffer; size: number; mimetype: string },
     @Req() req: Request,
@@ -163,11 +169,6 @@ export class PublicDocumentProofController {
   }
 
   private resolveRequestIp(req: Request) {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string' && forwarded.trim()) {
-      return forwarded.split(',')[0]?.trim() || req.ip || 'unknown';
-    }
-
-    return req.ip ?? 'unknown';
+    return resolveClientIp(req, this.configService.trustProxy);
   }
 }

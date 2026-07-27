@@ -9,6 +9,7 @@ import {
 } from './rate-limit.constants';
 import { RateLimitMemoryStore } from './rate-limit-memory.store';
 import { RateLimitRedisStore } from './rate-limit-redis.store';
+import { resolveClientIp } from '../http/resolve-client-ip';
 import type {
   RateLimitConfig,
   RateLimitConsumeResult,
@@ -106,21 +107,6 @@ export class RateLimitService {
   }
 
   private resolveClientIp(request: Request) {
-    // Cloudflare sets cf-connecting-ip and clients cannot forge it through CF,
-    // so it is preferred. Raw x-forwarded-for is only honoured when a proxy is
-    // explicitly trusted; otherwise we fall back to the socket-derived req.ip.
-    const cloudflareIp = request.headers['cf-connecting-ip'];
-    if (typeof cloudflareIp === 'string' && cloudflareIp.trim()) {
-      return cloudflareIp.trim();
-    }
-
-    if (this.trustProxy) {
-      const forwardedFor = request.headers['x-forwarded-for'];
-      if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-        return forwardedFor.split(',')[0]?.trim() || 'unknown';
-      }
-    }
-
-    return request.ip ?? request.socket.remoteAddress ?? 'unknown';
+    return resolveClientIp(request, this.trustProxy);
   }
 }

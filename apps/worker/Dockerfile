@@ -13,6 +13,10 @@ COPY packages/config/package.json    ./packages/config/
 COPY apps/api/package.json           ./apps/api/
 COPY apps/worker/package.json        ./apps/worker/
 
+# `apps/api` generates the Prisma Client from this schema in its `postinstall`,
+# which is no longer allowed to fail, so the schema must exist before install.
+COPY apps/api/prisma/ ./apps/api/prisma/
+
 RUN pnpm install --frozen-lockfile
 
 # ── build ─────────────────────────────────────────────────────────────────────
@@ -21,13 +25,14 @@ WORKDIR /app
 
 # Copy all source
 COPY packages/ ./packages/
-COPY apps/api/prisma/ ./apps/api/prisma/
 COPY apps/worker/src/ ./apps/worker/src/
 COPY apps/worker/tsconfig*.json ./apps/worker/
 COPY turbo.json ./
 
-# Generate Prisma client
-RUN pnpm prisma generate || true
+# Generate the Prisma Client. Deliberately not `|| true`: a worker image without
+# a Prisma Client cannot run a single job, so a failure here has to stop the
+# build instead of producing a broken image.
+RUN pnpm --filter worker prisma:generate
 
 # Build packages then worker (turbo respects dependsOn: ["^build"])
 RUN pnpm turbo run build --filter=worker...
@@ -39,23 +44,17 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy workspace structure needed at runtime
-COPY --from=builder /app/pnpm-workspace.yaml   ./
-COPY --from=builder /app/package.json          ./
-COPY --from=builder /app/pnpm-lock.yaml        ./
-COPY --from=builder /app/packages/contracts/package.json ./packages/contracts/
-COPY --from=builder /app/packages/contracts/dist/        ./packages/contracts/dist/
-COPY --from=builder /app/packages/types/package.json     ./packages/types/
-COPY --from=builder /app/packages/types/dist/            ./packages/types/dist/
-COPY --from=builder /app/apps/worker/package.json        ./apps/worker/
-COPY --from=builder /app/apps/worker/dist/               ./apps/worker/dist/
-
-# Prisma client (query engine + generated client)
-COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
-COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
-
-# Install production deps only (no devDeps, no scripts)
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+# Copy the whole built workspace, same as apps/api/Dockerfile. Cherry-picking
+# the Prisma client used to fail the build outright: under pnpm the generated
+# client lives in `node_modules/.pnpm/@prisma+client@<version>_.../`, so
+# `/app/node_modules/.prisma` never exists and `COPY` aborted with "file does
+# not exist". Re-running `pnpm install --prod` here also re-linked
+# `node_modules`, and `--ignore-scripts` plus the absent schema left no way to
+# regenerate the client in this stage.
+# ponytail: carries devDeps + build toolchain, same trade-off the api image
+# already accepts; switch to `pnpm --filter worker deploy --prod` if image size
+# starts to matter.
+COPY --from=builder /app ./
 
 WORKDIR /app/apps/worker
 CMD ["node", "dist/index.js"]

@@ -7,6 +7,45 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # The e2e suite talks to a real Postgres and Redis; without them it was
+    # simply never run in CI, which is how a database-level regression (or its
+    # absence — see the credential duplication constraint) could go unnoticed.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: certiva
+          POSTGRES_PASSWORD: certiva_password
+          POSTGRES_DB: certiva_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U certiva"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://certiva:certiva_password@localhost:5432/certiva_test
+      REDIS_URL: redis://localhost:6379
+      # Length-validated by env.schema.ts (64 / 32 chars minimum). CI-only values.
+      JWT_SECRET: ci_test_secret_that_is_long_enough_to_pass_the_64_character_minimum_check
+      SIGNING_KEY_ENCRYPTION_SECRET: ci_test_signing_key_encryption_secret_32plus
+      NODE_ENV: development
+      APP_ENV: development
+      STORAGE_DRIVER: local
+      BLOCKCHAIN_ENABLED: "false"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,4 +67,48 @@ jobs:
 
       - run: pnpm test
 
-      # TODO: add postgres/redis services for e2e (pnpm --filter api test:e2e)
+      - name: Apply migrations
+        run: pnpm --filter api prisma:deploy
+
+      - name: e2e tests
+        run: pnpm --filter api test:e2e
+
+  docker:
+    runs-on: ubuntu-latest
+
+    # `docker build` was never run in CI, so the worker image had been
+    # unbuildable — it failed on `COPY --from=builder /app/node_modules/.prisma/`
+    # while three `|| true` hid the underlying `prisma generate` failures. Build
+    # every image here so that class of breakage cannot land again.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build api image
+        run: docker build -f apps/api/Dockerfile -t certiva-api:ci .
+
+      - name: Build web image
+        run: docker build -f apps/web/Dockerfile -t certiva-web:ci .
+
+      - name: Build worker image
+        run: docker build -f apps/worker/Dockerfile -t certiva-worker:ci .
+
+      # A worker image that builds but ships no Prisma Client cannot run a single
+      # job, and nothing above would catch that, so assert the client loads.
+      - name: Worker image carries a usable Prisma Client
+        run: |
+          docker run --rm --entrypoint node certiva-worker:ci -e "
+            const { PrismaClient } = require('@prisma/client');
+            const client = new PrismaClient();
+            if (typeof client.credential?.findFirst !== 'function') {
+              throw new Error('Prisma Client is present but has no Credential model');
+            }
+            console.log('Prisma Client OK');
+          "
+
+      - name: Api image carries a usable Prisma Client
+        run: |
+          docker run --rm --entrypoint node certiva-api:ci -e "
+            const { PrismaClient } = require('@prisma/client');
+            new PrismaClient();
+            console.log('Prisma Client OK');
+          "

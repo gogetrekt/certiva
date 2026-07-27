@@ -33,6 +33,7 @@ import { CreateCredentialDto } from './dto/create-credential.dto';
 import { ListCredentialsDto } from './dto/list-credentials.dto';
 import { RevokeCredentialDto } from './dto/revoke-credential.dto';
 import type { JwtPayload } from '../auth/types/jwt-payload';
+import { MAX_UPLOAD_SIZE_BYTES } from '../../common/services/pdf-reference.service';
 
 @ApiTags('credentials')
 @Controller('credentials')
@@ -110,7 +111,7 @@ export class CredentialController {
   @Post(':id/secure-pdf')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
   )
   registerSecurePdf(
     @GetAdmin() admin: JwtPayload,
@@ -137,7 +138,7 @@ export class BatchController {
   @Post(':id/secure-pdf')
   @Roles(OWNER_ROLE, SUPER_ADMIN_ROLE, ADMIN_ROLE)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_SIZE_BYTES } }),
   )
   registerBatchSecurePdf(
     @GetAdmin() admin: JwtPayload,
