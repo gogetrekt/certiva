@@ -6,8 +6,15 @@
  * Safe to run multiple times — skips objects that already exist in R2 unless
  * --force is passed.
  *
+ * Dry-run is the default: without --apply this uploads nothing. Every other
+ * script in this directory (rekey-signing-secret, backfill-vc-proof,
+ * fix-verification-urls) works the same way, so no runbook can be mistaken for
+ * another, and a copy-pasted command cannot write to a production bucket by
+ * omission.
+ *
  * Usage (from apps/api):
- *   pnpm ts-node scripts/migrate-assets-to-r2.ts [--dry-run] [--force]
+ *   pnpm ts-node scripts/migrate-assets-to-r2.ts            # dry run
+ *   pnpm ts-node scripts/migrate-assets-to-r2.ts --apply    # actually upload
  *
  * Required env vars (same as STORAGE_DRIVER=r2 in .env):
  *   R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT
@@ -17,7 +24,7 @@
  *   R2_FORCE_PATH_STYLE (default: true)
  *
  * Flags:
- *   --dry-run   List files that would be uploaded without actually uploading.
+ *   --apply     Actually upload. Without it, only lists what would be uploaded.
  *   --force     Re-upload even if the R2 object already exists.
  */
 
@@ -25,15 +32,15 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
-} from "@aws-sdk/client-s3";
-import * as crypto from "node:crypto";
-import * as fs from "node:fs";
-import * as path from "node:path";
+} from '@aws-sdk/client-s3';
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // ── CLI flags ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
-const DRY_RUN = args.includes("--dry-run");
-const FORCE = args.includes("--force");
+const APPLY = args.includes('--apply');
+const FORCE = args.includes('--force');
 
 // ── Config from env ───────────────────────────────────────────────────────────
 function requireEnv(name: string): string {
@@ -45,18 +52,18 @@ function requireEnv(name: string): string {
   return v;
 }
 
-const ASSET_ROOT = path.isAbsolute(process.env.ASSET_STORAGE_ROOT ?? "storage")
+const ASSET_ROOT = path.isAbsolute(process.env.ASSET_STORAGE_ROOT ?? 'storage')
   ? (process.env.ASSET_STORAGE_ROOT as string)
-  : path.resolve(process.cwd(), process.env.ASSET_STORAGE_ROOT ?? "storage");
+  : path.resolve(process.cwd(), process.env.ASSET_STORAGE_ROOT ?? 'storage');
 
-const R2_ENDPOINT = requireEnv("R2_ENDPOINT");
-const R2_BUCKET = requireEnv("R2_BUCKET");
-const R2_ACCESS_KEY_ID = requireEnv("R2_ACCESS_KEY_ID");
-const R2_SECRET_ACCESS_KEY = requireEnv("R2_SECRET_ACCESS_KEY");
-const FORCE_PATH_STYLE = process.env.R2_FORCE_PATH_STYLE !== "false";
+const R2_ENDPOINT = requireEnv('R2_ENDPOINT');
+const R2_BUCKET = requireEnv('R2_BUCKET');
+const R2_ACCESS_KEY_ID = requireEnv('R2_ACCESS_KEY_ID');
+const R2_SECRET_ACCESS_KEY = requireEnv('R2_SECRET_ACCESS_KEY');
+const FORCE_PATH_STYLE = process.env.R2_FORCE_PATH_STYLE !== 'false';
 
 const client = new S3Client({
-  region: "auto",
+  region: 'auto',
   endpoint: R2_ENDPOINT,
   forcePathStyle: FORCE_PATH_STYLE,
   credentials: {
@@ -67,10 +74,10 @@ const client = new S3Client({
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function contentTypeFor(filename: string): string {
-  if (filename.endsWith(".pdf")) return "application/pdf";
-  if (filename.endsWith(".png")) return "image/png";
-  if (filename.endsWith(".json")) return "application/json";
-  return "application/octet-stream";
+  if (filename.endsWith('.pdf')) return 'application/pdf';
+  if (filename.endsWith('.png')) return 'image/png';
+  if (filename.endsWith('.json')) return 'application/json';
+  return 'application/octet-stream';
 }
 
 async function objectExists(key: string): Promise<boolean> {
@@ -84,10 +91,13 @@ async function objectExists(key: string): Promise<boolean> {
 
 function sha256File(filePath: string): string {
   const data = fs.readFileSync(filePath);
-  return crypto.createHash("sha256").update(data).digest("hex");
+  return crypto.createHash('sha256').update(data).digest('hex');
 }
 
-function collectFiles(dir: string, prefix: string): Array<{ localPath: string; key: string }> {
+function collectFiles(
+  dir: string,
+  prefix: string,
+): Array<{ localPath: string; key: string }> {
   const results: Array<{ localPath: string; key: string }> = [];
   if (!fs.existsSync(dir)) return results;
 
@@ -108,17 +118,19 @@ function collectFiles(dir: string, prefix: string): Array<{ localPath: string; k
 async function main() {
   console.log(`Asset root : ${ASSET_ROOT}`);
   console.log(`R2 bucket  : ${R2_BUCKET}`);
-  console.log(`Mode       : ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
+  console.log(
+    `Mode       : ${APPLY ? 'LIVE' : 'DRY RUN (pass --apply to upload)'}`,
+  );
   console.log(`Force      : ${FORCE}`);
   console.log();
 
   if (!fs.existsSync(ASSET_ROOT)) {
-    console.log("Asset root does not exist — nothing to migrate.");
+    console.log('Asset root does not exist — nothing to migrate.');
     return;
   }
 
   // Collect from credentials/ and document-proofs/
-  const prefixes = ["credentials", "document-proofs"];
+  const prefixes = ['credentials', 'document-proofs'];
   const allFiles: Array<{ localPath: string; key: string }> = [];
   for (const prefix of prefixes) {
     const dir = path.join(ASSET_ROOT, prefix);
@@ -146,9 +158,11 @@ async function main() {
     }
 
     const localHash = sha256File(localPath);
-    console.log(`  ${DRY_RUN ? "WOULD UPLOAD" : "UPLOAD"} ${key} (${sizeKb} KB, sha256=${localHash})`);
+    console.log(
+      `  ${APPLY ? 'UPLOAD' : 'WOULD UPLOAD'} ${key} (${sizeKb} KB, sha256=${localHash})`,
+    );
 
-    if (!DRY_RUN) {
+    if (APPLY) {
       try {
         const body = fs.readFileSync(localPath);
         await client.send(
@@ -171,18 +185,27 @@ async function main() {
   }
 
   console.log();
-  console.log("── Summary ──────────────────────────────────────────");
-  console.log(`  ${DRY_RUN ? "Would upload" : "Uploaded"} : ${uploaded}`);
+  console.log('── Summary ──────────────────────────────────────────');
+  console.log(`  ${APPLY ? 'Uploaded' : 'Would upload'} : ${uploaded}`);
   console.log(`  Skipped   : ${skipped}`);
   console.log(`  Failed    : ${failed}`);
   if (failed > 0) {
     console.log();
-    console.log("Some files failed. Re-run to retry, or check permissions/credentials.");
+    console.log(
+      'Some files failed. Re-run to retry, or check permissions/credentials.',
+    );
     process.exit(1);
   }
+  if (!APPLY) {
+    console.log();
+    console.log(
+      'Dry run only — nothing uploaded. Re-run with --apply once the list looks right.',
+    );
+    return;
+  }
   console.log();
-  console.log("Local files are NOT deleted. Keep them as a backup until you");
-  console.log("have verified R2 content and switched STORAGE_DRIVER=r2.");
+  console.log('Local files are NOT deleted. Keep them as a backup until you');
+  console.log('have verified R2 content and switched STORAGE_DRIVER=r2.');
 }
 
 main().catch((err) => {

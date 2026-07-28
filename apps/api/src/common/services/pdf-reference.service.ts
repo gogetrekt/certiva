@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { createCanvas } from '@napi-rs/canvas';
 import jsQR from 'jsqr';
 import { PDFDocument } from 'pdf-lib';
@@ -26,6 +26,24 @@ type ReferenceKind = 'credential' | 'document';
 
 @Injectable()
 export class PdfReferenceService {
+  private readonly logger = new Logger(PdfReferenceService.name);
+
+  /**
+   * Every extraction stage below answers `null` on failure so the next stage
+   * gets a turn, and downstream that becomes NO_SECURE_PDF_RECORD or
+   * DOCUMENT_MODIFIED — the same answer a PDF that simply carries no reference
+   * gets. Without this line there is no way to tell "this document has no
+   * reference" from "our parser broke on it". Behaviour is unchanged; only the
+   * failure becomes visible.
+   */
+  private logStageFailure(stage: string, byteLength: number, error: unknown) {
+    this.logger.warn(
+      `PDF reference extraction stage "${stage}" failed (${byteLength} bytes): ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+
   async prepareUploadedPdf(file?: UploadedPdfFile) {
     this.assertValidPdfUpload(file);
     const validFile = file as UploadedPdfFile;
@@ -64,7 +82,8 @@ export class PdfReferenceService {
         expectedKind,
       );
       return renderedReference;
-    } catch {
+    } catch (error) {
+      this.logStageFailure('rendered-qr', buffer.byteLength, error);
       return null;
     }
   }
@@ -97,7 +116,8 @@ export class PdfReferenceService {
   async assertReadablePdf(buffer: Buffer) {
     try {
       await PDFDocument.load(buffer);
-    } catch {
+    } catch (error) {
+      this.logStageFailure('pdf-lib-load', buffer.byteLength, error);
       throw new BadRequestException('Malformed PDF document.');
     }
   }
@@ -141,7 +161,8 @@ export class PdfReferenceService {
           return reference;
         }
       }
-    } catch {
+    } catch (error) {
+      this.logStageFailure('pdf-text', buffer.byteLength, error);
       return null;
     }
 
@@ -233,7 +254,12 @@ export class PdfReferenceService {
                   resolve(null);
                 },
               );
-            } catch {
+            } catch (error) {
+              this.logStageFailure(
+                'pdf-image-object',
+                buffer.byteLength,
+                error,
+              );
               resolve(null);
             }
           });
@@ -260,7 +286,8 @@ export class PdfReferenceService {
           }
         }
       }
-    } catch {
+    } catch (error) {
+      this.logStageFailure('pdf-images', buffer.byteLength, error);
       return null;
     }
 
@@ -333,7 +360,8 @@ export class PdfReferenceService {
         inversionAttempts: 'attemptBoth',
       });
       return result?.data ?? null;
-    } catch {
+    } catch (error) {
+      this.logStageFailure('qr-decode', data.length, error);
       return null;
     }
   }
@@ -391,8 +419,14 @@ export class PdfReferenceService {
       if (token && this.matchesExpectedKind(token, expectedKind)) {
         return token;
       }
-    } catch {
-      // fall through to raw-pattern parsing
+    } catch (error) {
+      // A QR payload that is not a URL is the common case (raw `dpf_`/`vrf_`
+      // tokens), so this is debug, not warn — it is control flow, not a fault.
+      this.logger.debug(
+        `QR payload is not a URL, falling back to raw-pattern parsing: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
 
     const inlineMatch =

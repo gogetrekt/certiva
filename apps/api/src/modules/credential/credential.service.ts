@@ -33,7 +33,10 @@ import {
 } from './credential-assets.service';
 import { BulkIssueCredentialsDto } from './dto/bulk-issue-credentials.dto';
 import { CreateCredentialDto } from './dto/create-credential.dto';
-import { ListCredentialsDto } from './dto/list-credentials.dto';
+import {
+  DEFAULT_CREDENTIAL_PAGE_SIZE,
+  ListCredentialsDto,
+} from './dto/list-credentials.dto';
 import { RevokeCredentialDto } from './dto/revoke-credential.dto';
 import {
   buildCredentialHash,
@@ -288,6 +291,9 @@ export class CredentialService {
     const issuerId = await this.institutionService.resolveInstitutionId(admin);
     const studentId = query.studentId?.trim();
     const studentName = query.studentName?.trim();
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? DEFAULT_CREDENTIAL_PAGE_SIZE;
+    const issuedYear = query.issuedYear;
     const where = {
       issuerId,
       deletedAt: null,
@@ -304,9 +310,18 @@ export class CredentialService {
           }
         : undefined,
       revoked: query.revoked,
+      // Local-time year bounds, matching the `new Date(issuedAt).getFullYear()`
+      // the browser used to do, so moving the filter server-side does not shift
+      // rows across the year boundary.
+      issuedAt: issuedYear
+        ? {
+            gte: new Date(issuedYear, 0, 1),
+            lt: new Date(issuedYear + 1, 0, 1),
+          }
+        : undefined,
     };
 
-    const [items, total] = await Promise.all([
+    const [items, total, years] = await Promise.all([
       this.prisma.credential.findMany({
         where,
         include: {
@@ -315,13 +330,31 @@ export class CredentialService {
         orderBy: {
           issuedAt: 'desc',
         },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       }),
       this.prisma.credential.count({ where }),
+      // The year dropdown has to list every year the issuer has, not just the
+      // years on the current page — so it gets its own query instead of being
+      // derived from `items`.
+      // ponytail: one column, no join, no mapping — cheap next to the paginated
+      // page it replaces. Push the DISTINCT into SQL if an issuer's row count
+      // makes even this scan show up.
+      this.prisma.credential.findMany({
+        where: { issuerId, deletedAt: null },
+        select: { issuedAt: true },
+        orderBy: { issuedAt: 'desc' },
+      }),
     ]);
 
     return {
       total,
+      page,
+      pageSize,
       items: items.map((item) => this.toCredentialResponse(item)),
+      issuedYears: [
+        ...new Set(years.map((row) => row.issuedAt.getFullYear())),
+      ].sort((a, b) => b - a),
     };
   }
 

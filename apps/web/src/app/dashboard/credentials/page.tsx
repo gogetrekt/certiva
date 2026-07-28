@@ -23,8 +23,11 @@ interface CredentialsPageProps {
     studentName?: string;
     status?: string;
     year?: string;
+    page?: string;
   }>;
 }
+
+const PAGE_SIZE = 25;
 
 export default async function CredentialsPage({
   searchParams,
@@ -38,9 +41,12 @@ export default async function CredentialsPage({
     studentName = "",
     status = "all",
     year = "",
+    page = "1",
   } = await searchParams;
   const revoked =
     status === "active" ? false : status === "revoked" ? true : undefined;
+  const issuedYear = Number(year) || undefined;
+  const currentPage = Math.max(1, Number(page) || 1);
 
   const admin = await getCurrentAdmin(token);
   const isSuperAdmin = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
@@ -51,6 +57,9 @@ export default async function CredentialsPage({
       studentId: studentId || undefined,
       studentName: studentName || undefined,
       revoked,
+      issuedYear,
+      page: currentPage,
+      pageSize: PAGE_SIZE,
     });
   } catch (error) {
     if (isInstitutionSetupRequired(error)) {
@@ -58,6 +67,17 @@ export default async function CredentialsPage({
     }
     throw error;
   }
+
+  const totalPages = Math.max(1, Math.ceil(credentials.total / PAGE_SIZE));
+  const pageHref = (target: number) => {
+    const params = new URLSearchParams();
+    if (studentName) params.set("studentName", studentName);
+    if (studentId) params.set("studentId", studentId);
+    if (year) params.set("year", year);
+    if (status !== "all") params.set("status", status);
+    params.set("page", String(target));
+    return `/dashboard/credentials?${params.toString()}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -119,19 +139,11 @@ export default async function CredentialsPage({
               className="field-shell w-full font-mono"
             >
               <option value="">{t.dashboard.registry.allYears}</option>
-              {Array.from(
-                new Set(
-                  credentials.items
-                    .map((c) => new Date(c.issuedAt).getFullYear())
-                    .filter(Boolean),
-                ),
-              )
-                .sort((a, b) => b - a)
-                .map((y) => (
-                  <option key={y} value={String(y)}>
-                    {y}
-                  </option>
-                ))}
+              {credentials.issuedYears.map((y) => (
+                <option key={y} value={String(y)}>
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
           <div className="lg:w-40">
@@ -166,7 +178,29 @@ export default async function CredentialsPage({
       </div>
 
       {/* Table client component handles selection and bulk actions */}
-      <CredentialsTable credentials={credentials} role={admin.role} yearFilter={year} />
+      <CredentialsTable credentials={credentials} role={admin.role} />
+
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-between gap-3">
+          {currentPage > 1 ? (
+            <Link href={pageHref(currentPage - 1)} className="btn-ghost btn-sm">
+              {t.common.previous}
+            </Link>
+          ) : (
+            <span />
+          )}
+          <p className="text-xs text-[hsl(var(--text-tertiary))] font-mono">
+            {t.common.pageLabel} {currentPage} {t.common.ofLabel} {totalPages}
+          </p>
+          {currentPage < totalPages ? (
+            <Link href={pageHref(currentPage + 1)} className="btn-ghost btn-sm">
+              {t.common.next}
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
     </div>
   );
 }

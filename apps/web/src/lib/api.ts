@@ -158,7 +158,11 @@ export interface CredentialRecord {
 
 export interface CredentialsResponse {
   total: number;
+  page: number;
+  pageSize: number;
   items: CredentialRecord[];
+  /** Every issuance year the issuer has, not only the ones on this page. */
+  issuedYears: number[];
 }
 
 export interface VerificationResponse {
@@ -513,6 +517,9 @@ export async function getCredentials(
     studentId?: string;
     studentName?: string;
     revoked?: boolean;
+    issuedYear?: number;
+    page?: number;
+    pageSize?: number;
   },
 ) {
   const searchParams = new URLSearchParams();
@@ -527,6 +534,18 @@ export async function getCredentials(
 
   if (typeof filters?.revoked === "boolean") {
     searchParams.set("revoked", String(filters.revoked));
+  }
+
+  if (filters?.issuedYear) {
+    searchParams.set("issuedYear", String(filters.issuedYear));
+  }
+
+  if (filters?.page) {
+    searchParams.set("page", String(filters.page));
+  }
+
+  if (filters?.pageSize) {
+    searchParams.set("pageSize", String(filters.pageSize));
   }
 
   const query = searchParams.toString();

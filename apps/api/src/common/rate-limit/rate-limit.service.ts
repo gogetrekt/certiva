@@ -60,7 +60,7 @@ export class RateLimitService {
   ): Promise<RateLimitConsumeResult> {
     const rule = this.rules[ruleName];
     const key = this.buildKey(ruleName, this.resolveClientIp(request));
-    const result = await this.consumeFromStore(key, rule);
+    const result = await this.consumeFromStore(ruleName, key, rule);
     const retryAfterSeconds = Math.max(
       1,
       Math.ceil((result.resetAt.getTime() - Date.now()) / 1000),
@@ -76,19 +76,44 @@ export class RateLimitService {
   }
 
   private async consumeFromStore(
+    ruleName: RateLimitRuleName,
     key: string,
     rule: RateLimitRuleConfig,
   ): Promise<RateLimitStoreResult> {
-    if (
-      this.config.store === 'memory' ||
-      Date.now() < this.redisFallbackUntil
-    ) {
+    if (this.config.store === 'memory') {
+      return this.memoryStore.consume(key, rule.limit, rule.windowSeconds);
+    }
+
+    // The in-memory store starts every key at zero, so falling back to it
+    // hands whoever was near the limit a fresh quota. For public verification
+    // that is the right trade — it must not die with Redis. For login it is a
+    // brute-force shortcut: a flapping Redis would reset the attacker's counter
+    // every cooldown window. So AUTH_LOGIN never touches the memory store, and
+    // therefore never uses the cooldown either.
+    const canFailOpen = ruleName !== RATE_LIMIT_RULE.AUTH_LOGIN;
+
+    if (canFailOpen && Date.now() < this.redisFallbackUntil) {
       return this.memoryStore.consume(key, rule.limit, rule.windowSeconds);
     }
 
     try {
       return await this.redisStore.consume(key, rule.limit, rule.windowSeconds);
     } catch (error) {
+      if (!canFailOpen) {
+        this.logger.error(
+          `Rate limiter Redis store unavailable; refusing ${ruleName} requests instead of counting them in memory.`,
+        );
+        if (error instanceof Error) {
+          this.logger.debug(error.message);
+        }
+
+        return {
+          allowed: false,
+          totalHits: rule.limit + 1,
+          resetAt: new Date(Date.now() + rule.windowSeconds * 1000),
+        };
+      }
+
       this.redisFallbackUntil = Date.now() + REDIS_FALLBACK_COOLDOWN_MS;
       this.logger.warn(
         `Rate limiter Redis store unavailable; using in-memory fallback for ${REDIS_FALLBACK_COOLDOWN_MS / 1000} seconds.`,

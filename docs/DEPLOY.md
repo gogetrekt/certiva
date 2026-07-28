@@ -81,17 +81,24 @@ The API exposes a health check at `GET /api/health`.
 
 ## 4. Create the first admin
 
-The seed creates a demo issuer and a super-admin. Run it once:
+The seed creates a demo issuer and a super-admin. There is no default password —
+set one through `SEED_ADMIN_PASSWORD`:
 
 ```bash
-docker compose -f docker-compose.prod.yml run --rm migrate pnpm --filter api prisma:seed
+docker compose -f docker-compose.prod.yml run --rm \
+  -e SEED_ADMIN_PASSWORD='<a password you generated>' \
+  migrate pnpm --filter api prisma:seed
 ```
 
-Default login: **`admin@certiva.local`** / **`admin123`**.
+Login as **`admin@certiva.local`** (username `admin`) with that password.
 
-> ⚠️ Change this password immediately after the first login, and rename/replace
-> the demo issuer (`certiva.local`) with your institution. Do not run the seed
-> on a system that already has real admins — it is for bootstrapping only.
+Leaving `SEED_ADMIN_PASSWORD` unset is also safe: the seed generates a random
+password and prints it once to stdout. Capture it from the command output —
+it is not stored anywhere else and cannot be recovered afterwards.
+
+> ⚠️ Rename/replace the demo issuer (`certiva.local`) with your institution. Do
+> not run the seed on a system that already has real admins — it is for
+> bootstrapping only.
 
 ## 5. Day-2 operations
 

@@ -24,6 +24,19 @@ import { LoginDto } from './dto/login.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import type { JwtPayload } from './types/jwt-payload';
 
+/**
+ * Compared against when the identifier does not exist, so a missing account
+ * costs the same ~170ms as a real one and cannot be told apart by timing. It is
+ * a genuine `bcrypt.hashSync('unused-placeholder', 12)` output — 60 characters,
+ * a well-formed salt — rather than a hand-typed lookalike, because a bcrypt
+ * build that validates the salt strictly would reject a malformed one and
+ * return instantly, which is the timing oracle this constant exists to prevent.
+ * It was generated at cost 12 over 32 random bytes that were then discarded, so
+ * no preimage for it exists anywhere.
+ */
+export const UNKNOWN_ADMIN_DUMMY_HASH =
+  '$2b$12$t3lb/w0Cqltg.pSEevPP2unB/HV56rPcSjDyRtFOSSNmjXBrt8Zy6';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -105,11 +118,9 @@ export class AuthService {
 
     // Use constant-time comparison path regardless of whether admin exists
     // to avoid leaking username existence via timing
-    const dummyHash =
-      '$2b$12$invalidhashforunknownuseraccount000000000000000000000000';
     const passwordValid = await bcrypt.compare(
       dto.password,
-      admin?.password ?? dummyHash,
+      admin?.password ?? UNKNOWN_ADMIN_DUMMY_HASH,
     );
 
     if (!admin || !passwordValid) {

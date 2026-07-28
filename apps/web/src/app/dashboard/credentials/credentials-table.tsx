@@ -17,14 +17,13 @@ import { useLanguage } from "../../../lib/i18n";
 interface CredentialsTableProps {
   credentials: CredentialsResponse;
   role: AdminRole;
-  yearFilter?: string;
 }
 
 function isSuperAdmin(role: AdminRole): boolean {
   return role === "SUPER_ADMIN" || role === "OWNER";
 }
 
-export function CredentialsTable({ credentials, role, yearFilter }: CredentialsTableProps) {
+export function CredentialsTable({ credentials, role }: CredentialsTableProps) {
   const { t } = useLanguage();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -33,11 +32,9 @@ export function CredentialsTable({ credentials, role, yearFilter }: CredentialsT
 
   const superAdmin = isSuperAdmin(role);
 
-  const filteredItems = yearFilter
-    ? credentials.items.filter(
-        (c) => new Date(c.issuedAt).getFullYear() === Number(yearFilter),
-      )
-    : credentials.items;
+  // The year filter runs in the query now (`issuedYear`), so this is just the
+  // page the server sent — filtering here would only ever see one page.
+  const filteredItems = credentials.items;
 
   const allIds = filteredItems.map((c) => c.id);
   const activeIds = filteredItems.filter((c) => !c.revoked).map((c) => c.id);
