@@ -17,8 +17,11 @@ import {
 } from "../../../../lib/api";
 import { formatDate, formatDateTime } from "../../../../lib/date-format";
 import { getServerDictionary } from "../../../../lib/i18n-server";
+import {
+  polygonAmoyAddressUrl,
+  polygonAmoyTxUrl,
+} from "../../../../lib/polygon-explorer";
 
-const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getServerDictionary();
@@ -52,10 +55,10 @@ export default async function CredentialDetailPage({ params }: CredentialDetailP
   const canRevoke = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
   const canDelete = admin.role === "OWNER" || admin.role === "SUPER_ADMIN";
   const transactionUrl = credential.txHash
-    ? `${POLYGON_AMOY_EXPLORER_URL}/tx/${credential.txHash}`
+    ? polygonAmoyTxUrl(credential.txHash)
     : null;
   const issuerAddressUrl = credential.issuer.wallet
-    ? `${POLYGON_AMOY_EXPLORER_URL}/address/${credential.issuer.wallet}`
+    ? polygonAmoyAddressUrl(credential.issuer.wallet)
     : null;
 
   return (

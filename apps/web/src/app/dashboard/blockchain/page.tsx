@@ -14,8 +14,8 @@ import {
 } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
+import { polygonAmoyTxUrl } from "../../../lib/polygon-explorer";
 
-const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getServerDictionary();
@@ -172,7 +172,7 @@ export default async function BlockchainAuditPage() {
                     </Link>
                     {transactionHash && (
                       <a
-                        href={`${POLYGON_AMOY_EXPLORER_URL}/tx/${transactionHash}`}
+                        href={polygonAmoyTxUrl(transactionHash)}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-ghost btn-sm"

@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Stack,
   UsersThree,
-  X,
 } from "@phosphor-icons/react";
 
 import { AppLogo } from "./app-logo";
@@ -41,9 +40,6 @@ type NavGroup = {
   readonly items: NavItem[];
 };
 
-function isSuperAdmin(role: DashboardRole): boolean {
-  return role === "SUPER_ADMIN" || role === "OWNER";
-}
 
 interface DashboardShellProps {
   admin: {

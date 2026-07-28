@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import type { NextConfig } from "next";
 
 // Turbopack/React need eval() in dev for HMR + debugging; never in prod builds.
@@ -62,6 +64,16 @@ const nextConfig: NextConfig = {
   // Emit a self-contained server bundle (.next/standalone) for a lean Docker image.
   output: "standalone",
   transpilePackages: ["@certiva/types"],
+
+  // Next otherwise infers the workspace root by scanning upward for lockfiles,
+  // and a stray package-lock.json anywhere above the repo wins over this
+  // monorepo's pnpm-workspace.yaml — which is exactly what happens on at least
+  // one dev machine ($HOME/package-lock.json).
+  //
+  // This must be the REPO root, not this app: pnpm links `next` from
+  // ../../node_modules, and Turbopack refuses to compile files outside the root,
+  // so pinning it to apps/web fails the build outright.
+  turbopack: { root: path.join(import.meta.dirname, "../..") },
 
   async headers() {
     return [

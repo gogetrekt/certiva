@@ -16,8 +16,8 @@ import { apiFetch, type VerificationResponse } from "../../../lib/api";
 import { formatDateTime } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
 import type { Dictionary } from "../../../lib/i18n-dictionary";
+import { polygonAmoyTxUrl } from "../../../lib/polygon-explorer";
 
-const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
 interface VerifyResultPageProps {
   params: Promise<{ verificationId: string }>;
@@ -324,7 +324,7 @@ export default async function VerifyResultPage({ params }: VerifyResultPageProps
               {verification.txHash && (
                 <div className="border-t border-[hsl(var(--border-default))] px-5 py-4">
                   <a
-                    href={`${POLYGON_AMOY_EXPLORER_URL}/tx/${verification.txHash}`}
+                    href={polygonAmoyTxUrl(verification.txHash)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors"

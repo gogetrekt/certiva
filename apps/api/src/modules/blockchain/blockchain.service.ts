@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { Credential, Issuer } from '@prisma/client';
 import {
   type Address,
@@ -48,6 +48,8 @@ interface AnchorableRecord {
 
 @Injectable()
 export class BlockchainService {
+  private readonly logger = new Logger(BlockchainService.name);
+
   constructor(private readonly configService: AppConfigService) {}
 
   async anchorCredential(
@@ -256,7 +258,16 @@ export class BlockchainService {
         anchoredAt: record.anchoredAt ?? proof.issuedAt,
         proof,
       };
-    } catch {
+    } catch (error) {
+      // `unavailable` is the honest answer to the caller either way, but on our
+      // side an RPC that is down and a bug in the decoding above are not the
+      // same problem, and without this line they are indistinguishable.
+      this.logger.warn(
+        `On-chain proof lookup for credential ${record.id} failed; reporting status as unavailable: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+
       return {
         blockchainStatus: BLOCKCHAIN_PROOF_STATUS.unavailable,
         blockchainVerified: false,

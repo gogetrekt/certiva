@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getApiBaseUrl } from "../../../../lib/api";
-
-const cookieSecure = process.env.COOKIE_SECURE === "true";
+import { cookieSecure } from "../../../../lib/env";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {

@@ -63,6 +63,10 @@ export function QrCodeCard({
       <div className="flex flex-col sm:flex-row items-start gap-5 p-5">
         <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border-default))] bg-[hsl(var(--bg-subtle))] p-3">
           {dataUrl ? (
+            // `dataUrl` is a `data:` URI generated in the browser by `qrcode`.
+            // next/image has nothing to fetch, resize or cache here, and routing
+            // a data URI through the optimizer would only add work.
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={dataUrl} alt={`${t.forms.qrCode.altPrefix} ${verificationId}`} className="h-full w-full" />
           ) : (
             <div className="skeleton h-full w-full rounded-md" />

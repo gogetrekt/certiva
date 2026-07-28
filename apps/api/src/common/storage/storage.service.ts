@@ -48,17 +48,4 @@ export class StorageService implements StorageProvider, OnModuleInit {
   deletePrefix(prefix: string): Promise<void> {
     return this.provider.deletePrefix(prefix);
   }
-
-  /** Returns the raw provider for migration tooling. */
-  getProvider(): StorageProvider {
-    return this.provider;
-  }
-
-  isLocal(): boolean {
-    return this.provider instanceof LocalStorageProvider;
-  }
-
-  isR2(): boolean {
-    return this.provider instanceof R2StorageProvider;
-  }
 }

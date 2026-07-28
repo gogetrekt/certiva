@@ -8,7 +8,10 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "strictNullChecks": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    // Required by the hybrid module kind this project uses; without it ts-jest
+    // prints TS151002 on every single test run.
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]

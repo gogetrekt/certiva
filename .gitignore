@@ -30,6 +30,7 @@ apps/api/storage/
 CLAUDE.md
 
 # build artifacts (generated)
+*.tsbuildinfo
 dist-emit/
 apps/api/dist-emit/
 packages/contracts/artifacts/

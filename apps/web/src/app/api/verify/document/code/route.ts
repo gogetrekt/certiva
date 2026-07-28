@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { bffProxy, getApiBaseUrl } from "../../../../../lib/api";
 
 export async function POST(request: Request) {

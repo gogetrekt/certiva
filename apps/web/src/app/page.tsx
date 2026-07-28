@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   FileText,
-  IdentificationCard,
   ShieldCheck,
   Cube,
   Fingerprint,

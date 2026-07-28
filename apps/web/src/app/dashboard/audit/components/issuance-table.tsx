@@ -5,6 +5,7 @@ import type { LatestIssuanceRecord, LatestRevocationRecord } from "../../../../l
 import { StatusBadge } from "../../../../components/status-badge";
 import { formatDate } from "../../../../lib/date-format";
 import { getServerDictionary } from "../../../../lib/i18n-server";
+import { polygonAmoyTxUrl } from "../../../../lib/polygon-explorer";
 
 // --- Latest issuances ---------------------------------------------------------
 
@@ -75,7 +76,7 @@ export async function IssuanceTable({ items }: { items: LatestIssuanceRecord[] }
                   <td className="td-cell-sm max-w-[120px]">
                     {item.txHash ? (
                       <a
-                        href={`https://amoy.polygonscan.com/tx/${item.txHash}`}
+                        href={polygonAmoyTxUrl(item.txHash)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hash-text text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors truncate"
@@ -164,7 +165,7 @@ export async function RevocationTable({ items }: { items: LatestRevocationRecord
                   <td className="td-cell-sm max-w-[120px]">
                     {item.revocationTxHash ? (
                       <a
-                        href={`https://amoy.polygonscan.com/tx/${item.revocationTxHash}`}
+                        href={polygonAmoyTxUrl(item.revocationTxHash)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hash-text text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--text-primary))] transition-colors truncate"

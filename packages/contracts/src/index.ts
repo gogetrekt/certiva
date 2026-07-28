@@ -1,7 +1,4 @@
-export const CREDENTIAL_REGISTRY_CONTRACT_NAME = "CredentialRegistry";
-export const CREDENTIAL_REGISTRY_AMOY_ADDRESS = "0x34FEb3321bc0326652776D44CD3208B10F3b527D";
 export const POLYGON_AMOY_CHAIN_ID = 80_002;
-export const POLYGON_AMOY_EXPLORER_URL = "https://amoy.polygonscan.com";
 
 export const credentialRegistryAbi = [
   {
@@ -955,11 +952,3 @@ export const credentialRegistryAbi = [
 ] as const;
 
 export type CredentialRegistryAbi = typeof credentialRegistryAbi;
-
-export function getPolygonAmoyTransactionUrl(txHash: string) {
-  return `${POLYGON_AMOY_EXPLORER_URL}/tx/${txHash}`;
-}
-
-export function getPolygonAmoyAddressUrl(address: string) {
-  return `${POLYGON_AMOY_EXPLORER_URL}/address/${address}`;
-}

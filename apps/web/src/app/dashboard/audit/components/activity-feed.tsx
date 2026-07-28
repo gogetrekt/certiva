@@ -184,7 +184,7 @@ interface ActivityFeedProps {
   token: string;
 }
 
-export function ActivityFeed({ initialItems, initialTotal, token }: ActivityFeedProps) {
+export function ActivityFeed({ initialItems, initialTotal }: ActivityFeedProps) {
   const { t } = useLanguage();
   const [items, setItems] = useState<ActivityFeedItem[]>(initialItems);
   const [total, setTotal] = useState(initialTotal);

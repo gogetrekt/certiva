@@ -19,10 +19,11 @@ import {
   buildProofConfig,
   buildProofHashData,
 } from '../vc/vc-proof.util';
-import {
-  SIGNING_KEY_PROVIDER,
-  SigningKeyProvider,
-} from './signing-key.provider';
+import { SIGNING_KEY_PROVIDER } from './signing-key.provider';
+// `import type` is required, not stylistic: with isolatedModules +
+// emitDecoratorMetadata a type named in a decorated signature must be erased at
+// the import site (TS1272). The DI token above does the runtime work.
+import type { SigningKeyProvider } from './signing-key.provider';
 
 export interface CredentialSignature {
   signature: string;

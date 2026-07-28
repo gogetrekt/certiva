@@ -18,13 +18,9 @@
     "schema": "apps/api/prisma/schema.prisma"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^4.0.3",
-    "@nomicfoundation/hardhat-viem": "^3.0.7",
     "@types/node": "^20",
-    "ethers": "^6.15.0",
     "prisma": "^6.19.3",
     "turbo": "^2.1.0",
-    "typescript": "^5.9.3",
-    "viem": "^2.48.11"
+    "typescript": "^5.9.3"
   }
 }

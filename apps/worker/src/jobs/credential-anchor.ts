@@ -15,6 +15,11 @@ const ANCHOR_STATUS = {
   pending: "PENDING",
   anchored: "ANCHORED",
   failed: "FAILED",
+  // A revoke that ran out of attempts. Distinct from `failed` on purpose: the
+  // credential IS anchored on chain and IS revoked in the database, only the
+  // on-chain revocation never landed. Collapsing it into FAILED would read as
+  // "never anchored" and hide the one case that needs reconciling by hand.
+  revokeFailed: "REVOKE_FAILED",
 } as const;
 
 function safeLog(
@@ -181,13 +186,29 @@ export async function processCredentialAnchor(
     });
 
     await prisma.$transaction(async (tx) => {
-      if (job.data.operation === BLOCKCHAIN_OPERATION.anchor && finalAttempt) {
+      // Only the two operations this queue actually runs get a status written.
+      // An unrecognised operation is a programming error, not a chain failure —
+      // it gets the lifecycle log below and nothing else, rather than being
+      // mislabelled as a failed revoke.
+      const finalStatus = finalAttempt
+        ? job.data.operation === BLOCKCHAIN_OPERATION.anchor
+          ? {
+              anchorStatus: ANCHOR_STATUS.failed,
+              chainStatus: ANCHOR_STATUS.failed,
+            }
+          : job.data.operation === BLOCKCHAIN_OPERATION.revoke
+            ? // A revoke keeps its anchorStatus: the anchoring itself succeeded
+              // and rewriting it to FAILED would erase that. Only chainStatus
+              // moves, to the one value that says "on-chain state disagrees
+              // with the database and a human has to settle it".
+              { chainStatus: ANCHOR_STATUS.revokeFailed }
+            : null
+        : null;
+
+      if (finalStatus) {
         await tx.credential.update({
           where: { id: credential.id },
-          data: {
-            anchorStatus: ANCHOR_STATUS.failed,
-            chainStatus: ANCHOR_STATUS.failed,
-          },
+          data: finalStatus,
         });
       }
 

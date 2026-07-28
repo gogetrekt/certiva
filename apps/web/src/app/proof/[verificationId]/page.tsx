@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import {
   CheckCircle,
@@ -10,7 +9,6 @@ import {
 
 import { DocumentProofCodeForm } from "../../../components/document-proof-code-form";
 import { SiteHeader } from "../../../components/site-header";
-import { StatusBadge } from "../../../components/status-badge";
 import { apiFetch, type DocumentProofVerificationResponse } from "../../../lib/api";
 import { formatDate, formatDateTime } from "../../../lib/date-format";
 import { getServerDictionary } from "../../../lib/i18n-server";
