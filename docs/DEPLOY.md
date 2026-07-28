@@ -205,6 +205,45 @@ still reachable at `/api/institution/did.json`, and a proxy-level rewrite from
 the VC export is still cryptographically valid but external verifiers cannot
 resolve the issuer's keys.
 
+**Move existing local assets to Cloudflare R2**
+
+Only needed when switching a deployment that already has data from
+`STORAGE_DRIVER=local` to `STORAGE_DRIVER=r2`. A fresh install has nothing to
+move.
+
+The script does not read `.env` — export the R2 credentials into the process
+yourself:
+
+```bash
+cd apps/api
+export R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
+export R2_BUCKET="<bucket>"
+export R2_ACCESS_KEY_ID="<key-id>"
+export R2_SECRET_ACCESS_KEY="<secret>"
+export ASSET_STORAGE_ROOT="storage"        # optional, this is the default
+export R2_FORCE_PATH_STYLE="true"          # optional, this is the default
+```
+
+Dry run first. Without `--apply` it uploads nothing — it lists every file it
+would send, with size and sha256:
+
+```bash
+npx ts-node -T scripts/migrate-assets-to-r2.ts
+```
+
+When the list looks right:
+
+```bash
+npx ts-node -T scripts/migrate-assets-to-r2.ts --apply
+```
+
+- Safe to re-run: an object that already exists in R2 is skipped. Pass `--force`
+  to re-upload it anyway.
+- **Local files are never deleted**, by either mode. Keep them as the backup
+  until you have flipped `STORAGE_DRIVER=r2` and confirmed that credential PDFs,
+  QR codes and metadata all serve correctly.
+- Exit code is non-zero if any upload failed; re-run to retry just the failures.
+
 **Stop / restart**
 
 ```bash
@@ -227,6 +266,13 @@ verify.your-univ.ac.id {
 If you must expose the API directly (e.g. for external integrations),
 uncomment the `ports` block on the `api` service in `docker-compose.prod.yml`
 and proxy `/api` to `localhost:4000`.
+
+> **If you exposed the API directly, firewall it to your proxy's addresses.** The
+> API trusts `cf-connecting-ip` whenever it is present, regardless of
+> `TRUST_PROXY`. On a port anyone can reach, a caller can set that header
+> themselves — which forges the IP written to the audit trail and hands them a
+> fresh rate-limit bucket on every request, including on login. See
+> [SECURITY.md](../SECURITY.md) under *How the client IP is resolved*.
 
 ## 7. Troubleshooting
 

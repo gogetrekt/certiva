@@ -103,6 +103,32 @@ Every Admin record carries a `tokenVersion` integer. The JWT strategy validates 
 - Set `TRUST_PROXY=true` when the API runs behind Cloudflare, a reverse proxy, or a tunnel.
 - Required for correct IP extraction from `X-Forwarded-For` headers.
 
+#### How the client IP is resolved
+
+Every consumer of the client IP goes through one function,
+`apps/api/src/common/http/resolve-client-ip.ts` — the rate limiter, the login
+audit trail, and both public verification paths (credential and document proof).
+There is no second implementation, so the rules below hold everywhere the IP is
+recorded or rate-limited.
+
+Precedence, first match wins:
+
+1. `cf-connecting-ip`, if present.
+2. The first entry of `x-forwarded-for` — **only when `TRUST_PROXY=true`**.
+3. `req.ip`, falling back to `req.socket.remoteAddress`, else `"unknown"`.
+
+Two consequences worth stating plainly:
+
+- `TRUST_PROXY=false` does not mean "ignore all client-supplied headers". It
+  gates `x-forwarded-for` only. `cf-connecting-ip` is honoured either way.
+- `cf-connecting-ip` is trustworthy exactly to the extent that requests cannot
+  reach the API except through Cloudflare. If the origin is also reachable
+  directly — a VPS with an open port while DNS points at Cloudflare, for example
+  — then a caller can set that header freely, which both attributes audit
+  entries to an address of their choosing and gives them a fresh rate-limit
+  bucket per request. **Firewall the origin so it only accepts traffic from your
+  proxy.** That is a deployment requirement, not an optional hardening step.
+
 ### NODE_ENV and APP_ENV
 
 - Set `NODE_ENV=production` in staging and production. This enables production-mode secret validation and disables development fallbacks.

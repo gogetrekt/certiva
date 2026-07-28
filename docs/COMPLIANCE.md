@@ -93,7 +93,10 @@ institution's own Cloudflare R2 bucket.
 - **Verification logs** hold relying-party IP addresses; institutions with a
   data-minimisation obligation should define a retention window and prune old
   verification logs accordingly. (The audit log is intentionally *not* pruned —
-  see §6.)
+  see §6.) How that address is derived — and the one deployment condition under
+  which it can be set by the caller rather than observed — is documented in
+  [SECURITY.md](../SECURITY.md) under *How the client IP is resolved*. Treat a
+  recorded IP as evidence only if that condition is met.
 
 ## 6. Audit integrity (tamper-evidence)
 
