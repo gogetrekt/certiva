@@ -21,6 +21,7 @@ import {
   ANCHOR_STATUS,
   BLOCKCHAIN_JOB_NAMES,
   BLOCKCHAIN_OPERATION,
+  CHAIN_STATUS,
 } from './blockchain.constants';
 import { BlockchainQueueService } from './blockchain-queue.service';
 
@@ -175,10 +176,11 @@ describe('BlockchainQueueService', () => {
     });
   });
 
-  it('always appends a lifecycle row, whatever the operation', async () => {
-    // Deliberately asserts only the log, not the credential columns: the revoke
-    // branch of markQueueFailure leaves chainStatus untouched, which is recorded
-    // as an open finding rather than pinned as intended behaviour here.
+  it('records a revoke enqueue failure as REVOKE_ENQUEUE_FAILED, not REVOKE_FAILED', async () => {
+    // The distinction is the whole point of the status. REVOKE_FAILED means the
+    // worker picked the job up and every on-chain attempt failed; this branch
+    // means the job never got queued, so nothing was attempted. Leaving it as
+    // ANCHORED — what this used to do — reads as a healthy credential.
     const { service, tx } = build();
 
     await service.markQueueFailure(
@@ -187,11 +189,45 @@ describe('BlockchainQueueService', () => {
       'redis unreachable',
     );
 
+    expect(update(tx)).toHaveBeenCalledWith({
+      where: { id: 'cred_123' },
+      data: { chainStatus: CHAIN_STATUS.revokeEnqueueFailed },
+    });
     expect(create(tx)).toHaveBeenCalledWith({
       data: containing({
         operation: BLOCKCHAIN_OPERATION.revoke,
         status: ANCHOR_STATUS.failed,
       }),
+    });
+  });
+
+  it('leaves anchorStatus alone on a revoke failure, because the anchor did land', async () => {
+    const { service, tx } = build();
+
+    await service.markQueueFailure(
+      'cred_123',
+      BLOCKCHAIN_OPERATION.revoke,
+      'redis unreachable',
+    );
+
+    const data = update(tx).mock.calls[0][0] as { data: object };
+    expect(data.data).not.toHaveProperty('anchorStatus');
+  });
+
+  it('logs but touches no credential column for an operation it does not know', async () => {
+    // An unrecognised operation is a programming error, not a credential whose
+    // status is known to be wrong. Guessing one would corrupt a healthy row.
+    const { service, tx } = build();
+
+    await service.markQueueFailure(
+      'cred_123',
+      'SOMETHING_ELSE',
+      'redis unreachable',
+    );
+
+    expect(update(tx)).not.toHaveBeenCalled();
+    expect(create(tx)).toHaveBeenCalledWith({
+      data: containing({ status: ANCHOR_STATUS.failed }),
     });
   });
 });

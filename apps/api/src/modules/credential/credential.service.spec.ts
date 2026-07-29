@@ -7,6 +7,7 @@ import type { BlockchainQueueService } from '../blockchain/blockchain-queue.serv
 import type { InstitutionService } from '../institution/institution.service';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import type { CredentialAssetsService } from './credential-assets.service';
+import { BLOCKCHAIN_OPERATION } from '../blockchain/blockchain.constants';
 import { CredentialService } from './credential.service';
 import { DEFAULT_CREDENTIAL_PAGE_SIZE } from './dto/list-credentials.dto';
 
@@ -156,5 +157,84 @@ describe('CredentialService.list', () => {
       studentId: { contains: 'PAGI-1', mode: 'insensitive' },
       studentName: { contains: 'Budi', mode: 'insensitive' },
     });
+  });
+});
+
+/**
+ * The bulk path used to swallow an enqueue failure into a `logger.warn` and
+ * nothing else — no credential column, no lifecycle row — while the single
+ * revoke next to it recorded both. Revoking 200 credentials with Redis down
+ * therefore left 200 rows still reading ANCHORED, with the only evidence on
+ * stdout. What the recorded status means is pinned in
+ * `blockchain-queue.service.spec.ts`; this pins that the bulk path records at
+ * all.
+ */
+describe('CredentialService.bulkRevoke', () => {
+  const admin = {
+    sub: 'admin_1',
+    email: 'admin@example.test',
+    username: 'admin',
+    role: 'ADMIN',
+  } as unknown as JwtPayload;
+
+  const build = () => {
+    const tx = {
+      credential: { update: jest.fn().mockResolvedValue({}) },
+      auditLog: { create: jest.fn().mockResolvedValue({}) },
+    };
+    const prisma = {
+      credential: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'cred_1',
+          issuerId: 'issuer_1',
+          revoked: false,
+          studentName: 'Budi',
+          degree: 'S.Kom',
+        }),
+      },
+      $transaction: jest.fn((cb: (t: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+
+    const markQueueFailure = jest.fn().mockResolvedValue(undefined);
+    const blockchainQueue = {
+      enqueueRevoke: jest
+        .fn()
+        .mockRejectedValue(new Error('redis unreachable')),
+      markQueueFailure,
+    } as unknown as BlockchainQueueService;
+
+    const service = new CredentialService(
+      prisma,
+      {} as CredentialAssetsService,
+      blockchainQueue,
+      {
+        resolveInstitutionId: jest.fn().mockResolvedValue('issuer_1'),
+      } as unknown as InstitutionService,
+      {} as AppConfigService,
+      {} as PdfReferenceService,
+      {} as AuditLogService,
+      {} as SigningKeyService,
+    );
+
+    return { service, markQueueFailure };
+  };
+
+  it('records a failed revoke enqueue instead of only logging it', async () => {
+    const { service, markQueueFailure } = build();
+
+    const result = await service.bulkRevoke(
+      admin,
+      ['cred_1'],
+      'DATA_CORRECTION',
+    );
+
+    expect(markQueueFailure).toHaveBeenCalledWith(
+      'cred_1',
+      BLOCKCHAIN_OPERATION.revoke,
+      'redis unreachable',
+    );
+    // Still counted as revoked: the database revocation did commit, only the
+    // chain write is outstanding.
+    expect(result.revoked).toBe(1);
   });
 });

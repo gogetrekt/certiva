@@ -7,6 +7,7 @@ import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   ANCHOR_STATUS,
+  CHAIN_STATUS,
   BLOCKCHAIN_JOB_ATTEMPTS,
   BLOCKCHAIN_JOB_NAMES,
   BLOCKCHAIN_OPERATION,
@@ -101,13 +102,29 @@ export class BlockchainQueueService implements OnModuleDestroy {
     message: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      if (operation === BLOCKCHAIN_OPERATION.anchor) {
+      // Same shape as the worker's final-attempt handler, one step earlier in
+      // the pipeline: the job never made it onto the queue, so no chain write
+      // was ever attempted. An unrecognised operation gets the lifecycle log
+      // below and nothing else — that is a programming error, not a credential
+      // whose status is known to be wrong.
+      const failedStatus =
+        operation === BLOCKCHAIN_OPERATION.anchor
+          ? {
+              anchorStatus: ANCHOR_STATUS.failed,
+              chainStatus: CHAIN_STATUS.failed,
+            }
+          : operation === BLOCKCHAIN_OPERATION.revoke
+            ? // anchorStatus is left alone: the credential really is anchored.
+              // REVOKE_ENQUEUE_FAILED rather than REVOKE_FAILED because the job
+              // never reached the worker, so the on-chain revocation was not
+              // attempted and failed — it was never tried at all.
+              { chainStatus: CHAIN_STATUS.revokeEnqueueFailed }
+            : null;
+
+      if (failedStatus) {
         await tx.credential.update({
           where: { id: credentialId },
-          data: {
-            anchorStatus: ANCHOR_STATUS.failed,
-            chainStatus: ANCHOR_STATUS.failed,
-          },
+          data: failedStatus,
         });
       }
 

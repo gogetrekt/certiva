@@ -9,7 +9,39 @@ export type VerificationResult =
   | "REVOKED"
   | "NOT_FOUND"
   | "TAMPERED";
-export type AnchorStatus = "PENDING" | "ANCHORED" | "FAILED";
+/**
+ * What `anchorStatus` can hold: the lifecycle of the anchoring write itself.
+ * The values used to be written out as a union here and duplicated as a const
+ * object in both the API and the worker, which is how the worker ended up
+ * writing a status (`REVOKE_FAILED`) that this file had never heard of.
+ */
+export const ANCHOR_STATUS = {
+  pending: "PENDING",
+  anchored: "ANCHORED",
+  failed: "FAILED",
+} as const;
+
+export type AnchorStatus = (typeof ANCHOR_STATUS)[keyof typeof ANCHOR_STATUS];
+
+/**
+ * What `chainStatus` can hold. It is the wider column: on top of the anchoring
+ * lifecycle it carries the two ways a revocation fails to land on chain, which
+ * `anchorStatus` must never take — a credential whose revoke failed is still
+ * anchored, and overwriting that would erase the fact.
+ *
+ * Those two are deliberately separate values. `REVOKE_FAILED` means the job
+ * reached the worker and every on-chain attempt failed. `REVOKE_ENQUEUE_FAILED`
+ * means the job never got queued, so nothing was ever attempted on chain.
+ * Collapsing them would tell whoever investigates the incident later that a
+ * chain write was tried when none ever was.
+ */
+export const CHAIN_STATUS = {
+  ...ANCHOR_STATUS,
+  revokeFailed: "REVOKE_FAILED",
+  revokeEnqueueFailed: "REVOKE_ENQUEUE_FAILED",
+} as const;
+
+export type ChainStatus = (typeof CHAIN_STATUS)[keyof typeof CHAIN_STATUS];
 export type BlockchainProofStatus =
   | "ON_CHAIN_VERIFIED"
   | "ISSUER_UNAUTHORIZED"

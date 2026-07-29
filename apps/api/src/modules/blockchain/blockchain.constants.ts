@@ -5,18 +5,17 @@ import { POLYGON_AMOY_CHAIN_ID } from './credential-registry.contract';
 // call sites keep importing blockchain constants from one place.
 export { BLOCKCHAIN_OPERATION } from '@certiva/types';
 
+// Likewise for the status values. `ANCHOR_STATUS` is what `anchorStatus` may
+// hold; `CHAIN_STATUS` is the wider set `chainStatus` may hold. See the comments
+// on both in `@certiva/types`.
+export { ANCHOR_STATUS, CHAIN_STATUS } from '@certiva/types';
+
 export const BLOCKCHAIN_QUEUE_NAME = 'credential-anchor';
 export const BLOCKCHAIN_JOB_NAMES = {
   anchor: 'ANCHOR_ISSUANCE',
   revoke: 'REVOKE_CREDENTIAL',
   anchorBatch: 'ANCHOR_BATCH',
   anchorDocumentProof: 'ANCHOR_DOCUMENT_PROOF',
-} as const;
-
-export const ANCHOR_STATUS = {
-  pending: 'PENDING',
-  anchored: 'ANCHORED',
-  failed: 'FAILED',
 } as const;
 
 export const BLOCKCHAIN_PROOF_STATUS = {

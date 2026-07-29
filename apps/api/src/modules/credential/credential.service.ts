@@ -576,12 +576,22 @@ export class CredentialService {
         try {
           await this.blockchainQueueService.enqueueRevoke(id);
         } catch (error) {
-          // Non-fatal: credential is revoked in the registry; the anchor can
-          // be retried. Log so the failed enqueue is not silently lost.
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'Unable to enqueue revoke job.';
+          // Non-fatal: the credential is revoked in the registry and the chain
+          // revocation can be retried. It must still land on the credential and
+          // the lifecycle log, exactly as the single revoke does — a warning on
+          // stdout is not a record. Bulk-revoking with Redis down would
+          // otherwise leave every row reading ANCHORED with no trace anywhere.
+          await this.blockchainQueueService.markQueueFailure(
+            id,
+            BLOCKCHAIN_OPERATION.revoke,
+            message,
+          );
           this.logger.warn(
-            `Blockchain revoke enqueue failed for credential ${id}: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
+            `Blockchain revoke enqueue failed for credential ${id}: ${message}`,
           );
         }
 
