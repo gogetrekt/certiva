@@ -20,6 +20,7 @@ import { AppConfigService } from '../../config/app-config.service';
 import { RateLimit, RATE_LIMIT_RULE } from '../../common/rate-limit';
 import { CredentialAssetsService } from '../credential/credential-assets.service';
 import { CredentialService } from '../credential/credential.service';
+import { VerifyCredentialCodeDto } from './dto/verify-credential-code.dto';
 import { VerifyCredentialDto } from './dto/verify-credential.dto';
 import { VerificationService } from './verification.service';
 import { MAX_UPLOAD_SIZE_BYTES } from '../../common/services/pdf-reference.service';
@@ -45,13 +46,12 @@ export class VerificationController {
   @Post('verify/credential/code')
   @RateLimit(RATE_LIMIT_RULE.VERIFICATION)
   verifyCredentialCode(
-    @Body('verificationCode') verificationCode: string | undefined,
-    @Body('verificationId') verificationId: string | undefined,
+    @Body() dto: VerifyCredentialCodeDto,
     @Req() req: Request,
   ) {
     const ipAddress = this.resolveRequestIp(req);
     return this.verificationService.verifyCredentialCode(
-      verificationCode ?? verificationId ?? '',
+      dto.verificationCode ?? dto.verificationId ?? '',
       ipAddress,
     );
   }

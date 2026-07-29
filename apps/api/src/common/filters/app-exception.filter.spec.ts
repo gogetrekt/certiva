@@ -1,4 +1,5 @@
 import { ArgumentsHost, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import type { AppConfigService } from '../../config/app-config.service';
 import { AppExceptionFilter } from './app-exception.filter';
@@ -82,5 +83,54 @@ describe('AppExceptionFilter — pre-Nest middleware errors', () => {
     filter.catch(new Error('boom'), host);
 
     expect(status).toHaveBeenCalledWith(500);
+  });
+
+  /**
+   * A Prisma error message quotes the absolute path and line number of the
+   * call site, a snippet of the surrounding source, and the whole `where`
+   * clause including column names. `POST /verify/credential/code` is public
+   * and unauthenticated, so an anonymous caller was able to read all of it by
+   * sending an array where a string was expected. The filter is the right
+   * place for the guard — a DTO on one route protects one route.
+   *
+   * Note `isExposedEnv: false` in `build()`: this asserts the leak is closed
+   * in development too, not only in staging and production.
+   */
+  it('does not leak the Prisma query, path or line number', () => {
+    const { filter, host, status, json } = build();
+
+    filter.catch(
+      new Prisma.PrismaClientValidationError(
+        '\nInvalid `this.prisma.credential.findFirst()` invocation in\n' +
+          '/home/user/app/apps/api/src/modules/verification/verification.service.ts:194:53\n\n' +
+          '  where: { deletedAt: null, OR: [ { credentialExternalId: ["a","b"] } ] }',
+        { clientVersion: '6.0.0' },
+      ),
+      host,
+    );
+
+    expect(status).toHaveBeenCalledWith(500);
+
+    const body = JSON.stringify(
+      (json as jest.Mock<unknown, [unknown]>).mock.calls[0][0],
+    );
+    expect(body).not.toContain('/home/');
+    expect(body).not.toContain('.service.ts:');
+    expect(body).not.toContain('credentialExternalId');
+    expect(body).not.toContain('findFirst');
+  });
+
+  it('keeps the mapped Prisma codes mapped', () => {
+    const { filter, host, status } = build();
+
+    filter.catch(
+      new Prisma.PrismaClientKnownRequestError('unique violation', {
+        code: 'P2002',
+        clientVersion: '6.0.0',
+      }),
+      host,
+    );
+
+    expect(status).toHaveBeenCalledWith(409);
   });
 });

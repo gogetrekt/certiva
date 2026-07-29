@@ -89,6 +89,20 @@ export class AppExceptionFilter implements ExceptionFilter {
       }
     }
 
+    // Every other Prisma error is opaque to the caller, in every environment.
+    // Their messages embed the absolute path and line number of the call site,
+    // a snippet of the source, and the full `where` clause with its column
+    // names — PrismaClientValidationError prints all of it. The development
+    // branch at the bottom of this method returns `exception.message` as-is, so
+    // without this the leak is only suppressed in staging and production.
+    if (this.isPrismaError(exception)) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred.',
+      };
+    }
+
     if (exception instanceof HttpException) {
       const statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -147,6 +161,22 @@ export class AppExceptionFilter implements ExceptionFilter {
       error: name,
       message,
     };
+  }
+
+  /**
+   * Covers every Prisma client error class, not just the validation one: the
+   * known-request errors that were not matched above carry the same query
+   * detail in their message, and a rust-panic or initialization error can carry
+   * connection strings.
+   */
+  private isPrismaError(exception: unknown) {
+    return (
+      exception instanceof Prisma.PrismaClientValidationError ||
+      exception instanceof Prisma.PrismaClientKnownRequestError ||
+      exception instanceof Prisma.PrismaClientUnknownRequestError ||
+      exception instanceof Prisma.PrismaClientInitializationError ||
+      exception instanceof Prisma.PrismaClientRustPanicError
+    );
   }
 
   /**
