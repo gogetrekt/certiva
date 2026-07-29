@@ -7,6 +7,8 @@ import type { BlockchainQueueService } from '../blockchain/blockchain-queue.serv
 import type { InstitutionService } from '../institution/institution.service';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import type { CredentialAssetsService } from './credential-assets.service';
+import { NotFoundException } from '@nestjs/common';
+
 import { BLOCKCHAIN_OPERATION } from '../blockchain/blockchain.constants';
 import { CredentialService } from './credential.service';
 import { DEFAULT_CREDENTIAL_PAGE_SIZE } from './dto/list-credentials.dto';
@@ -157,6 +159,56 @@ describe('CredentialService.list', () => {
       studentId: { contains: 'PAGI-1', mode: 'insensitive' },
       studentName: { contains: 'Budi', mode: 'insensitive' },
     });
+  });
+});
+
+/**
+ * `findOneOrThrow` is the shared read behind the two unauthenticated asset
+ * endpoints (`GET /credentials/:id/metadata` and `:id/qr`). It used to call
+ * `findUnique({ where: { id } })`, so a credential an admin had soft-deleted
+ * still returned the student name, degree, issue date and issuer to anyone
+ * holding the id. The filter belongs in this function rather than in the two
+ * controllers, because all six call sites route through it.
+ */
+describe('CredentialService.findOneOrThrow', () => {
+  const build = (row: unknown) => {
+    const findFirst = jest.fn().mockResolvedValue(row);
+    const prisma = {
+      credential: { findFirst },
+    } as unknown as PrismaService;
+
+    const service = new CredentialService(
+      prisma,
+      {} as CredentialAssetsService,
+      {} as BlockchainQueueService,
+      {} as InstitutionService,
+      {} as AppConfigService,
+      {} as PdfReferenceService,
+      {} as AuditLogService,
+      {} as SigningKeyService,
+    );
+
+    return { service, findFirst };
+  };
+
+  it('excludes soft-deleted rows from the query', async () => {
+    const { service, findFirst } = build({ id: 'cred_1' });
+
+    await service.findOneOrThrow('cred_1');
+
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'cred_1', deletedAt: null },
+      }),
+    );
+  });
+
+  it('is a 404, not an empty 200, when the row is soft-deleted', async () => {
+    const { service } = build(null);
+
+    await expect(service.findOneOrThrow('cred_1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
 

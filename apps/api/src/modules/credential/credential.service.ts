@@ -733,8 +733,10 @@ export class CredentialService {
   }
 
   async findOneOrThrow(id: string) {
-    const credential = await this.prisma.credential.findUnique({
-      where: { id },
+    // Soft-deleted credentials must stay invisible here: this is the shared
+    // read used by the public metadata/QR endpoints.
+    const credential = await this.prisma.credential.findFirst({
+      where: { id, deletedAt: null },
       include: {
         issuer: true,
       },
