@@ -253,6 +253,17 @@ docker compose -f docker-compose.prod.yml down -v     # ⚠️ also deletes DB +
 
 ## 6. HTTPS / reverse proxy
 
+> **REQUIRED — the origin ports must not be reachable from the internet.** All
+> traffic must arrive through Cloudflare (or an equivalent trusted reverse
+> proxy) as the single entry point, because the application trusts
+> `cf-connecting-ip` with no further verification and regardless of
+> `TRUST_PROXY`. This is a prerequisite for the deployment being correct, not a
+> hardening tip: on a port anyone can reach, a caller sets that header itself,
+> which forges the IP written to the audit trail and hands them a fresh
+> rate-limit bucket on every request — including the login limiter. See
+> [SECURITY.md](../SECURITY.md) under *How the client IP is resolved*, and
+> verify it as described under **Confirming the origin is not exposed** below.
+
 Point your proxy at the `web` container (`:3000`) and let it handle TLS. The API
 is only reached by the web BFF over the internal Docker network, so it does not
 need to be exposed publicly. Minimal Caddy example:
@@ -263,16 +274,41 @@ verify.your-univ.ac.id {
 }
 ```
 
-If you must expose the API directly (e.g. for external integrations),
-uncomment the `ports` block on the `api` service in `docker-compose.prod.yml`
-and proxy `/api` to `localhost:4000`.
+If you must reach the API directly (e.g. for external integrations), uncomment
+the `ports` block on the `api` service in `docker-compose.prod.yml` — published
+as `"127.0.0.1:4000:4000"`, not `"4000:4000"` — and route `/api` through the
+same proxy. Opening port 4000 to the internet is not an option here; see below.
 
-> **If you exposed the API directly, firewall it to your proxy's addresses.** The
-> API trusts `cf-connecting-ip` whenever it is present, regardless of
-> `TRUST_PROXY`. On a port anyone can reach, a caller can set that header
-> themselves — which forges the IP written to the audit trail and hands them a
-> fresh rate-limit bucket on every request, including on login. See
-> [SECURITY.md](../SECURITY.md) under *How the client IP is resolved*.
+### Confirming the origin is not exposed
+
+`docker-compose.prod.yml` publishes web as `"${WEB_PORT:-3000}:3000"`. A host
+port written without an address binds to **every** interface, so out of the box
+`http://<server-ip>:3000` answers from the internet and bypasses Cloudflare
+entirely. The same applies to the `api` `ports` block if you uncomment it. Two
+ways to close it, and you need at least one:
+
+- **Bind to loopback** — publish as `"127.0.0.1:${WEB_PORT:-3000}:3000"` (and
+  `"127.0.0.1:4000:4000"` for `api`) when the reverse proxy runs on the same
+  host. Docker then never opens the port on the public interface, so there is no
+  firewall rule to forget.
+- **Firewall to the proxy** — when the proxy is on another host, keep the bind
+  but allow the port only from its addresses. For Cloudflare that means the
+  published [IP ranges](https://www.cloudflare.com/ips/), default-deny for
+  everything else. Note that Docker writes its own `iptables` rules ahead of
+  UFW's, so a `ufw deny 3000` alone does not hold — use `DOCKER-USER` (or
+  `nftables`) for the rule.
+
+Verify from a machine outside your network, not from the server:
+
+```bash
+curl -sS --max-time 5 -o /dev/null -w '%{http_code}\n' http://<server-ip>:3000
+curl -sS --max-time 5 -o /dev/null -w '%{http_code}\n' http://<server-ip>:4000/api/health
+```
+
+A connection refused or timeout is the passing result. Any HTTP status back
+means the origin is reachable directly and the prerequisite above is not met.
+Re-run this after every infrastructure change: a compose edit, a firewall
+reload, or a host move can reopen the port silently.
 
 ## 7. Troubleshooting
 
