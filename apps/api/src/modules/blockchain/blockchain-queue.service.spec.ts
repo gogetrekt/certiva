@@ -15,6 +15,8 @@ jest.mock('ioredis', () => ({
   })),
 }));
 
+import IORedis from 'ioredis';
+
 import type { AppConfigService } from '../../config/app-config.service';
 import type { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -90,6 +92,34 @@ describe('BlockchainQueueService', () => {
   afterEach(() => {
     built.splice(0);
     jest.clearAllMocks();
+  });
+
+  /**
+   * The producer connection used maxRetriesPerRequest: null and left
+   * enableOfflineQueue at its default of true. With Redis down, queue.add()
+   * parked the command in ioredis' in-memory offline queue and never settled,
+   * so the request hung rather than failing — and every
+   * catch { markQueueFailure(...) } around an enqueue, including the
+   * REVOKE_ENQUEUE_FAILED path, was unreachable in the failure mode most
+   * likely to happen. BullMQ needs maxRetriesPerRequest: null on a *Worker*
+   * connection; on the producer side, failing fast is what is wanted.
+   */
+  it('opens the producer connection in fail-fast mode', () => {
+    build();
+
+    const ctor = IORedis as unknown as jest.Mock<
+      unknown,
+      [string, Record<string, unknown>]
+    >;
+    const options = ctor.mock.calls[0][1] as {
+      enableOfflineQueue?: boolean;
+      connectTimeout?: number;
+      maxRetriesPerRequest?: number | null;
+    };
+
+    expect(options.enableOfflineQueue).toBe(false);
+    expect(options.maxRetriesPerRequest).not.toBeNull();
+    expect(typeof options.connectTimeout).toBe('number');
   });
 
   it('derives the anchor job id from the credential, so a repeat enqueue collapses', async () => {

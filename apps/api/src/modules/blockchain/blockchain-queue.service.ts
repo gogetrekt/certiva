@@ -15,6 +15,9 @@ import {
   BLOCKCHAIN_QUEUE_NAME,
 } from './blockchain.constants';
 
+/** Matches the rate limiter's client: a producer waits briefly, then gives up. */
+const REDIS_CONNECT_TIMEOUT_MS = 500;
+
 @Injectable()
 export class BlockchainQueueService implements OnModuleDestroy {
   private readonly connection: IORedis;
@@ -24,8 +27,18 @@ export class BlockchainQueueService implements OnModuleDestroy {
     private readonly configService: AppConfigService,
     private readonly prisma: PrismaService,
   ) {
+    // This is the *producer* side. BullMQ requires maxRetriesPerRequest: null
+    // on a Worker connection, but a producer that cannot reach Redis has to say
+    // so: with the default enableOfflineQueue: true, queue.add() parks the
+    // command in an in-memory offline queue and never settles, so the request
+    // hangs instead of failing and every catch { markQueueFailure(...) } around
+    // an enqueue becomes unreachable in exactly the failure mode most likely to
+    // occur. Fail fast here, the same way the rate limiter and health check
+    // clients already do.
     this.connection = new IORedis(this.configService.redisUrl, {
-      maxRetriesPerRequest: null,
+      maxRetriesPerRequest: 1,
+      enableOfflineQueue: false,
+      connectTimeout: REDIS_CONNECT_TIMEOUT_MS,
       lazyConnect: true,
     });
 
