@@ -107,7 +107,7 @@ Certiva is built with a security-first posture across all layers.
 
 **Rate limiting** - Configurable per-endpoint limits on auth login, public verification, verification with file upload, and admin API routes. Redis-backed in staging and production.
 
-**Audit logging** - Tamper-evident, hash-chained audit log covering login, admin lifecycle, credential issuance and revocation, document proof creation, and settings changes. Each entry is chained to the previous one (`prevHash → entryHash`), so editing, deleting, or reordering any row breaks the chain — verifiable via `GET /api/audit/action-logs/verify`. No sensitive values (passwords, tokens, private keys) are written to audit log metadata.
+**Audit logging** - Tamper-evident, hash-chained audit log covering login, admin lifecycle, credential issuance and revocation, document proof creation, and settings changes. Each entry is chained to the previous one (`prevHash → entryHash`), and the head of the chain is stored in a separate table, so editing, reordering, deleting (from the middle or the end) and clearing the table are all detected — verifiable via `GET /api/audit/action-logs/verify`, which also reports how many rows the chain does not vouch for. See `docs/COMPLIANCE.md` §6 for what this does and does not prove. No sensitive values (passwords, tokens, private keys) are written to audit log metadata.
 
 **Evidence retention** - Credential deletion is a soft-delete: the row, its verification/proof/anchor logs, and stored assets are retained for forensics. Deleted credentials are excluded from verification and listings but never physically removed, so evidence of issuance or fraud cannot be silently destroyed.
 

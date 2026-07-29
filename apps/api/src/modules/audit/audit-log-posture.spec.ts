@@ -18,7 +18,11 @@ describe('AuditLogService failure posture', () => {
 
   /** Minimal transaction client — only what writeEntry touches. */
   function makeTx(options: { createThrows?: boolean } = {}) {
-    const state = { lockCalls: 0, created: [] as unknown[] };
+    const state = {
+      lockCalls: 0,
+      created: [] as unknown[],
+      heads: [] as unknown[],
+    };
     const client = {
       // Called as a tagged template for the advisory lock.
       $executeRaw: () => {
@@ -32,7 +36,14 @@ describe('AuditLogService failure posture', () => {
             return Promise.reject(new Error('audit chain unavailable'));
           }
           state.created.push(args.data);
-          return Promise.resolve(args.data);
+          return Promise.resolve({ seq: state.created.length });
+        },
+      },
+      // The head moves in the same transaction as the row it points at.
+      auditChainHead: {
+        upsert: (args: { update: unknown }) => {
+          state.heads.push(args.update);
+          return Promise.resolve(args.update);
         },
       },
     };

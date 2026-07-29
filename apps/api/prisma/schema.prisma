@@ -408,3 +408,15 @@ model AuditLog {
   @@index([createdAt])
   @@index([targetType, targetId])
 }
+
+/// The chain head, kept in its own table so that truncating or deleting from
+/// the tail of AuditLog is detectable. A chain that only checks row N against
+/// row N-1 stays perfectly continuous after its last rows are removed, and is
+/// vacuously valid once the table is empty — the head is the anchor that makes
+/// both visible. Always exactly one row, id "singleton".
+model AuditChainHead {
+  id        String   @id @default("singleton")
+  seq       Int
+  entryHash String
+  updatedAt DateTime @updatedAt
+}

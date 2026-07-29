@@ -103,14 +103,49 @@ institution's own Cloudflare R2 bucket.
 The admin/credential audit log is **hash-chained**: every entry stores the hash
 of the previous entry (`prevHash`) and a hash of its own content (`entryHash`).
 
-- Editing, deleting, or reordering any row breaks the chain from that point on.
-- Integrity is verifiable on demand:
-  `GET /api/audit/action-logs/verify` (OWNER / SUPER_ADMIN / AUDITOR) recomputes
-  the chain and reports the first break, if any.
-- Because pruning would break the chain, audit rows are retained by design.
+Four things are checked, and each covers a case the others miss:
 
-This gives an institution a defensible answer to *"can an insider quietly alter
-the record of who issued or revoked what?"* — no, not without detection.
+- **Editing or reordering a row** breaks the `prevHash` → `entryHash` link from
+  that point on.
+- **Deleting a row** leaves a hole in `seq`, which is a Postgres
+  `autoincrement()`. This is what catches a deletion from the *middle*; on its
+  own the link check would also catch it, but the two together mean a row cannot
+  be removed and the remainder renumbered to hide it.
+- **Deleting from the end** — the "remove the record of my last few actions"
+  case — is caught by comparing the last row against a chain head stored in a
+  separate table (`AuditChainHead`), updated in the same transaction as the row
+  it points at. Link-and-seq checking alone cannot see a tail truncation: what
+  remains is a shorter chain that is still perfectly continuous.
+- **Clearing the table** is caught by the same head: an empty audit log is
+  reported as valid only when no head exists, i.e. when nothing was ever
+  written.
+
+Integrity is verifiable on demand: `GET /api/audit/action-logs/verify`
+(OWNER / SUPER_ADMIN / AUDITOR) runs all four checks and reports the first
+break, if any. Because pruning would break the chain, audit rows are retained by
+design.
+
+The verdict also reports `totalRows` and `unchained`. `unchained` counts rows
+with no `entryHash` — entries written before chaining was introduced. Those rows
+are **not** covered by any of the guarantees above, and `valid: true` alongside
+`unchained > 0` means "the chained portion is intact", not "the audit log is
+intact". Read both numbers.
+
+**What this does and does not prove.** An insider operating through the
+application — any admin, any API path — cannot alter, remove or reorder the
+record of who issued or revoked what without the verification endpoint saying
+so. Someone with direct write access to the database is in a different position:
+the chain head lives in the same database as the log, so an attacker who can
+write to both tables can move the head to match a log they have edited. The head
+raises the cost from one `DELETE` to a coordinated, consistent rewrite of two
+tables, and it removes the silent cases entirely — but it is not a substitute
+for restricting direct database access, and it is not an off-site anchor.
+
+A `seq` hole is also produced by an ordinary rolled-back transaction, which
+burns a sequence value without leaving a row. The verdict names this case
+explicitly in its `reason` rather than folding it into a generic failure,
+because an operator has to be able to tell the two apart — a hole is reported,
+never assumed benign.
 
 ## 7. Secrets & transport
 
