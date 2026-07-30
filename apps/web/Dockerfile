@@ -38,9 +38,12 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 # Next.js standalone output: self-contained server + traced node_modules.
-COPY --from=builder /app/apps/web/.next/standalone/ ./
-COPY --from=builder /app/apps/web/.next/static/     ./apps/web/.next/static/
-COPY --from=builder /app/apps/web/public/           ./apps/web/public/
+COPY --from=builder --chown=node:node /app/apps/web/.next/standalone/ ./
+COPY --from=builder --chown=node:node /app/apps/web/.next/static/     ./apps/web/.next/static/
+COPY --from=builder --chown=node:node /app/apps/web/public/           ./apps/web/public/
 
 EXPOSE 3000
+# node:20-alpine ships an unprivileged `node` user (uid 1000). Without this the
+# server runs as root.
+USER node
 CMD ["node", "apps/web/server.js"]

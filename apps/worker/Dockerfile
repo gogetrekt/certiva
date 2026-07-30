@@ -54,7 +54,10 @@ ENV NODE_ENV=production
 # ponytail: carries devDeps + build toolchain, same trade-off the api image
 # already accepts; switch to `pnpm --filter worker deploy --prod` if image size
 # starts to matter.
-COPY --from=builder /app ./
+COPY --from=builder --chown=node:node /app ./
 
 WORKDIR /app/apps/worker
+# node:20-alpine ships an unprivileged `node` user (uid 1000). Without this the
+# worker runs as root, and it is the process that handles untrusted uploads.
+USER node
 CMD ["node", "dist/index.js"]

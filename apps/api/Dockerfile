@@ -49,8 +49,12 @@ ENV PORT=4000
 # ponytail: ~1.75GB (carries devDeps + build toolchain). Fine for single-tenant
 # self-host; if image size matters, switch to `pnpm --filter api deploy --prod`
 # to emit a flat production-only node_modules.
-COPY --from=builder /app ./
+COPY --from=builder --chown=node:node /app ./
 
 EXPOSE 4000
 WORKDIR /app/apps/api
+# node:20-alpine ships an unprivileged `node` user (uid 1000). Without this the
+# process runs as root, so a remote-code-execution bug in the API is root in the
+# container rather than an unprivileged account.
+USER node
 CMD ["node", "dist/main.js"]
