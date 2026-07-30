@@ -52,7 +52,7 @@ describe('BlockchainQueueService', () => {
     expect.objectContaining(shape);
   const update = (tx: Tx): Mock => tx.credential.update;
 
-  const build = () => {
+  const build = (options: { blockchainEnabled?: boolean } = {}) => {
     const tx = {
       credential: { update: jest.fn() as Mock },
       blockchainAnchorLog: { create: jest.fn() as Mock },
@@ -65,7 +65,10 @@ describe('BlockchainQueueService', () => {
     const prisma = { $transaction: transaction } as unknown as PrismaService;
 
     const service = new BlockchainQueueService(
-      { redisUrl: 'redis://127.0.0.1:6379' } as unknown as AppConfigService,
+      {
+        redisUrl: 'redis://127.0.0.1:6379',
+        blockchainEnabled: options.blockchainEnabled ?? true,
+      } as unknown as AppConfigService,
       prisma,
     );
 
@@ -92,6 +95,23 @@ describe('BlockchainQueueService', () => {
   afterEach(() => {
     built.splice(0);
     jest.clearAllMocks();
+  });
+
+  /**
+   * BLOCKCHAIN_ENABLED only relaxed env validation: nothing read it at runtime,
+   * so anchor and revoke jobs were enqueued and the worker wrote on-chain
+   * whatever it was set to. `.env.example` has always described it as the way
+   * to turn blockchain off, and CI runs the whole suite with it set to
+   * "false", both of which make it look like a kill switch.
+   */
+  it('enqueues nothing while blockchain is disabled', async () => {
+    const { service, queue, transaction } = build({ blockchainEnabled: false });
+
+    await service.enqueueAnchor('cred_1');
+    await service.enqueueRevoke('cred_1');
+
+    expect(queue.add).not.toHaveBeenCalled();
+    expect(transaction).not.toHaveBeenCalled();
   });
 
   /**

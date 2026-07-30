@@ -32,12 +32,21 @@ enum RevocationReason {
 enum AuditAction {
   LOGIN_SUCCESS
   LOGIN_FAILURE
+  /// No writer, deliberately: logout happens entirely in the web app, which
+  /// clears the session cookie without calling the API. Nothing server-side
+  /// observes it, so there is nothing to record. Recording it would mean
+  /// adding a logout endpoint first.
   LOGOUT
   ADMIN_CREATED
   ADMIN_UPDATED
   ADMIN_DISABLED
   ADMIN_DELETED
   ADMIN_ROLE_CHANGED
+  /// No writer, and this one marks a missing feature rather than a missing
+  /// log line: there is no change-password endpoint anywhere in the API, so
+  /// the only way to change an admin password is direct database access. The
+  /// session invalidation it would need already exists (tokenVersion). Kept
+  /// as the record of a known gap.
   ADMIN_PASSWORD_CHANGED
   CREDENTIAL_ISSUED
   CREDENTIAL_REVOKED

@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
@@ -20,6 +20,7 @@ const REDIS_CONNECT_TIMEOUT_MS = 500;
 
 @Injectable()
 export class BlockchainQueueService implements OnModuleDestroy {
+  private readonly logger = new Logger(BlockchainQueueService.name);
   private readonly connection: IORedis;
   private readonly queue: Queue;
 
@@ -62,6 +63,13 @@ export class BlockchainQueueService implements OnModuleDestroy {
   }
 
   async enqueueAnchor(credentialId: string) {
+    if (!this.configService.blockchainEnabled) {
+      this.logger.log(
+        `Blockchain disabled; skipping anchor enqueue for ${credentialId}`,
+      );
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
       await tx.credential.update({
         where: { id: credentialId },
@@ -90,6 +98,13 @@ export class BlockchainQueueService implements OnModuleDestroy {
   }
 
   async enqueueRevoke(credentialId: string) {
+    if (!this.configService.blockchainEnabled) {
+      this.logger.log(
+        `Blockchain disabled; skipping revoke enqueue for ${credentialId}`,
+      );
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
       await this.persistLifecycleLog(tx, credentialId, {
         operation: BLOCKCHAIN_OPERATION.revoke,

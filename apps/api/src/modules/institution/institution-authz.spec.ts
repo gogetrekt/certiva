@@ -8,6 +8,7 @@ import {
   OWNER_ROLE,
   SUPER_ADMIN_ROLE,
 } from '../../common/auth/admin-role.constants';
+import type { AuditLogService } from '../audit/audit-log.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import { InstitutionController } from './institution.controller';
@@ -23,7 +24,14 @@ import { InstitutionController } from './institution.controller';
  * decorator, which is precisely the change that would open rotation up.
  */
 
-const guard = new RolesGuard(new Reflector());
+// A rejection now also writes a FORBIDDEN_ATTEMPT audit entry, so the guard
+// takes the audit service. These tests care about the allow/deny decision, so
+// the writer is a stub that records nothing.
+const auditLog = { log: jest.fn().mockResolvedValue(undefined) };
+const guard = new RolesGuard(
+  new Reflector(),
+  auditLog as unknown as AuditLogService,
+);
 
 /**
  * Indexed access, so the handler is only ever passed to Reflector as a metadata

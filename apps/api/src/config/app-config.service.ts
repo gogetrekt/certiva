@@ -40,6 +40,16 @@ export class AppConfigService {
     return this.configService.getOrThrow<RateLimitConfig>('rateLimit');
   }
 
+  /**
+   * Whether on-chain anchoring is switched on. `.env.example` has always
+   * described this as the way to turn blockchain off, but nothing read it at
+   * runtime: it only relaxed env validation, so anchor and revoke jobs were
+   * enqueued and the worker wrote on-chain regardless.
+   */
+  get blockchainEnabled() {
+    return this.configService.get<boolean>('blockchain.enabled') === true;
+  }
+
   get jwtSecret() {
     return this.configService.getOrThrow<string>('auth.jwtSecret');
   }

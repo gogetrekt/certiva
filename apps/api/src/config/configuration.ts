@@ -67,6 +67,7 @@ export const configuration = () => ({
     },
   },
   blockchain: {
+    enabled: process.env.BLOCKCHAIN_ENABLED === 'true',
     polygonAmoyRpcUrl: process.env.POLYGON_AMOY_RPC_URL,
     privateKey: process.env.PRIVATE_KEY,
     contractAddress: process.env.CONTRACT_ADDRESS,

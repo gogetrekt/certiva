@@ -78,12 +78,16 @@ export type RevocationReason =
 export type AuditAction =
   | "LOGIN_SUCCESS"
   | "LOGIN_FAILURE"
+  // No writer, deliberately: logout happens entirely in the web app, which
+  // clears the session cookie without calling the API.
   | "LOGOUT"
   | "ADMIN_CREATED"
   | "ADMIN_UPDATED"
   | "ADMIN_DISABLED"
   | "ADMIN_DELETED"
   | "ADMIN_ROLE_CHANGED"
+  // No writer, and it marks a missing feature rather than a missing log line:
+  // the API has no change-password endpoint at all.
   | "ADMIN_PASSWORD_CHANGED"
   | "CREDENTIAL_ISSUED"
   | "CREDENTIAL_REVOKED"

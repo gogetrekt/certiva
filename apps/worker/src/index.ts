@@ -49,15 +49,25 @@ const retryWorker = new Worker(QUEUE_NAMES.retry, processRetry, {
   connection,
   concurrency: 5,
 });
+// The other half of the BLOCKCHAIN_ENABLED gate. The API stops enqueueing when
+// it is off, but jobs already sitting in the queue would still be picked up and
+// written on-chain, so the consumer has to honour the flag too. Anything queued
+// while it is off simply waits.
+const blockchainEnabled = process.env.BLOCKCHAIN_ENABLED === "true";
+if (!blockchainEnabled) {
+  safeLog(
+    "info",
+    "BLOCKCHAIN_ENABLED is not true; the credential-anchor worker will not start and no on-chain writes will be made",
+  );
+}
+
 // ponytail: single signer + auto-nonce — concurrency 1 avoids nonce races. Add a nonce manager only if throughput demands it.
-const credentialAnchorWorker = new Worker(
-  QUEUE_NAMES.credentialAnchor,
-  processCredentialAnchor,
-  {
-  connection,
-  concurrency: 1,
-  },
-);
+const credentialAnchorWorker = blockchainEnabled
+  ? new Worker(QUEUE_NAMES.credentialAnchor, processCredentialAnchor, {
+      connection,
+      concurrency: 1,
+    })
+  : null;
 
 // Safe worker error listeners — log message only, never private keys or config
 function attachErrorListener(worker: Worker, queueName: string) {
@@ -79,7 +89,9 @@ function attachErrorListener(worker: Worker, queueName: string) {
 
 attachErrorListener(issuanceWorker, QUEUE_NAMES.issuance);
 attachErrorListener(retryWorker, QUEUE_NAMES.retry);
-attachErrorListener(credentialAnchorWorker, QUEUE_NAMES.credentialAnchor);
+if (credentialAnchorWorker) {
+  attachErrorListener(credentialAnchorWorker, QUEUE_NAMES.credentialAnchor);
+}
 
 const issuanceEvents = new QueueEvents(QUEUE_NAMES.issuance, { connection });
 const retryEvents = new QueueEvents(QUEUE_NAMES.retry, { connection });
@@ -90,7 +102,7 @@ const shutdown = async () => {
   await Promise.all([
     issuanceWorker.close(),
     retryWorker.close(),
-    credentialAnchorWorker.close(),
+    credentialAnchorWorker?.close(),
     issuanceEvents.close(),
     retryEvents.close(),
     credentialAnchorEvents.close(),
