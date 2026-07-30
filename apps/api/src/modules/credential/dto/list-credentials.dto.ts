@@ -5,19 +5,29 @@ import {
   IsOptional,
   IsString,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
+
+import {
+  MAX_STUDENT_ID_LENGTH,
+  MAX_STUDENT_NAME_LENGTH,
+} from './create-credential.dto';
 
 export const DEFAULT_CREDENTIAL_PAGE_SIZE = 25;
 export const MAX_CREDENTIAL_PAGE_SIZE = 100;
 
 export class ListCredentialsDto {
+  // Both feed a `contains` filter, so they are bounded to the length of the
+  // column they search rather than left open.
   @IsOptional()
   @IsString()
+  @MaxLength(MAX_STUDENT_ID_LENGTH)
   studentId?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(MAX_STUDENT_NAME_LENGTH)
   studentName?: string;
 
   @IsOptional()

@@ -522,11 +522,18 @@ export class CredentialService {
     let skipped = 0;
     let failed = 0;
 
+    // One query for the whole batch instead of one per id. The per-id lookup
+    // made a bulk call cost a round trip per element before any work started,
+    // so the request scaled with the size of the array the caller chose.
+    const existingById = new Map(
+      (
+        await this.prisma.credential.findMany({ where: { id: { in: ids } } })
+      ).map((credential) => [credential.id, credential]),
+    );
+
     for (const id of ids) {
       try {
-        const existing = await this.prisma.credential.findUnique({
-          where: { id },
-        });
+        const existing = existingById.get(id);
         if (!existing || existing.issuerId !== issuerId) {
           skipped++;
           continue;
@@ -615,11 +622,16 @@ export class CredentialService {
     let skipped = 0;
     let failed = 0;
 
+    // One query for the batch, as in bulkRevoke above.
+    const existingById = new Map(
+      (
+        await this.prisma.credential.findMany({ where: { id: { in: ids } } })
+      ).map((credential) => [credential.id, credential]),
+    );
+
     for (const id of ids) {
       try {
-        const existing = await this.prisma.credential.findUnique({
-          where: { id },
-        });
+        const existing = existingById.get(id);
         if (!existing || existing.issuerId !== issuerId) {
           skipped++;
           continue;

@@ -1,3 +1,5 @@
+import { MAX_CSV_ROWS } from './dto/bulk-issue-credentials.dto';
+
 export interface ParsedCredentialRow {
   rowNumber: number;
   studentName: string;
@@ -21,7 +23,19 @@ export function parseCredentialCsv(csvText: string): ParsedCsvResult {
   const rows: ParsedCredentialRow[] = [];
   const errors: CsvParseError[] = [];
   const normalized = csvText.replace(/^\uFEFF/, '');
-  const lines = normalized.split(/\r?\n/);
+  const allLines = normalized.split(/\r?\n/);
+
+  // The byte cap on the DTO does not bound the row count: two million single
+  // character lines fit well inside it, and every row becomes work downstream.
+  // Truncating silently would issue part of a batch and report success, so the
+  // excess is reported as an error instead.
+  const lines = allLines.slice(0, MAX_CSV_ROWS);
+  if (allLines.length > MAX_CSV_ROWS) {
+    errors.push({
+      rowNumber: MAX_CSV_ROWS + 1,
+      message: `CSV has more than ${MAX_CSV_ROWS} rows; split it into smaller batches`,
+    });
+  }
 
   let hasHeader = false;
   let firstDataLineSeen = false;

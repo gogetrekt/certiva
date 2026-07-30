@@ -265,12 +265,19 @@ export class DocumentProofService {
     let skipped = 0;
     let failed = 0;
 
+    // One query for the batch instead of one per id.
+    const proofById = new Map(
+      (
+        await this.prisma.secureDocumentProof.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, issuerId: true },
+        })
+      ).map((proof) => [proof.id, proof]),
+    );
+
     for (const id of ids) {
       try {
-        const proof = await this.prisma.secureDocumentProof.findUnique({
-          where: { id },
-          select: { id: true, issuerId: true },
-        });
+        const proof = proofById.get(id);
         if (!proof) {
           skipped++;
           continue;

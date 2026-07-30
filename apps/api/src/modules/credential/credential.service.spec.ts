@@ -234,15 +234,19 @@ describe('CredentialService.bulkRevoke', () => {
       credential: { update: jest.fn().mockResolvedValue({}) },
       auditLog: { create: jest.fn().mockResolvedValue({}) },
     };
+    const existing = {
+      id: 'cred_1',
+      issuerId: 'issuer_1',
+      revoked: false,
+      studentName: 'Budi',
+      degree: 'S.Kom',
+    };
     const prisma = {
       credential: {
-        findUnique: jest.fn().mockResolvedValue({
-          id: 'cred_1',
-          issuerId: 'issuer_1',
-          revoked: false,
-          studentName: 'Budi',
-          degree: 'S.Kom',
-        }),
+        // The batch is fetched with one findMany rather than a findUnique per
+        // id, so a bulk call costs a fixed number of round trips.
+        findMany: jest.fn().mockResolvedValue([existing]),
+        findUnique: jest.fn().mockResolvedValue(existing),
       },
       $transaction: jest.fn((cb: (t: typeof tx) => Promise<unknown>) => cb(tx)),
     } as unknown as PrismaService;

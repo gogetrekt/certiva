@@ -220,7 +220,11 @@ export class VerificationService {
 
       return {
         credentialExternalId: null,
-        verificationId,
+        // Not the caller's input. This endpoint is public and
+        // unauthenticated, and echoing an unmatched reference back made it a
+        // 1:1 amplifier: whatever was posted returned verbatim in the body.
+        // Nothing matched, so there is no verificationId to report.
+        verificationId: null,
         verificationCode: null,
         verificationMode: null,
         securePdfEnabled: false,
@@ -445,7 +449,7 @@ export class VerificationService {
       });
 
       return {
-        ...this.buildNotFoundResponse('', createdAt),
+        ...this.buildNotFoundResponse(createdAt),
         resolvedReference: null,
         referenceSource: 'QR' as const,
       };
@@ -633,10 +637,14 @@ export class VerificationService {
     return credential;
   }
 
-  private buildNotFoundResponse(reference: string, createdAt: Date) {
+  private buildNotFoundResponse(createdAt: Date) {
     return {
       credentialExternalId: null,
-      verificationId: reference,
+      // Deliberately not the caller's input. Echoing an unmatched reference
+      // back turned this public, unauthenticated endpoint into a 1:1
+      // amplifier — whatever was posted came straight back in the response
+      // body. Nothing was found, so there is no verificationId to report.
+      verificationId: null,
       verificationCode: null,
       verificationMode: null,
       securePdfEnabled: false,

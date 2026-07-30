@@ -1,9 +1,25 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+
+/**
+ * Two separate limits, because either one alone leaves a hole: a byte cap does
+ * not stop a million single-character rows, and a row cap does not stop one
+ * enormous line. `MAX_CSV_ROWS` is enforced in the parser, where the rows
+ * actually exist.
+ */
+export const MAX_CSV_BYTES = 2 * 1024 * 1024;
+export const MAX_CSV_ROWS = 5000;
 
 export class BulkIssueCredentialsDto {
   @IsString()
   @MinLength(1)
+  @MaxLength(MAX_CSV_BYTES)
   csv!: string;
 
   @IsOptional()
