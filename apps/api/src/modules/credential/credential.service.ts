@@ -548,6 +548,12 @@ export class CredentialService {
         // credential with no audit trail. Blockchain enqueue stays OUTSIDE
         // (external side effect, only anchor after the tx commits).
         await this.prisma.$transaction(async (tx) => {
+          // LOCK ORDER — first statement, before any other row in this
+          // transaction. See the note on lockChain(): every audit writer takes
+          // this lock before its data rows, and reversing it in even one path
+          // deadlocks under concurrency.
+          await this.auditLogService.lockChain(tx);
+
           await tx.credential.update({
             where: { id },
             data: {
@@ -560,11 +566,19 @@ export class CredentialService {
             },
           });
 
-          await tx.auditLog.create({
-            data: {
+          // Through AuditLogService, not tx.auditLog.create directly. The
+          // direct call wrote the row with prevHash and entryHash left NULL,
+          // so every bulk revoke added a row the chain does not vouch for —
+          // the same "unchained" state the verify endpoint reports, except
+          // produced by ordinary daily use rather than inherited from before
+          // chaining existed.
+          await this.auditLogService.log(
+            {
               action: 'CREDENTIAL_REVOKED',
-              actorAdminId: admin.sub ?? null,
-              actorUsername: admin.username ?? null,
+              context: {
+                actorAdminId: admin.sub,
+                actorUsername: admin.username ?? undefined,
+              },
               targetType: 'Credential',
               targetId: id,
               metadata: {
@@ -574,10 +588,9 @@ export class CredentialService {
                 degree: existing.degree,
                 bulk: true,
               },
-              ipAddress: null,
-              userAgent: null,
             },
-          });
+            tx,
+          );
         });
 
         try {

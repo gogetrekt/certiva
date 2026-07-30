@@ -229,23 +229,40 @@ describe('CredentialService.bulkRevoke', () => {
     role: 'ADMIN',
   } as unknown as JwtPayload;
 
-  const build = () => {
+  const build = (ids: string[] = ['cred_1']) => {
     const tx = {
       credential: { update: jest.fn().mockResolvedValue({}) },
       auditLog: { create: jest.fn().mockResolvedValue({}) },
     };
-    const existing = {
-      id: 'cred_1',
+    // Records the order of calls across the transaction, so the test can assert
+    // the chain lock is taken before any data row is touched.
+    const calls: string[] = [];
+    const lockChain = jest.fn(() => {
+      calls.push('lockChain');
+      return Promise.resolve();
+    });
+    const log = jest.fn(() => {
+      calls.push('log');
+      return Promise.resolve();
+    }) as jest.Mock;
+    const auditLogService = { lockChain, log } as unknown as AuditLogService;
+    tx.credential.update.mockImplementation(() => {
+      calls.push('credential.update');
+      return Promise.resolve({});
+    });
+    const rows = ids.map((id) => ({
+      id,
       issuerId: 'issuer_1',
       revoked: false,
       studentName: 'Budi',
       degree: 'S.Kom',
-    };
+    }));
+    const existing = rows[0];
     const prisma = {
       credential: {
         // The batch is fetched with one findMany rather than a findUnique per
         // id, so a bulk call costs a fixed number of round trips.
-        findMany: jest.fn().mockResolvedValue([existing]),
+        findMany: jest.fn().mockResolvedValue(rows),
         findUnique: jest.fn().mockResolvedValue(existing),
       },
       $transaction: jest.fn((cb: (t: typeof tx) => Promise<unknown>) => cb(tx)),
@@ -268,11 +285,11 @@ describe('CredentialService.bulkRevoke', () => {
       } as unknown as InstitutionService,
       {} as AppConfigService,
       {} as PdfReferenceService,
-      {} as AuditLogService,
+      auditLogService,
       {} as SigningKeyService,
     );
 
-    return { service, markQueueFailure };
+    return { service, markQueueFailure, log, tx, calls };
   };
 
   it('records a failed revoke enqueue instead of only logging it', async () => {
@@ -292,5 +309,63 @@ describe('CredentialService.bulkRevoke', () => {
     // Still counted as revoked: the database revocation did commit, only the
     // chain write is outstanding.
     expect(result.revoked).toBe(1);
+  });
+
+  /**
+   * bulkRevoke wrote its audit rows with tx.auditLog.create directly, which
+   * bypasses the hash chain entirely: prevHash and entryHash were left NULL, so
+   * every bulk revoke added a row the chain does not vouch for. That is the
+   * same "unchained" state the verify endpoint reports — except produced by
+   * ordinary daily use rather than inherited from before chaining existed,
+   * which is what made the unchained count meaningful in the first place.
+   */
+  it('writes its audit rows through the chain, not around it', async () => {
+    const { service, log, tx } = build();
+
+    await service.bulkRevoke(admin, ['cred_1'], 'DATA_CORRECTION');
+
+    // The raw create is what skipped the chain.
+    expect(tx.auditLog.create).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledTimes(1);
+
+    // Passed the transaction, so the entry commits or rolls back with the
+    // revocation rather than being written in a transaction of its own.
+    const [input, passedTx] = log.mock.calls[0] as [
+      { action: string },
+      unknown,
+    ];
+    expect(passedTx).toBe(tx);
+    expect(input).toEqual(
+      expect.objectContaining({ action: 'CREDENTIAL_REVOKED' }),
+    );
+  });
+
+  it('takes the chain lock before touching any other row', async () => {
+    const { service, calls } = build();
+
+    await service.bulkRevoke(admin, ['cred_1'], 'DATA_CORRECTION');
+
+    // Lock order is load-bearing: every audit writer takes this lock before its
+    // data rows, and reversing it in one path is a deadlock under concurrency.
+    expect(calls[0]).toBe('lockChain');
+    expect(calls).toEqual(['lockChain', 'credential.update', 'log']);
+  });
+
+  it('chains every row of a multi-credential batch, not just the first', async () => {
+    const ids = ['cred_1', 'cred_2', 'cred_3'];
+    const { service, log, tx } = build(ids);
+
+    const result = await service.bulkRevoke(admin, ids, 'DATA_CORRECTION');
+
+    expect(result.revoked).toBe(3);
+    // One chained write per credential — not one chained row followed by two
+    // that skipped the chain.
+    expect(log).toHaveBeenCalledTimes(3);
+    expect(tx.auditLog.create).not.toHaveBeenCalled();
+
+    const targets = (
+      log.mock.calls as Array<[{ targetId: string }, unknown]>
+    ).map(([input]) => input.targetId);
+    expect(targets).toEqual(ids);
   });
 });

@@ -87,27 +87,42 @@ export type RevocationReason =
   | "OTHER"
   | "LEGACY";
 
-export type AuditAction =
-  | "LOGIN_SUCCESS"
-  | "LOGIN_FAILURE"
+/**
+ * Must match the `AuditAction` enum in apps/api/prisma/schema.prisma exactly.
+ *
+ * This is a const object rather than a bare union, following BLOCKCHAIN_OPERATION
+ * above, so the values exist at runtime and the two definitions can actually be
+ * compared. `audit-action-parity.spec.ts` in the API asserts that comparison
+ * against the Prisma client, which is the only place both sides are visible;
+ * without it this list silently drifted and lost SIGNING_KEY_GENERATED and
+ * SIGNING_KEY_ROTATED, both of which are written in production code.
+ */
+export const AUDIT_ACTION = {
+  loginSuccess: "LOGIN_SUCCESS",
+  loginFailure: "LOGIN_FAILURE",
   // No writer, deliberately: logout happens entirely in the web app, which
   // clears the session cookie without calling the API.
-  | "LOGOUT"
-  | "ADMIN_CREATED"
-  | "ADMIN_UPDATED"
-  | "ADMIN_DISABLED"
-  | "ADMIN_DELETED"
-  | "ADMIN_ROLE_CHANGED"
+  logout: "LOGOUT",
+  adminCreated: "ADMIN_CREATED",
+  adminUpdated: "ADMIN_UPDATED",
+  adminDisabled: "ADMIN_DISABLED",
+  adminDeleted: "ADMIN_DELETED",
+  adminRoleChanged: "ADMIN_ROLE_CHANGED",
   // No writer, and it marks a missing feature rather than a missing log line:
   // the API has no change-password endpoint at all.
-  | "ADMIN_PASSWORD_CHANGED"
-  | "CREDENTIAL_ISSUED"
-  | "CREDENTIAL_REVOKED"
-  | "CREDENTIAL_DELETED"
-  | "DOCUMENT_PROOF_CREATED"
-  | "DOCUMENT_PROOF_DELETED"
-  | "SETTINGS_UPDATED"
-  | "FORBIDDEN_ATTEMPT";
+  adminPasswordChanged: "ADMIN_PASSWORD_CHANGED",
+  credentialIssued: "CREDENTIAL_ISSUED",
+  credentialRevoked: "CREDENTIAL_REVOKED",
+  credentialDeleted: "CREDENTIAL_DELETED",
+  documentProofCreated: "DOCUMENT_PROOF_CREATED",
+  documentProofDeleted: "DOCUMENT_PROOF_DELETED",
+  signingKeyGenerated: "SIGNING_KEY_GENERATED",
+  signingKeyRotated: "SIGNING_KEY_ROTATED",
+  settingsUpdated: "SETTINGS_UPDATED",
+  forbiddenAttempt: "FORBIDDEN_ATTEMPT",
+} as const;
+
+export type AuditAction = (typeof AUDIT_ACTION)[keyof typeof AUDIT_ACTION];
 
 // No consumer outside this package today. Kept, not deleted: it mirrors a
 // value that exists in schema.prisma / the API contract, and a shared types
