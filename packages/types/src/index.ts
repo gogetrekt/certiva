@@ -1,8 +1,16 @@
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export type InstitutionStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 export type IssuerStatus = InstitutionStatus;
 
 export type AdminRole = "OWNER" | "SUPER_ADMIN" | "ADMIN" | "AUDITOR";
 
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export type VerificationResult =
   | "VALID"
   | "INVALID"
@@ -41,6 +49,10 @@ export const CHAIN_STATUS = {
   revokeEnqueueFailed: "REVOKE_ENQUEUE_FAILED",
 } as const;
 
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export type ChainStatus = (typeof CHAIN_STATUS)[keyof typeof CHAIN_STATUS];
 export type BlockchainProofStatus =
   | "ON_CHAIN_VERIFIED"
@@ -97,6 +109,10 @@ export type AuditAction =
   | "SETTINGS_UPDATED"
   | "FORBIDDEN_ATTEMPT";
 
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export type Permission =
   | "ADMIN_MANAGE"
   | "ADMIN_READ"
@@ -205,6 +221,10 @@ export interface AuditLog {
   createdAt: string;
 }
 
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export interface BlockchainAnchorLog {
   id: string;
   credentialId: string;
@@ -236,6 +256,10 @@ export interface CredentialAnchorJobPayload {
   operation: BlockchainOperation;
 }
 
+// No consumer outside this package today. Kept, not deleted: it mirrors a
+// value that exists in schema.prisma / the API contract, and a shared types
+// package is expected to describe the whole contract rather than only the
+// parts currently imported.
 export interface RevokeCredentialRequest {
   reason: RevocationReason;
   notes?: string;

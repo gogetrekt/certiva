@@ -116,7 +116,6 @@ model Issuer {
   documentProofs SecureDocumentProof[]
   signingKeys    IssuerSigningKey[]
 
-  @@index([domain])
 }
 
 model IssuerSigningKey {
@@ -212,9 +211,6 @@ model Credential {
   blockchainLogs            BlockchainAnchorLog[]
 
   @@index([issuerId])
-  @@index([credentialExternalId])
-  @@index([hash])
-  @@index([registryHash])
   @@index([studentId])
   // A partial unique index on ("issuerId", "studentId", "degree") WHERE
   // "deletedAt" IS NULL AND "revoked" = false also exists on this table. It is
@@ -222,8 +218,6 @@ model Credential {
   // no declarative equivalent here: Prisma cannot express partial indexes, and
   // a plain @@unique would block legitimate re-issuance after revocation.
   @@index([issuerId, studentId])
-  @@index([verificationId])
-  @@index([verificationCode])
   @@index([batchId])
   @@index([anchorStatus])
   @@index([chainStatus])
@@ -314,9 +308,6 @@ model SecureDocumentProof {
   verificationLogs          SecureDocumentProofVerificationLog[]
 
   @@index([issuerId])
-  @@index([verificationId])
-  @@index([verificationCode])
-  @@index([sourceHash])
   @@index([anchorStatus])
   @@index([chainStatus])
 }

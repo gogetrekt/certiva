@@ -37,6 +37,14 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+// The other three scripts in this directory do this; this one did not, so it
+// read a bare process.env and stopped at the first R2 variable no matter what
+// was in .env — including on the dry run, which is the mode meant to be safe
+// to run first.
+import { loadScriptEnv } from './load-env';
+
+loadScriptEnv();
+
 // ── CLI flags ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');

@@ -291,17 +291,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/config:
-    devDependencies:
-      '@eslint/js':
-        specifier: ^9.18.0
-        version: 9.39.4
-      globals:
-        specifier: ^17.0.0
-        version: 17.6.0
-      typescript-eslint:
-        specifier: ^8.20.0
-        version: 8.59.2(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
+  packages/config: {}
 
   packages/contracts:
     dependencies:
