@@ -16,7 +16,7 @@
       "passThroughEnv": ["DATABASE_URL"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build"]
     },
     "typecheck": {
       "dependsOn": ["^build"],
